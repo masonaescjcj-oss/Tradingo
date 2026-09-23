@@ -266,17 +266,26 @@ begin
 end;
 $$;
 
--- Only the public entry points can be called from the app.
+-- Only the public entry points can be called, and only by the API's anon role: Tradingo
+-- never uses Supabase Auth, so the signed-in "authenticated" role doesn't need them.
 revoke all on function public.tradingo_session_account(text) from public, anon, authenticated;
 revoke all on function public.tradingo_new_session(uuid) from public, anon, authenticated;
-grant execute on function public.tradingo_version() to anon, authenticated;
-grant execute on function public.tradingo_sign_up(text, text, text) to anon, authenticated;
-grant execute on function public.tradingo_sign_in(text, text) to anon, authenticated;
-grant execute on function public.tradingo_sign_out(text) to anon, authenticated;
-grant execute on function public.tradingo_load(text) to anon, authenticated;
-grant execute on function public.tradingo_save(text, jsonb, text, integer, integer) to anon, authenticated;
-grant execute on function public.tradingo_set_name(text, text) to anon, authenticated;
-grant execute on function public.tradingo_league(text, text, integer) to anon, authenticated;
+revoke all on function public.tradingo_version() from public, authenticated;
+revoke all on function public.tradingo_sign_up(text, text, text) from public, authenticated;
+revoke all on function public.tradingo_sign_in(text, text) from public, authenticated;
+revoke all on function public.tradingo_sign_out(text) from public, authenticated;
+revoke all on function public.tradingo_load(text) from public, authenticated;
+revoke all on function public.tradingo_save(text, jsonb, text, integer, integer) from public, authenticated;
+revoke all on function public.tradingo_set_name(text, text) from public, authenticated;
+revoke all on function public.tradingo_league(text, text, integer) from public, authenticated;
+grant execute on function public.tradingo_version() to anon;
+grant execute on function public.tradingo_sign_up(text, text, text) to anon;
+grant execute on function public.tradingo_sign_in(text, text) to anon;
+grant execute on function public.tradingo_sign_out(text) to anon;
+grant execute on function public.tradingo_load(text) to anon;
+grant execute on function public.tradingo_save(text, jsonb, text, integer, integer) to anon;
+grant execute on function public.tradingo_set_name(text, text) to anon;
+grant execute on function public.tradingo_league(text, text, integer) to anon;
 
 -- Make the new functions visible to the API right away.
 notify pgrst, 'reload schema';
