@@ -58,7 +58,8 @@ export default function SimulatorScreen() {
     return () => clearTimeout(t);
   }, [notice]);
 
-  const chartWidth = columnWidth - 32 - 28;
+  // The chart runs edge to edge across the column.
+  const chartWidth = columnWidth;
   const resetsReplay = mode === 'replay';
 
   return (

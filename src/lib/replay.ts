@@ -5,7 +5,7 @@
 import type { Candle } from '@/content/types';
 import { createRng } from '@/utils/random';
 
-import { findSymbol, gaussian, simVolume, TICKS_PER_CANDLE, VISIBLE_CANDLES, type SymbolSpec } from './simulator';
+import { findSymbol, gaussian, HISTORY_CANDLES, simVolume, TICKS_PER_CANDLE, VISIBLE_CANDLES, type SymbolSpec } from './simulator';
 import { candlePath, processPath, type Account, type Ctx, type TradeEvent } from './trading';
 
 export const REPLAY_TOTAL = 400;
@@ -72,10 +72,10 @@ export function newReplaySession(symbol: string, seed: number, startBalance: num
   return { symbol, seed, start, cursor: start, startBalance };
 }
 
-/** The candles on screen and their volumes. */
+/** The revealed candles the chart can show (up to HISTORY_CANDLES) and their volumes. */
 export function replayView(spec: SymbolSpec, session: ReplaySession): { candles: Candle[]; volumes: number[]; price: number } {
   const all = replayCandles(spec, session.seed);
-  const candles = all.slice(Math.max(0, session.cursor - VISIBLE_CANDLES), session.cursor);
+  const candles = all.slice(Math.max(0, session.cursor - HISTORY_CANDLES), session.cursor);
   return { candles, volumes: candles.map((c) => simVolume(spec, c)), price: candles[candles.length - 1][3] };
 }
 

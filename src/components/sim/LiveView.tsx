@@ -4,9 +4,10 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Mascot } from '@/components/Mascot';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
+import { countdownLabel } from '@/lib/chartMath';
 import { LIVE_SYMBOLS, supportsLive } from '@/lib/marketData';
-import { findSymbol, type SymbolSpec } from '@/lib/simulator';
-import { summarize, type Account, type ClosedTrade } from '@/lib/trading';
+import { findSymbol, simCountdown, type SymbolSpec } from '@/lib/simulator';
+import { summarize, type Account, type ClosedTrade, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { START_BALANCE, useGame } from '@/store/game';
 import { colors } from '@/theme';
 
@@ -17,7 +18,7 @@ import { OrderTicket } from './OrderTicket';
 import { PositionsList } from './PositionsList';
 import { eventNotice, placeErrorText, type Notice } from './text';
 import { Toggle } from './ui';
-import { midsOf, type LiveStatus, type Series } from './useMarketFeed';
+import { liveCountdown, midsOf, useClock, type LiveStatus, type Series } from './useMarketFeed';
 
 type Feed = { series: Record<string, Series>; live: boolean; status: LiveStatus; setLive: (on: boolean) => void };
 
@@ -38,6 +39,7 @@ export function LiveView({
   const sim = useGame((s) => s.sim);
   const orders = useGame((s) => s.simOrders) ?? [];
   const [symbolId, setSymbolId] = useState(specs[0].id);
+  const now = useClock();
   const account: Account = { ...sim, orders };
 
   // Symbols of the chosen market, plus any other symbol that still has open trades or orders.
@@ -92,11 +94,12 @@ export function LiveView({
   );
 
   const onClosed = (t: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade: t }));
+  const onResult = (r: { error?: PlaceError; event?: TradeEvent }) =>
+    onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' });
+  const countdown = countdownLabel(liveHere && current.lastOpen != null ? liveCountdown(current.lastOpen, now) : simCountdown(current.tick));
 
   return (
     <>
-      <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب آزمایشی" onInfo={onInfo} />
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {shown.map((s) => {
           const cur = feed.series[s.id];
@@ -125,22 +128,20 @@ export function LiveView({
         spec={spec}
         candles={current.candles}
         volumes={current.volumes}
+        times={current.times}
         price={current.price}
         account={account}
         width={chartWidth}
         badge={badge}
         footer={footer}
+        timeframe={liveHere ? 'M1' : '8s'}
+        countdown={countdown}
+        trade={{ book: 'live', mids, onResult }}
       />
 
-      <OrderTicket
-        book="live"
-        spec={spec}
-        mid={current.price}
-        mids={mids}
-        summary={summary}
-        onInfo={onInfo}
-        onResult={(r) => onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' })}
-      />
+      <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب آزمایشی" onInfo={onInfo} />
+
+      <OrderTicket book="live" spec={spec} mid={current.price} mids={mids} summary={summary} onInfo={onInfo} onResult={onResult} />
 
       <View style={styles.coach}>
         <Mascot mood={lastTrade?.reason === 'sl' || lastTrade?.reason === 'liquidation' ? 'sad' : lastTrade?.reason === 'tp' ? 'party' : 'think'} size={60} />

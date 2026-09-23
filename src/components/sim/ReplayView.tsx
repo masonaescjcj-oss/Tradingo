@@ -7,7 +7,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Txt } from '@/components/Txt';
 import { REPLAY_SPEEDS, REPLAY_TOTAL, replayFinished, replayView } from '@/lib/replay';
 import { findSymbol, type SymbolSpec } from '@/lib/simulator';
-import { emptyAccount, summarize, type ClosedTrade } from '@/lib/trading';
+import { emptyAccount, summarize, type ClosedTrade, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { START_BALANCE, useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { fa, usd } from '@/utils/format';
@@ -116,6 +116,8 @@ export function ReplayView({
   const total = REPLAY_TOTAL - session.start;
   const sessionResult = summary.equity - session.startBalance;
   const onClosed = (t: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade: t }));
+  const onResult = (r: { error?: PlaceError; event?: TradeEvent }) =>
+    onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' });
 
   const badge = (
     <View style={styles.badge}>
@@ -126,84 +128,96 @@ export function ReplayView({
     </View>
   );
 
+  const controls = (
+    <Card>
+      <Row>
+        <Txt w={800} size={13.5}>
+          {`کندل ${fa(played)} از ${fa(total)}`}
+        </Txt>
+        <View style={styles.result}>
+          <Txt w={700} size={11.5} color={colors.text2}>
+            این بازپخش
+          </Txt>
+          <Txt mono w={800} size={13} color={pnlColor(sessionResult)}>
+            {usd(sessionResult, true)}
+          </Txt>
+        </View>
+      </Row>
+      <ProgressBar value={played / total} height={10} color={colors.gold} label="پیشرفت بازپخش" />
+      {finished ? (
+        <>
+          <Txt w={800} size={14} lh={1.8} color={colors.gold}>
+            {`بازپخش تموم شد! نتیجه: ${ltr(usd(sessionResult, true))}. معامله‌های باز با آخرین قیمت بسته می‌شن.`}
+          </Txt>
+          <Button3D
+            label="بازپخش جدید"
+            onPress={() => start(spec.id)}
+          />
+        </>
+      ) : (
+        <>
+          <View style={styles.controls}>
+            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(1)} accessibilityLabel="یک کندل جلو">
+              <Txt w={900} size={14}>
+                +۱ کندل
+              </Txt>
+            </Button3D>
+            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(10)} accessibilityLabel="ده کندل جلو">
+              <Txt w={900} size={14}>
+                +۱۰ کندل
+              </Txt>
+            </Button3D>
+            <Button3D
+              variant={playing ? 'gold' : 'primary'}
+              height={44}
+              radius={12}
+              edge={4}
+              style={{ flex: 1.2 }}
+              onPress={() => setPlaying((p) => !p)}
+              accessibilityLabel={playing ? 'توقف پخش' : 'پخش خودکار'}
+            >
+              <View style={styles.playLabel}>
+                {playing ? <PauseGlyph /> : <Icon name="play" size={16} color={colors.bullInk} strokeWidth={2.6} />}
+                <Txt w={900} size={14} color={playing ? colors.goldInk : colors.bullInk}>
+                  {playing ? 'توقف' : 'پخش'}
+                </Txt>
+              </View>
+            </Button3D>
+          </View>
+          <Row>
+            <Txt w={800} size={13} color={colors.text2}>
+              سرعت پخش
+            </Txt>
+            <View style={{ width: 170 }}>
+              <Segment
+                label="سرعت پخش"
+                value={speed}
+                onChange={setSpeed}
+                small
+                options={REPLAY_SPEEDS.map((s) => ({ value: s, label: `${fa(s)}×`, hint: `${fa(s)} کندل در ثانیه` }))}
+              />
+            </View>
+          </Row>
+        </>
+      )}
+    </Card>
+  );
+
   return (
     <>
+      <ChartPanel
+        spec={spec}
+        candles={view.candles}
+        volumes={view.volumes}
+        price={view.price}
+        account={account}
+        width={chartWidth}
+        badge={badge}
+        trade={finished ? undefined : { book: 'replay', mids, onResult }}
+        below={controls}
+      />
+
       <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب بازپخش" onInfo={onInfo} />
-
-      <ChartPanel spec={spec} candles={view.candles} price={view.price} account={account} width={chartWidth} badge={badge} />
-
-      <Card>
-        <Row>
-          <Txt w={800} size={13.5}>
-            {`کندل ${fa(played)} از ${fa(total)}`}
-          </Txt>
-          <View style={styles.result}>
-            <Txt w={700} size={11.5} color={colors.text2}>
-              این بازپخش
-            </Txt>
-            <Txt mono w={800} size={13} color={pnlColor(sessionResult)}>
-              {usd(sessionResult, true)}
-            </Txt>
-          </View>
-        </Row>
-        <ProgressBar value={played / total} height={10} color={colors.gold} label="پیشرفت بازپخش" />
-        {finished ? (
-          <>
-            <Txt w={800} size={14} lh={1.8} color={colors.gold}>
-              {`بازپخش تموم شد! نتیجه: ${ltr(usd(sessionResult, true))}. معامله‌های باز با آخرین قیمت بسته می‌شن.`}
-            </Txt>
-            <Button3D
-              label="بازپخش جدید"
-              onPress={() => start(spec.id)}
-            />
-          </>
-        ) : (
-          <>
-            <View style={styles.controls}>
-              <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(1)} accessibilityLabel="یک کندل جلو">
-                <Txt w={900} size={14}>
-                  +۱ کندل
-                </Txt>
-              </Button3D>
-              <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(10)} accessibilityLabel="ده کندل جلو">
-                <Txt w={900} size={14}>
-                  +۱۰ کندل
-                </Txt>
-              </Button3D>
-              <Button3D
-                variant={playing ? 'gold' : 'primary'}
-                height={44}
-                radius={12}
-                edge={4}
-                style={{ flex: 1.2 }}
-                onPress={() => setPlaying((p) => !p)}
-                accessibilityLabel={playing ? 'توقف پخش' : 'پخش خودکار'}
-              >
-                <View style={styles.playLabel}>
-                  {playing ? <PauseGlyph /> : <Icon name="play" size={16} color={colors.bullInk} strokeWidth={2.6} />}
-                  <Txt w={900} size={14} color={playing ? colors.goldInk : colors.bullInk}>
-                    {playing ? 'توقف' : 'پخش'}
-                  </Txt>
-                </View>
-              </Button3D>
-            </View>
-            <Row>
-              <Txt w={800} size={13} color={colors.text2}>
-                سرعت پخش
-              </Txt>
-              <View style={{ width: 170 }}>
-                <Segment
-                  label="سرعت پخش"
-                  value={speed}
-                  onChange={setSpeed}
-                  small
-                  options={REPLAY_SPEEDS.map((s) => ({ value: s, label: `${fa(s)}×`, hint: `${fa(s)} کندل در ثانیه` }))}
-                />
-              </View>
-            </Row>
-          </>
-        )}
-      </Card>
 
       {!finished && (
         <OrderTicket
@@ -213,7 +227,7 @@ export function ReplayView({
           mids={mids}
           summary={summary}
           onInfo={onInfo}
-          onResult={(r) => onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' })}
+          onResult={onResult}
         />
       )}
 

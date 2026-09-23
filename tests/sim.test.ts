@@ -5,7 +5,7 @@ import { describe, it } from 'node:test';
 import { CHALLENGES, evaluateChallenge, findChallenge, mergeChallenges, plannedRR } from '../src/lib/challenges';
 import { feedFromKlines, fetchKlines, mergeFeed, parseKlines } from '../src/lib/marketData';
 import { generateMarket, newReplaySession, REPLAY_TOTAL, replayCandles, replayView, stepReplay } from '../src/lib/replay';
-import { findSymbol, VISIBLE_CANDLES, type SymbolSpec } from '../src/lib/simulator';
+import { findSymbol, HISTORY_CANDLES, VISIBLE_CANDLES, type SymbolSpec } from '../src/lib/simulator';
 import { equityCurve, maxDrawdown, tradeR, tradeStats } from '../src/lib/stats';
 import {
   candlePath,
@@ -269,7 +269,8 @@ describe('replay', () => {
     for (let seed = 1; seed < 40; seed++) {
       const s = newReplaySession('ETHUSDT', seed, 10_000);
       assert.ok(s.start >= VISIBLE_CANDLES && s.start <= REPLAY_TOTAL - 120);
-      assert.equal(replayView(findSymbol('ETHUSDT')!, s).candles.length, VISIBLE_CANDLES);
+      const shown = replayView(findSymbol('ETHUSDT')!, s).candles.length;
+      assert.ok(shown >= VISIBLE_CANDLES && shown <= HISTORY_CANDLES && shown === Math.min(s.start, HISTORY_CANDLES));
     }
   });
 

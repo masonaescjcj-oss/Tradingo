@@ -37,7 +37,10 @@ export type IconName =
   | 'volume'
   | 'mute'
   | 'phone'
-  | 'logout';
+  | 'logout'
+  | 'expand'
+  | 'crosshair'
+  | 'skipEnd';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -203,6 +206,17 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       return <Path {...p} d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10" />;
     case 'mute':
       return <Path {...p} d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" />;
+    case 'expand':
+      return <Path {...p} d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />;
+    case 'crosshair':
+      return (
+        <>
+          <Circle {...p} cx={12} cy={12} r={6} />
+          <Path {...p} d="M12 2v5M12 17v5M2 12h5M17 12h5" />
+        </>
+      );
+    case 'skipEnd':
+      return <Path {...p} d="M6 6l6 6-6 6M13 6l6 6-6 6" />;
   }
 }
 

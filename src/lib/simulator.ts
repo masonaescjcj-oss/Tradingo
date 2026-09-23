@@ -46,6 +46,10 @@ export function formatSize(spec: SymbolSpec, size: number): string {
 
 export const TICKS_PER_CANDLE = 8;
 export const VISIBLE_CANDLES = 36;
+/** Candles kept for the live chart, so it can be zoomed out and scrolled back. */
+export const HISTORY_CANDLES = 150;
+/** A simulated tick comes every second, so a simulated candle lasts this long. */
+export const SIM_CANDLE_MS = TICKS_PER_CANDLE * 1000;
 
 export function gaussian(rng: () => number): number {
   let u = 0;
@@ -82,16 +86,46 @@ export function generateHistory(spec: SymbolSpec, count: number, rng: () => numb
 }
 
 /** Applies one tick to the series, starting a new candle every TICKS_PER_CANDLE ticks. */
-export function applyTick(candles: Candle[], price: number, tick: number): Candle[] {
+export function applyTick(candles: Candle[], price: number, tick: number, max = HISTORY_CANDLES): Candle[] {
   const next = candles.slice();
   if (tick % TICKS_PER_CANDLE === 0) {
     next.push([price, price, price, price]);
-    if (next.length > VISIBLE_CANDLES) next.shift();
+    if (next.length > max) next.shift();
   } else {
     const [o, h, l] = next[next.length - 1];
     next[next.length - 1] = [o, Math.max(h, price), Math.min(l, price), price];
   }
   return next;
+}
+
+/** Candle open times kept in step with applyTick: a tick that starts a candle adds `now`. */
+export function tickTimes(times: number[], tick: number, now: number, max = HISTORY_CANDLES): number[] {
+  if (tick % TICKS_PER_CANDLE !== 0) return times;
+  const next = [...times, now];
+  return next.length > max ? next.slice(-max) : next;
+}
+
+/** Open times for `count` evenly spaced candles, the last one opening at `lastOpen`. */
+export function backfillTimes(count: number, lastOpen: number, intervalMs: number): number[] {
+  return Array.from({ length: count }, (_, i) => lastOpen - (count - 1 - i) * intervalMs);
+}
+
+/** Seconds until the next simulated candle, given the tick the feed will apply next. */
+export function simCountdown(nextTick: number): number {
+  return ((TICKS_PER_CANDLE - (nextTick % TICKS_PER_CANDLE)) % TICKS_PER_CANDLE) + 1;
+}
+
+/**
+ * One step up or down from `size`, between the symbol's smallest and largest size.
+ * Steps grow with the size (0.01 → 0.1 → 1 lot) so big sizes don't take a hundred taps.
+ */
+export function nudgeSize(spec: SymbolSpec, size: number, dir: 1 | -1): number {
+  const min = sizeStep(spec);
+  const max = spec.sizes[spec.sizes.length - 1];
+  const ref = dir > 0 ? size : size - min / 1000;
+  const unit = min * 10 ** Math.max(0, Math.floor(Math.log10(ref / min) + 1e-9));
+  const decimals = Math.max(0, Math.round(-Math.log10(min)));
+  return Math.min(max, Math.max(min, Number((size + dir * unit).toFixed(decimals))));
 }
 
 /** A made-up but stable volume for simulated candles: wider candles trade more. */
