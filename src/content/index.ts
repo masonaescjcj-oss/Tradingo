@@ -55,7 +55,6 @@ export function starterCourses(market: Market): string[] {
 
 /** A reward chest sits after the second lesson of units with three or more lessons. */
 export const CHEST_AFTER = 2;
-export const CHEST_COINS = 30;
 
 export function chestId(unit: Unit): string | null {
   return unit.lessons.length > CHEST_AFTER ? `${unit.id}-chest` : null;

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { Button3D } from '@/components/Button3D';
@@ -11,8 +11,9 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
-import { ALL_COURSES, CHEST_AFTER, CHEST_COINS, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
-import { playSfx } from '@/lib/sfx';
+import { Chest } from '@/components/Chest';
+import { ALL_COURSES, CHEST_AFTER, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
+import { chestPlan } from '@/lib/chest';
 import { useGame, type LessonRecord } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -23,6 +24,7 @@ type PathItem =
   | { kind: 'chest'; id: string; status: 'locked' | 'ready' | 'claimed' };
 
 const NODE = 68;
+const CHEST = 88;
 const RING = 96;
 const ROW = 118;
 const OFFSETS = [0, -58, -84, -58, 0, 58, 84, 58];
@@ -37,13 +39,11 @@ export default function LearnScreen() {
   const completed = useGame((s) => s.completed);
   const chests = useGame((s) => s.chests);
   const mastered = useGame((s) => s.mastered);
-  const claimChest = useGame((s) => s.claimChest);
   const { width } = useWindowDimensions();
   const colW = Math.min(width, MAX_WIDTH);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [chestReward, setChestReward] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const didScroll = useRef(false);
 
@@ -78,13 +78,11 @@ export default function LearnScreen() {
 
   const onItem = (item: PathItem) => {
     if (item.kind === 'chest') {
-      if (item.status === 'ready') {
-        claimChest(item.id, CHEST_COINS);
-        playSfx('chest');
-        setChestReward(true);
-      } else if (item.status === 'locked') {
+      if (item.status === 'locked') {
         setToast('صندوق بعد از تموم کردن درس‌های قبلی باز می‌شه.');
+        return;
       }
+      router.push(`/chest/${item.id}`);
       return;
     }
     if (item.status === 'locked') {
@@ -172,20 +170,6 @@ export default function LearnScreen() {
 
       <CourseSwitcher visible={pickerOpen} onClose={() => setPickerOpen(false)} />
 
-      <Modal visible={chestReward} transparent animationType="fade" onRequestClose={() => setChestReward(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Mascot mood="party" size={110} />
-            <Txt display size={34} color={colors.gold}>
-              صندوق باز شد!
-            </Txt>
-            <Txt w={800} size={16} color={colors.text2} center>
-              {`+${fa(CHEST_COINS)} سکه به حسابت اضافه شد.`}
-            </Txt>
-            <Button3D label="عالیه" variant="gold" onPress={() => setChestReward(false)} style={{ alignSelf: 'stretch' }} />
-          </View>
-        </View>
-      </Modal>
     </Screen>
   );
 }
@@ -323,9 +307,11 @@ function UnitSection({
 function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: number; onPress: () => void }) {
   const [bounce] = useState(() => new Animated.Value(0));
   const isCurrent = item.kind === 'lesson' && item.status === 'current';
+  // A ready chest bounces like the current lesson, to be noticed.
+  const bouncing = isCurrent || (item.kind === 'chest' && item.status === 'ready');
 
   useEffect(() => {
-    if (!isCurrent) return;
+    if (!bouncing) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(bounce, { toValue: -6, duration: 600, useNativeDriver: false }),
@@ -334,21 +320,25 @@ function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: numbe
     );
     loop.start();
     return () => loop.stop();
-  }, [isCurrent, bounce]);
+  }, [bouncing, bounce]);
 
   if (item.kind === 'chest') {
+    const plan = chestPlan(item.id);
     const ready = item.status === 'ready';
+    const claimed = item.status === 'claimed';
     return (
-      <NodeButton
-        x={x}
-        y={y}
-        face={ready ? colors.gold : colors.raised}
-        edge={ready ? colors.goldEdge : colors.raisedEdge}
+      <Pressable
         onPress={onPress}
-        label={ready ? 'صندوق جایزه، آماده‌ی باز شدن' : item.status === 'claimed' ? 'صندوق جایزه، باز شده' : 'صندوق جایزه، قفل'}
+        accessibilityRole="button"
+        accessibilityLabel={ready ? 'صندوق جایزه، آماده‌ی باز شدن' : claimed ? 'صندوق جایزه، باز شده' : 'صندوق جایزه، قفل'}
+        style={{ position: 'absolute', left: x - CHEST / 2, top: y - CHEST / 2 - 14, width: CHEST, height: CHEST + 12 }}
       >
-        <Icon name="gift" size={30} color={ready ? colors.goldInk : item.status === 'claimed' ? colors.faint : '#C99A2E'} />
-      </NodeButton>
+        {({ pressed }) => (
+          <Animated.View style={{ opacity: claimed ? 0.55 : 1, transform: [{ translateY: ready ? bounce : 0 }, { scale: pressed ? 0.94 : 1 }] }}>
+            <Chest tier={claimed ? plan.final : plan.start} size={CHEST} open={claimed} locked={!ready && !claimed} />
+          </Animated.View>
+        )}
+      </Pressable>
     );
   }
 
@@ -598,23 +588,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.raised,
     borderWidth: 2,
     borderColor: colors.line,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(5,8,15,0.75)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 380,
-    alignItems: 'center',
-    gap: 12,
-    padding: 22,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: colors.goldCardLine,
-    backgroundColor: colors.goldCard,
   },
 });

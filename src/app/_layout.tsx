@@ -111,6 +111,7 @@ export default function RootLayout() {
           {(fontsLoaded || fontError || fontsTimedOut) && hydrated ? (
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
               <Stack.Screen name="lesson/[id]" options={{ gestureEnabled: false, animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="chest/[id]" options={{ animation: 'fade' }} />
             </Stack>
           ) : null}
         </View>

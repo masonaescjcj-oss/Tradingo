@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
+import type { ChestReward } from '@/lib/chest';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
 import { heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '@/lib/progress';
 import { nextReview, type Review } from '@/lib/review';
@@ -135,7 +136,8 @@ type Actions = {
   completePractice: (xp: number, reviewed?: Record<string, boolean>) => void;
   /** Passing a unit's test-out marks it and every earlier unit of its course as done. */
   passUnitTest: (unitId: string, xp: number) => void;
-  claimChest: (id: string, coins: number) => void;
+  /** Opens a path chest once: its coins, XP and (for the best tiers) a full set of hearts. */
+  claimChest: (id: string, reward: ChestReward) => void;
   claimDaily: () => void;
   recordMistake: (key: string) => void;
   clearMistake: (key: string) => void;
@@ -378,9 +380,11 @@ export const useGame = create<GameState>()(
         get().addXp(xp);
       },
 
-      claimChest: (id, coins) => {
+      claimChest: (id, reward) => {
         if (get().chests.includes(id)) return;
-        set((s) => ({ chests: [...s.chests, id], coins: s.coins + coins }));
+        const hearts = reward.hearts ? { hearts: MAX_HEARTS, heartsUpdatedAt: Date.now() } : null;
+        set((s) => ({ chests: [...s.chests, id], coins: s.coins + reward.coins, ...hearts }));
+        if (reward.xp > 0) get().addXp(reward.xp);
       },
 
       claimDaily: () => {
