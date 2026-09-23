@@ -55,7 +55,7 @@ const EUR_TREND_PULLBACK = series(
   { start: 1.0794 },
 );
 
-/** BTC uptrend: RSI 14 cools from ~70 to ~51, then a strong bullish candle. */
+/** BTC uptrend: RSI 14 cools from ~70 to ~52, then a strong bullish candle. */
 const BTC_TREND_DIP = series(
   [57300, 57550, 57850, 57650, 57400, 57700, 57950, 58250, 58050, 57800, 58100, 58350, 58650, 58450, 58200, 58500, 58750, 59050, 58850, 58600, 58900, 59150, 58900, 58600, 58350, 58250, 58700],
   { start: 57000 },
