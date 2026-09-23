@@ -1,0 +1,534 @@
+import { router } from 'expo-router';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Animated, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import Svg, { Circle, Polyline } from 'react-native-svg';
+
+import { Button3D } from '@/components/Button3D';
+import { Icon, StarIcon } from '@/components/Icon';
+import { MarketPicker, marketLabel } from '@/components/MarketPicker';
+import { Mascot } from '@/components/Mascot';
+import { Screen } from '@/components/Screen';
+import { StatsRow } from '@/components/StatsRow';
+import { Txt } from '@/components/Txt';
+import { CHEST_AFTER, CHEST_COINS, chestId, lessonOrder, unitsFor, type Unit } from '@/content';
+import { useGame, type LessonRecord } from '@/store/game';
+import { MAX_WIDTH, colors } from '@/theme';
+import { fa } from '@/utils/format';
+
+type NodeStatus = 'perfect' | 'done' | 'current' | 'locked';
+type PathItem =
+  | { kind: 'lesson'; id: string; title: string; number: number; status: NodeStatus }
+  | { kind: 'chest'; id: string; status: 'locked' | 'ready' | 'claimed' };
+
+const NODE = 68;
+const RING = 96;
+const ROW = 118;
+const OFFSETS = [0, -58, -84, -58, 0, 58, 84, 58];
+
+function lessonStatus(record: LessonRecord | undefined, isCurrent: boolean): NodeStatus {
+  if (record) return record.perfect ? 'perfect' : 'done';
+  return isCurrent ? 'current' : 'locked';
+}
+
+export default function LearnScreen() {
+  const market = useGame((s) => s.market);
+  const setMarket = useGame((s) => s.setMarket);
+  const completed = useGame((s) => s.completed);
+  const chests = useGame((s) => s.chests);
+  const claimChest = useGame((s) => s.claimChest);
+  const { width } = useWindowDimensions();
+  const colW = Math.min(width, MAX_WIDTH);
+
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [chestReward, setChestReward] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const didScroll = useRef(false);
+
+  const currentId = useMemo(() => lessonOrder(market).find((id) => !completed[id]), [market, completed]);
+
+  const sections = useMemo(
+    () =>
+      unitsFor(market).map((unit) => {
+        const items: PathItem[] = [];
+        unit.lessons.forEach((lesson, i) => {
+          items.push({
+            kind: 'lesson',
+            id: lesson.id,
+            title: lesson.title,
+            number: i + 1,
+            status: lessonStatus(completed[lesson.id], lesson.id === currentId),
+          });
+          const chest = chestId(unit);
+          if (chest && i === CHEST_AFTER - 1) {
+            const earned = unit.lessons.slice(0, CHEST_AFTER).every((l) => completed[l.id]);
+            items.push({ kind: 'chest', id: chest, status: chests.includes(chest) ? 'claimed' : earned ? 'ready' : 'locked' });
+          }
+        });
+        return { unit, items };
+      }),
+    [market, completed, chests, currentId],
+  );
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2200);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const onItem = (item: PathItem) => {
+    if (item.kind === 'chest') {
+      if (item.status === 'ready') {
+        claimChest(item.id, CHEST_COINS);
+        setChestReward(true);
+      } else if (item.status === 'locked') {
+        setToast('صندوق بعد از تموم کردن درس‌های قبلی باز می‌شه.');
+      }
+      return;
+    }
+    if (item.status === 'locked') {
+      setToast('اول درس‌های قبلی رو تموم کن.');
+      return;
+    }
+    router.push(`/lesson/${item.id}`);
+  };
+
+  const marketInfo = marketLabel(market);
+
+  const scrollToCurrent = (y: number) => {
+    if (didScroll.current) return;
+    didScroll.current = true;
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: Math.max(0, y - 160), animated: false }));
+  };
+
+  return (
+    <Screen>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => setPickerOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`تغییر بازار، الان: ${marketInfo.title}`}
+          style={styles.marketChip}
+        >
+          <Txt mono={market !== 'both'} w={800} size={13} color={marketInfo.badgeColor}>
+            {marketInfo.badge}
+          </Txt>
+          <Txt w={800} size={14}>
+            {marketInfo.title}
+          </Txt>
+          <Icon name="chevronDown" size={14} color={colors.text3} strokeWidth={3} />
+        </Pressable>
+        <StatsRow />
+      </View>
+
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 48 }}>
+        {sections.map(({ unit, items }, unitIndex) => (
+          <UnitSection
+            key={unit.id}
+            unit={unit}
+            index={unitIndex}
+            items={items}
+            width={colW}
+            onItem={onItem}
+            onCurrentLayout={scrollToCurrent}
+          />
+        ))}
+        {!currentId && (
+          <View style={styles.finish}>
+            <Mascot mood="party" size={120} />
+            <Txt w={900} size={18} center>
+              همه‌ی درس‌های این مسیر رو تموم کردی!
+            </Txt>
+            <Txt size={14} color={colors.text2} center>
+              توی تب تمرین مرور کن یا مهارتت رو توی شبیه‌ساز محک بزن.
+            </Txt>
+          </View>
+        )}
+      </ScrollView>
+
+      {toast && (
+        <View style={styles.toast} pointerEvents="none">
+          <Txt w={800} size={14} center>
+            {toast}
+          </Txt>
+        </View>
+      )}
+
+      <MarketPicker visible={pickerOpen} value={market} onChange={setMarket} onClose={() => setPickerOpen(false)} />
+
+      <Modal visible={chestReward} transparent animationType="fade" onRequestClose={() => setChestReward(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Mascot mood="party" size={110} />
+            <Txt display size={34} color={colors.gold}>
+              صندوق باز شد!
+            </Txt>
+            <Txt w={800} size={16} color={colors.text2} center>
+              {`+${fa(CHEST_COINS)} سکه به حسابت اضافه شد.`}
+            </Txt>
+            <Button3D label="عالیه" variant="gold" onPress={() => setChestReward(false)} style={{ alignSelf: 'stretch' }} />
+          </View>
+        </View>
+      </Modal>
+    </Screen>
+  );
+}
+
+function UnitSection({
+  unit,
+  index,
+  items,
+  width,
+  onItem,
+  onCurrentLayout,
+}: {
+  unit: Unit;
+  index: number;
+  items: PathItem[];
+  width: number;
+  onItem: (item: PathItem) => void;
+  onCurrentLayout: (y: number) => void;
+}) {
+  const center = width / 2;
+  const currentIndex = items.findIndex((it) => it.kind === 'lesson' && it.status === 'current');
+  // Leave room above the first node for the "start" bubble.
+  const top = currentIndex === 0 ? 108 : 64;
+  const positions = items.map((_, i) => ({ x: center + OFFSETS[i % OFFSETS.length], y: top + i * ROW }));
+  const height = top + items.length * ROW - 20;
+  const unlocked = items.some((it) => it.kind === 'lesson' && it.status !== 'locked');
+  const doneUntil = currentIndex >= 0 ? currentIndex : items.every((it) => it.status !== 'locked') ? items.length - 1 : -1;
+
+  // A jagged "price line" connects the nodes; walked segments are green.
+  const linePoints = (from: number, to: number) => {
+    const pts: string[] = [];
+    for (let i = from; i <= to; i++) {
+      const p = positions[i];
+      pts.push(`${p.x},${p.y}`);
+      if (i < to) {
+        const n = positions[i + 1];
+        const jog = i % 2 === 0 ? 14 : -14;
+        pts.push(`${(p.x + n.x) / 2 + jog},${(p.y + n.y) / 2 - 12}`);
+        pts.push(`${(p.x + n.x) / 2 - jog},${(p.y + n.y) / 2 + 12}`);
+      }
+    }
+    return pts.join(' ');
+  };
+
+  const mascotSide = currentIndex >= 0 && positions[currentIndex].x <= center ? 'right' : 'left';
+
+  return (
+    <View
+      onLayout={(e) => {
+        if (currentIndex >= 0) onCurrentLayout(e.nativeEvent.layout.y + positions[currentIndex].y);
+      }}
+    >
+      <View
+        style={[
+          styles.banner,
+          unlocked
+            ? { backgroundColor: unit.color, borderBottomColor: unit.edge }
+            : { backgroundColor: colors.raised, borderBottomColor: colors.raisedEdge },
+        ]}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <Txt w={800} size={13} color={unlocked ? unit.ink : colors.muted} style={{ opacity: 0.8 }}>
+            {`واحد ${fa(index + 1)}`}
+          </Txt>
+          <Txt w={900} size={20} color={unlocked ? unit.ink : colors.text2}>
+            {unit.title}
+          </Txt>
+        </View>
+        <Pressable
+          onPress={() => router.push(`/guide/${unit.id}`)}
+          accessibilityRole="button"
+          accessibilityLabel={`راهنمای واحد ${unit.title}`}
+          style={[styles.guideBtn, { borderColor: unlocked ? 'rgba(0,0,0,0.18)' : colors.line }]}
+        >
+          <Icon name="book" size={24} color={unlocked ? unit.ink : colors.text2} />
+        </Pressable>
+      </View>
+
+      <View style={{ height, direction: 'ltr' }}>
+        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+          {doneUntil > 0 && (
+            <Polyline points={linePoints(0, doneUntil)} fill="none" stroke={colors.bull} strokeWidth={5} strokeLinejoin="round" strokeLinecap="round" opacity={0.5} />
+          )}
+          {doneUntil < items.length - 1 && (
+            <Polyline
+              points={linePoints(Math.max(0, doneUntil), items.length - 1)}
+              fill="none"
+              stroke={colors.line}
+              strokeWidth={5}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              strokeDasharray="1 11"
+            />
+          )}
+        </Svg>
+        {items.map((item, i) => (
+          <PathNode key={item.id} item={item} x={positions[i].x} y={positions[i].y} onPress={() => onItem(item)} />
+        ))}
+        {currentIndex >= 0 && (
+          <View style={[styles.mascot, { top: positions[currentIndex].y - 30 }, mascotSide === 'right' ? { right: 22 } : { left: 22 }]}>
+            <Mascot mood="happy" size={92} />
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: number; onPress: () => void }) {
+  const [bounce] = useState(() => new Animated.Value(0));
+  const isCurrent = item.kind === 'lesson' && item.status === 'current';
+
+  useEffect(() => {
+    if (!isCurrent) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounce, { toValue: -6, duration: 600, useNativeDriver: false }),
+        Animated.timing(bounce, { toValue: 0, duration: 600, useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isCurrent, bounce]);
+
+  if (item.kind === 'chest') {
+    const ready = item.status === 'ready';
+    return (
+      <NodeButton
+        x={x}
+        y={y}
+        face={ready ? colors.gold : colors.raised}
+        edge={ready ? colors.goldEdge : colors.raisedEdge}
+        onPress={onPress}
+        label={ready ? 'صندوق جایزه، آماده‌ی باز شدن' : item.status === 'claimed' ? 'صندوق جایزه، باز شده' : 'صندوق جایزه، قفل'}
+      >
+        <Icon name="gift" size={30} color={ready ? colors.goldInk : item.status === 'claimed' ? colors.faint : '#C99A2E'} />
+      </NodeButton>
+    );
+  }
+
+  if (isCurrent) {
+    return (
+      <>
+        <Animated.View style={[styles.startBubble, { left: x - 42, top: y - RING / 2 - 42, transform: [{ translateY: bounce }] }]}>
+          <Txt w={900} size={15} color="#0B7A43">
+            شروع
+          </Txt>
+          <View style={styles.startTail} />
+        </Animated.View>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`شروع درس ${fa(item.number)}: ${item.title}`}
+          style={{ position: 'absolute', left: x - RING / 2, top: y - RING / 2, width: RING, height: RING }}
+        >
+          {({ pressed }) => (
+            <>
+              <Svg width={RING} height={RING} style={StyleSheet.absoluteFill}>
+                <Circle cx={RING / 2} cy={RING / 2} r={44} fill="none" stroke="#26314A" strokeWidth={8} />
+              </Svg>
+              <View style={[styles.ringInner, { top: 10 + (pressed ? 4 : 0) }]}>
+                <View style={[styles.ringEdge]} />
+                <View style={styles.ringFace}>
+                  <Icon name="candles" size={34} color={colors.bullInk} strokeWidth={2.4} />
+                </View>
+              </View>
+            </>
+          )}
+        </Pressable>
+      </>
+    );
+  }
+
+  const status = item.status;
+  const face = status === 'perfect' ? colors.gold : status === 'done' ? colors.bull : colors.raised;
+  const edge = status === 'perfect' ? colors.goldEdge : status === 'done' ? colors.bullEdge : colors.raisedEdge;
+  const label =
+    status === 'locked' ? `درس ${fa(item.number)}: ${item.title}، قفل` : `درس ${fa(item.number)}: ${item.title}، کامل‌شده. تمرین دوباره`;
+  return (
+    <NodeButton x={x} y={y} face={face} edge={edge} onPress={onPress} label={label}>
+      {status === 'perfect' && <StarIcon size={32} />}
+      {status === 'done' && <Icon name="check" size={32} color={colors.bullInk} strokeWidth={3.4} />}
+      {status === 'locked' && <Icon name="lock" size={28} color={colors.muted} strokeWidth={2.4} />}
+    </NodeButton>
+  );
+}
+
+function NodeButton({
+  x,
+  y,
+  face,
+  edge,
+  onPress,
+  label,
+  children,
+}: {
+  x: number;
+  y: number;
+  face: string;
+  edge: string;
+  onPress: () => void;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={{ position: 'absolute', left: x - NODE / 2, top: y - NODE / 2, width: NODE, height: NODE + 6 }}
+    >
+      {({ pressed }) => (
+        <>
+          <View style={[styles.nodeEdge, { backgroundColor: edge }]} />
+          <View style={[styles.nodeFace, { backgroundColor: face, top: pressed ? 4 : 0 }]}>{children}</View>
+        </>
+      )}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.lineSoft,
+  },
+  marketChip: {
+    height: 40,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  banner: {
+    marginTop: 18,
+    marginHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 18,
+    borderBottomWidth: 5,
+  },
+  guideBtn: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    borderWidth: 2,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  nodeEdge: {
+    position: 'absolute',
+    top: 6,
+    width: NODE,
+    height: NODE,
+    borderRadius: NODE / 2,
+  },
+  nodeFace: {
+    position: 'absolute',
+    width: NODE,
+    height: NODE,
+    borderRadius: NODE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringInner: {
+    position: 'absolute',
+    left: 12,
+    width: 72,
+    height: 72,
+  },
+  ringEdge: {
+    position: 'absolute',
+    top: 6,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.bullEdge,
+  },
+  ringFace: {
+    position: 'absolute',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bull,
+  },
+  startBubble: {
+    position: 'absolute',
+    width: 84,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D5DBE6',
+    backgroundColor: colors.text,
+  },
+  startTail: {
+    position: 'absolute',
+    bottom: -8,
+    left: 34,
+    width: 12,
+    height: 12,
+    backgroundColor: colors.text,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#D5DBE6',
+    transform: [{ rotate: '45deg' }],
+  },
+  mascot: {
+    position: 'absolute',
+  },
+  finish: {
+    marginTop: 24,
+    marginHorizontal: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 16,
+    left: 24,
+    right: 24,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: colors.raised,
+    borderWidth: 2,
+    borderColor: colors.line,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(5,8,15,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    gap: 12,
+    padding: 22,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: colors.goldCardLine,
+    backgroundColor: colors.goldCard,
+  },
+});
