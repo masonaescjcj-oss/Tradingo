@@ -27,12 +27,14 @@ export function LiveView({
   specs,
   feed,
   chartWidth,
+  viewport,
   onNotice,
   onInfo,
 }: {
   specs: SymbolSpec[];
   feed: Feed;
   chartWidth: number;
+  viewport: number;
   onNotice: (n: Notice) => void;
   onInfo: () => void;
 }) {
@@ -98,32 +100,34 @@ export function LiveView({
     onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' });
   const countdown = countdownLabel(liveHere && current.lastOpen != null ? liveCountdown(current.lastOpen, now) : simCountdown(current.tick));
 
+  const symbols = (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+      {shown.map((s) => {
+        const cur = feed.series[s.id];
+        const on = s.id === spec.id;
+        const ch = cur ? ((cur.price - cur.candles[0][0]) / cur.candles[0][0]) * 100 : 0;
+        return (
+          <Pressable
+            key={s.id}
+            onPress={() => setSymbolId(s.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+            style={[styles.symbol, on && styles.symbolOn]}
+          >
+            <Txt mono w={800} size={13}>
+              {s.label}
+            </Txt>
+            <Txt mono w={700} size={11} color={ch >= 0 ? colors.bull : colors.bearText}>
+              {`${ch >= 0 ? '+' : ''}${ch.toFixed(2)}%`}
+            </Txt>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+
   return (
     <>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-        {shown.map((s) => {
-          const cur = feed.series[s.id];
-          const on = s.id === spec.id;
-          const ch = cur ? ((cur.price - cur.candles[0][0]) / cur.candles[0][0]) * 100 : 0;
-          return (
-            <Pressable
-              key={s.id}
-              onPress={() => setSymbolId(s.id)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: on }}
-              style={[styles.symbol, on && styles.symbolOn]}
-            >
-              <Txt mono w={800} size={13}>
-                {s.label}
-              </Txt>
-              <Txt mono w={700} size={11} color={ch >= 0 ? colors.bull : colors.bearText}>
-                {`${ch >= 0 ? '+' : ''}${ch.toFixed(2)}%`}
-              </Txt>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
       <ChartPanel
         spec={spec}
         candles={current.candles}
@@ -137,6 +141,8 @@ export function LiveView({
         timeframe={liveHere ? 'M1' : '8s'}
         countdown={countdown}
         trade={{ book: 'live', mids, onResult }}
+        below={symbols}
+        viewport={viewport}
       />
 
       <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب آزمایشی" onInfo={onInfo} />
@@ -168,7 +174,7 @@ function coachMessage(last: ClosedTrade | undefined, marginLevel: number | null)
 
 const styles = StyleSheet.create({
   symbol: {
-    height: 50,
+    height: 46,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',

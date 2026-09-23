@@ -18,6 +18,12 @@ import { Chip, VIOLET, VIOLET_INK } from './ui';
 const MAX_LEVELS = 5;
 const FLAME_INK = '#3A1C00';
 const QUICK_H = 74;
+/** Layout around the chart: the scroll area's top padding, the chart block's borders, the gap between blocks. */
+const CONTENT_TOP = 4;
+const EDGE_BORDERS = 2;
+const GAP = 12;
+/** Room at the bottom for the tab bar's raised middle button. */
+const TAB_CLEARANCE = 26;
 
 type Indicator = { key: keyof Omit<SimTools, 'levels'>; label: string; color: string; mono?: boolean };
 
@@ -101,6 +107,7 @@ export function ChartPanel({
   countdown,
   trade,
   below,
+  viewport,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -120,6 +127,8 @@ export function ChartPanel({
   trade?: { book: SimBook; mids: Record<string, number>; onResult: (r: { error?: PlaceError; event?: TradeEvent }) => void };
   /** Shown right under the chart, before the chart tools (e.g. replay controls). */
   below?: ReactNode;
+  /** Height of the scrolling area; the trade bar, chart and `below` fill it. */
+  viewport?: number;
 }) {
   const tools = useGame((s) => s.simTools) ?? DEFAULT_SIM_TOOLS;
   const setTools = useGame((s) => s.setSimTools);
@@ -128,6 +137,7 @@ export function ChartPanel({
   const [selected, setSelected] = useState<{ symbol: string; index: number } | null>(null);
   const [full, setFull] = useState(false);
   const [sizes, setSizes] = useState<Record<string, number>>({});
+  const [belowHeight, setBelowHeight] = useState(0);
 
   const levels = tools.levels?.[spec.id] ?? [];
   const sel = selected?.symbol === spec.id && selected.index < levels.length ? selected.index : null;
@@ -151,8 +161,11 @@ export function ChartPanel({
 
   const lines = buildLines(spec, candles, price, account, levels, sel);
   const title = timeframe ? `${spec.label} · ${timeframe}` : spec.label;
-  // Tall enough to feel like a trading app, while the tab bar and the trade bar still fit.
-  const chartHeight = Math.round(Math.min(640, Math.max(260, screen.height - 350)));
+  // The trade bar, the chart and whatever sits under it fill the first screen; the rest scrolls.
+  const fill = viewport
+    ? viewport - CONTENT_TOP - EDGE_BORDERS - (trade ? QUICK_H : 0) - (below ? GAP + belowHeight : 0) - TAB_CLEARANCE
+    : screen.height - 350;
+  const chartHeight = Math.round(Math.min(720, Math.max(260, fill)));
   const fullHeight = Math.max(240, screen.height - insets.top - insets.bottom - (trade ? QUICK_H : 0));
 
   const quick = trade ? (
@@ -196,7 +209,7 @@ export function ChartPanel({
         {chart(width, chartHeight, false)}
       </View>
 
-      {below}
+      {below ? <View onLayout={(e) => setBelowHeight(e.nativeEvent.layout.height)}>{below}</View> : null}
 
       <View style={styles.card}>
         <View style={styles.tools}>

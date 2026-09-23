@@ -29,11 +29,13 @@ type Speed = (typeof REPLAY_SPEEDS)[number];
 export function ReplayView({
   specs,
   chartWidth,
+  viewport,
   onNotice,
   onInfo,
 }: {
   specs: SymbolSpec[];
   chartWidth: number;
+  viewport: number;
   onNotice: (n: Notice) => void;
   onInfo: () => void;
 }) {
@@ -215,6 +217,7 @@ export function ReplayView({
         badge={badge}
         trade={finished ? undefined : { book: 'replay', mids, onResult }}
         below={controls}
+        viewport={viewport}
       />
 
       <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب بازپخش" onInfo={onInfo} />

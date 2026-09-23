@@ -1,6 +1,6 @@
 import { useIsFocused } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
@@ -12,7 +12,7 @@ import { ReplayView } from '@/components/sim/ReplayView';
 import { StatsView } from '@/components/sim/StatsView';
 import { ltr, pickNotice, type Notice } from '@/components/sim/text';
 import { Toast } from '@/components/sim/Toast';
-import { IconButton, Segment, simStyles } from '@/components/sim/ui';
+import { Segment, simStyles } from '@/components/sim/ui';
 import { useMarketFeed } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
 import { symbolsFor } from '@/lib/simulator';
@@ -36,6 +36,7 @@ export default function SimulatorScreen() {
   const resetSim = useGame((s) => s.resetSim);
   const resetReplay = useGame((s) => s.resetReplay);
   const columnWidth = useColumnWidth();
+  const { height: windowHeight } = useWindowDimensions();
   const focused = useIsFocused();
   const specs = useMemo(() => symbolsFor(market), [market]);
 
@@ -43,6 +44,7 @@ export default function SimulatorScreen() {
   const [notice, setNotice] = useState<(Notice & { id: number }) | null>(null);
   const [info, setInfo] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [viewport, setViewport] = useState(0);
 
   const notify = (n: Notice) => setNotice((prev) => ({ ...n, id: (prev?.id ?? 0) + 1 }));
 
@@ -60,47 +62,39 @@ export default function SimulatorScreen() {
 
   // The chart runs edge to edge across the column.
   const chartWidth = columnWidth;
+  // Height of the scrolling area, so the chart and trade bar can fill the first screen.
+  const viewportHeight = viewport || windowHeight - 150;
   const resetsReplay = mode === 'replay';
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Txt display size={32} style={{ lineHeight: 44 }}>
-            شبیه‌ساز
-          </Txt>
-          <View style={styles.virtual}>
-            <Icon name="shield" size={13} color={colors.skyText} strokeWidth={2.8} />
-            <Txt w={800} size={12} color={colors.skyText}>
-              پول مجازی
-            </Txt>
-          </View>
-        </View>
-        <View style={styles.titleRow}>
-          <IconButton icon="info" label="راهنمای شبیه‌ساز" onPress={() => setInfo(true)} size={44} />
-          <IconButton
-            icon="refresh"
-            label={resetsReplay ? 'شروع دوباره‌ی حساب بازپخش' : 'شروع دوباره‌ی حساب آزمایشی'}
-            onPress={() => setConfirmReset(true)}
-            size={44}
-          />
-        </View>
-      </View>
-
       <View style={styles.tabs}>
         <Segment label="بخش شبیه‌ساز" value={mode} onChange={setMode} options={MODES} />
       </View>
 
-      <ScrollView key={mode} contentContainerStyle={simStyles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        key={mode}
+        contentContainerStyle={simStyles.content}
+        keyboardShouldPersistTaps="handled"
+        onLayout={(e) => setViewport(e.nativeEvent.layout.height)}
+      >
         {mode === 'trade' ? (
-          <LiveView specs={specs} feed={feed} chartWidth={chartWidth} onNotice={notify} onInfo={() => setInfo(true)} />
+          <LiveView specs={specs} feed={feed} chartWidth={chartWidth} viewport={viewportHeight} onNotice={notify} onInfo={() => setInfo(true)} />
         ) : mode === 'replay' ? (
-          <ReplayView specs={specs} chartWidth={chartWidth} onNotice={notify} onInfo={() => setInfo(true)} />
+          <ReplayView specs={specs} chartWidth={chartWidth} viewport={viewportHeight} onNotice={notify} onInfo={() => setInfo(true)} />
         ) : mode === 'stats' ? (
           <StatsView width={columnWidth - 32} />
         ) : (
           <ChallengesView onNotice={notify} />
         )}
+        {mode === 'trade' || mode === 'replay' ? (
+          <Pressable onPress={() => setConfirmReset(true)} accessibilityRole="button" hitSlop={6} style={styles.reset}>
+            <Icon name="refresh" size={16} color={colors.text3} strokeWidth={2.4} />
+            <Txt w={800} size={13} color={colors.text3}>
+              {resetsReplay ? 'شروع دوباره‌ی حساب بازپخش' : 'شروع دوباره‌ی حساب آزمایشی'}
+            </Txt>
+          </Pressable>
+        ) : null}
       </ScrollView>
 
       {notice ? <Toast key={notice.id} notice={notice} /> : null}
@@ -136,31 +130,16 @@ export default function SimulatorScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  virtual: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(90,176,255,0.5)',
-  },
   tabs: {
     paddingHorizontal: 16,
     paddingBottom: 8,
+  },
+  reset: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
   },
   backdrop: {
     flex: 1,
