@@ -28,7 +28,11 @@ export type IconName =
   | 'pencil'
   | 'swap'
   | 'plus'
-  | 'minus';
+  | 'minus'
+  | 'list'
+  | 'grid'
+  | 'search'
+  | 'play';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -159,6 +163,26 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       return <Path {...p} d="M12 5v14M5 12h14" />;
     case 'minus':
       return <Path {...p} d="M5 12h14" />;
+    case 'list':
+      return <Path {...p} d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" />;
+    case 'grid':
+      return (
+        <>
+          <Rect {...p} x={3} y={3} width={7} height={7} rx={1.5} />
+          <Rect {...p} x={14} y={3} width={7} height={7} rx={1.5} />
+          <Rect {...p} x={3} y={14} width={7} height={7} rx={1.5} />
+          <Rect {...p} x={14} y={14} width={7} height={7} rx={1.5} />
+        </>
+      );
+    case 'search':
+      return (
+        <>
+          <Circle {...p} cx={11} cy={11} r={7} />
+          <Path {...p} d="M20 20l-3.5-3.5" />
+        </>
+      );
+    case 'play':
+      return <Path {...p} d="M7 4.5v15l12-7.5z" />;
   }
 }
 

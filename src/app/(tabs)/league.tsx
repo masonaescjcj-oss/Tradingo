@@ -1,11 +1,12 @@
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { Hexagon } from '@/components/Hexagon';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { fetchLeagueBoard, useCloud } from '@/lib/cloud';
 import { BOARD_SIZE, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, buildBoard, weekEndsIn, weekProgress } from '@/lib/league';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -24,6 +25,21 @@ export default function LeagueScreen() {
   const name = useGame((s) => s.name);
   const lastChange = useGame((s) => s.lastLeagueChange);
   const [now, setNow] = useState(() => new Date());
+  const userId = useCloud((c) => c.userId);
+  const [real, setReal] = useState<{ key: string; players: { name: string; xp: number }[] }>({ key: '', players: [] });
+  const boardKey = `${userId}:${weekKey}:${league}:${now.getTime()}`;
+
+  // Signed-in players see real people from their league; simulated traders fill the empty seats.
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    fetchLeagueBoard(weekKey, league).then((players) => {
+      if (alive) setReal({ key: boardKey, players });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [userId, weekKey, league, boardKey]);
 
   // Refresh the board (and start a new week if needed) whenever the tab is opened.
   useFocusEffect(
@@ -33,7 +49,7 @@ export default function LeagueScreen() {
     }, []),
   );
 
-  const rows = buildBoard(weekKey, league, name, weeklyXp, weekProgress(now));
+  const rows = buildBoard(weekKey, league, name, weeklyXp, weekProgress(now), userId && real.key === boardKey ? real.players : []);
   const ends = weekEndsIn(now);
   const top = league === LEAGUES.length - 1;
   const bottom = league === 0;

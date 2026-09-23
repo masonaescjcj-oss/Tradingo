@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { startCloudSync } from '@/lib/cloud';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 
@@ -57,6 +58,8 @@ export default function RootLayout() {
     const { rolloverWeek, syncHearts } = useGame.getState();
     rolloverWeek();
     syncHearts();
+    // Only after local progress is loaded, so the first merge sees it.
+    startCloudSync();
   }, [hydrated]);
 
   return (

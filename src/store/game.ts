@@ -1,9 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { ALL_UNITS, type Market } from '@/content';
+import { findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
+import { nextReview, type Review } from '@/lib/review';
+import { safeStorage } from '@/lib/storage';
 import { addDays, dayKey, weekKey } from '@/utils/date';
 
 export const MAX_HEARTS = 5;
@@ -29,9 +30,15 @@ export type Position = {
 
 export type ClosedTrade = Position & { exit: number; pnl: number; closedAt: number; reason: 'manual' | 'sl' | 'tp' };
 
+export type GameData = Data;
+
 type Data = {
   onboarded: boolean;
+  /** Market used by the simulator and to pick starter courses. */
   market: Market;
+  /** Course ids the learner added, in the order they were added. */
+  enrolled: string[];
+  activeCourse: string;
   level: Level;
   name: string;
   xp: number;
@@ -54,6 +61,8 @@ type Data = {
   chests: string[];
   /** "lessonId:stepIndex" of questions answered wrong, for the review practice. */
   mistakes: string[];
+  /** Spaced repetition: when each studied lesson is next due for review, and the current gap in days. */
+  reviews: Record<string, Review>;
   practiceSessions: number;
   sim: { balance: number; positions: Position[]; history: ClosedTrade[] };
 };
@@ -61,6 +70,9 @@ type Data = {
 type Actions = {
   finishOnboarding: (market: Market, level: Level) => void;
   setMarket: (market: Market) => void;
+  /** Adds a course (if needed) and makes it the one shown on the path. */
+  openCourse: (courseId: string) => void;
+  leaveCourse: (courseId: string) => void;
   setName: (name: string) => void;
   setDailyGoal: (goal: number) => void;
   syncHearts: () => void;
@@ -68,7 +80,10 @@ type Actions = {
   refillHearts: () => boolean;
   addXp: (amount: number) => void;
   completeLesson: (lessonId: string, accuracy: number, xp: number, coins: number) => void;
-  completePractice: (xp: number) => void;
+  /** `reviewed` maps each practised lesson to whether its questions were all answered right first time. */
+  completePractice: (xp: number, reviewed?: Record<string, boolean>) => void;
+  /** Passing a unit's test-out marks it and every earlier unit of its course as done. */
+  passUnitTest: (unitId: string, xp: number) => void;
   claimChest: (id: string, coins: number) => void;
   claimDaily: () => void;
   recordMistake: (key: string) => void;
@@ -82,39 +97,13 @@ type Actions = {
 
 export type GameState = Data & Actions;
 
-/**
- * Storage that never throws: when the browser blocks storage (private mode,
- * sandboxed frames) the app still starts, it just doesn't remember progress.
- */
-const safeStorage: StateStorage = {
-  getItem: async (name) => {
-    try {
-      return await AsyncStorage.getItem(name);
-    } catch {
-      return null;
-    }
-  },
-  setItem: async (name, value) => {
-    try {
-      await AsyncStorage.setItem(name, value);
-    } catch {
-      // Progress just isn't saved.
-    }
-  },
-  removeItem: async (name) => {
-    try {
-      await AsyncStorage.removeItem(name);
-    } catch {
-      // Nothing to remove.
-    }
-  },
-};
-
 function initialData(): Data {
   const now = new Date();
   return {
     onboarded: false,
     market: 'both',
+    enrolled: ['basics'],
+    activeCourse: 'basics',
     level: 'new',
     name: 'تریدر',
     xp: 0,
@@ -136,9 +125,17 @@ function initialData(): Data {
     completed: {},
     chests: [],
     mistakes: [],
+    reviews: {},
     practiceSessions: 0,
     sim: { balance: START_BALANCE, positions: [], history: [] },
   };
+}
+
+const DATA_KEYS = Object.keys(initialData()) as (keyof Data)[];
+
+/** Just the saved data of the store, without its actions. */
+export function pickData(s: Data): Data {
+  return Object.fromEntries(DATA_KEYS.map((k) => [k, s[k]])) as Data;
 }
 
 /** Hearts come back one at a time while below the maximum. */
@@ -168,16 +165,35 @@ export const useGame = create<GameState>()(
 
       finishOnboarding: (market, level) => {
         const completed: Record<string, LessonRecord> = {};
-        // Experienced users skip the introductory units.
-        const skipUnits = level === 'pro' ? ['basics', 'forex', 'crypto'] : level === 'some' ? ['basics'] : [];
-        for (const unit of ALL_UNITS) {
-          if (!skipUnits.includes(unit.id)) continue;
-          for (const lesson of unit.lessons) completed[lesson.id] = { best: 0, perfect: false, skipped: true };
+        const enrolled = starterCourses(market);
+        // Experienced users skip the first units of the introductory courses.
+        const skip: Record<string, number> = level === 'pro' ? { basics: 2, forex: 1, crypto: 1 } : level === 'some' ? { basics: 1 } : {};
+        for (const [courseId, units] of Object.entries(skip)) {
+          for (const unit of findCourse(courseId)?.units.slice(0, units) ?? []) {
+            for (const lesson of unit.lessons) completed[lesson.id] = { best: 0, perfect: false, skipped: true };
+          }
         }
-        set({ onboarded: true, market, level, completed });
+        const activeCourse = level === 'pro' ? enrolled[1] : 'basics';
+        set({ onboarded: true, market, level, completed, enrolled, activeCourse });
       },
 
       setMarket: (market) => set({ market }),
+
+      openCourse: (courseId) => {
+        if (!findCourse(courseId)) return;
+        set((s) => ({
+          activeCourse: courseId,
+          enrolled: s.enrolled.includes(courseId) ? s.enrolled : [...s.enrolled, courseId],
+        }));
+      },
+
+      leaveCourse: (courseId) =>
+        set((s) => {
+          const enrolled = s.enrolled.filter((id) => id !== courseId);
+          if (enrolled.length === 0) return s;
+          return { enrolled, activeCourse: s.activeCourse === courseId ? enrolled[0] : s.activeCourse };
+        }),
+
       setName: (name) => set({ name: name.trim() || 'تریدر' }),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
 
@@ -228,18 +244,40 @@ export const useGame = create<GameState>()(
           best: Math.max(prev?.skipped ? 0 : (prev?.best ?? 0), accuracy),
           perfect: !!prev?.perfect || accuracy >= 1,
         };
-        set((s) => ({ completed: { ...s.completed, [lessonId]: record }, coins: s.coins + coins }));
+        set((s) => ({
+          completed: { ...s.completed, [lessonId]: record },
+          coins: s.coins + coins,
+          reviews: { ...s.reviews, [lessonId]: nextReview(s.reviews[lessonId], accuracy >= 0.8) },
+        }));
         get().addXp(xp);
       },
 
-      completePractice: (xp) => {
+      completePractice: (xp, reviewed = {}) => {
         const h = heartsNow(get());
         // Practice earns a heart back, like a small reward for reviewing.
         set((s) => ({
+          reviews: {
+            ...s.reviews,
+            ...Object.fromEntries(Object.entries(reviewed).map(([id, good]) => [id, nextReview(s.reviews[id], good)])),
+          },
           practiceSessions: s.practiceSessions + 1,
           hearts: Math.min(MAX_HEARTS, h.hearts + 1),
           heartsUpdatedAt: h.updatedAt,
         }));
+        get().addXp(xp);
+      },
+
+      passUnitTest: (unitId, xp) => {
+        const hit = findUnitWithCourse(unitId);
+        if (!hit) return;
+        const upTo = hit.course.units.findIndex((u) => u.id === unitId);
+        const completed = { ...get().completed };
+        for (const unit of hit.course.units.slice(0, upTo + 1)) {
+          for (const lesson of unit.lessons) {
+            if (!completed[lesson.id]) completed[lesson.id] = { best: 0, perfect: false, skipped: true };
+          }
+        }
+        set({ completed });
         get().addXp(xp);
       },
 
@@ -302,8 +340,17 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'tradingo-game',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => safeStorage),
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<Data>;
+        // v1 had a single path per market; turn it into the matching starter courses.
+        if (version < 2) {
+          const enrolled = starterCourses(state.market ?? 'both');
+          return { ...state, enrolled, activeCourse: 'basics' } as GameState;
+        }
+        return state as GameState;
+      },
     },
   ),
 );

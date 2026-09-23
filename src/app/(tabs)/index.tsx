@@ -1,16 +1,17 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 
 import { Button3D } from '@/components/Button3D';
+import { CourseBadge } from '@/components/CourseBadge';
+import { CourseSwitcher } from '@/components/CourseSwitcher';
 import { Icon, StarIcon } from '@/components/Icon';
-import { MarketPicker, marketLabel } from '@/components/MarketPicker';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
-import { CHEST_AFTER, CHEST_COINS, chestId, lessonOrder, unitsFor, type Unit } from '@/content';
+import { ALL_COURSES, CHEST_AFTER, CHEST_COINS, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
 import { useGame, type LessonRecord } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -31,8 +32,7 @@ function lessonStatus(record: LessonRecord | undefined, isCurrent: boolean): Nod
 }
 
 export default function LearnScreen() {
-  const market = useGame((s) => s.market);
-  const setMarket = useGame((s) => s.setMarket);
+  const activeCourse = useGame((s) => s.activeCourse);
   const completed = useGame((s) => s.completed);
   const chests = useGame((s) => s.chests);
   const claimChest = useGame((s) => s.claimChest);
@@ -45,30 +45,28 @@ export default function LearnScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const didScroll = useRef(false);
 
-  const currentId = useMemo(() => lessonOrder(market).find((id) => !completed[id]), [market, completed]);
+  const course = findCourse(activeCourse) ?? ALL_COURSES[0];
+  const progress = courseProgress(course, completed);
+  const currentId = courseLessonIds(course).find((id) => !completed[id]);
 
-  const sections = useMemo(
-    () =>
-      unitsFor(market).map((unit) => {
-        const items: PathItem[] = [];
-        unit.lessons.forEach((lesson, i) => {
-          items.push({
-            kind: 'lesson',
-            id: lesson.id,
-            title: lesson.title,
-            number: i + 1,
-            status: lessonStatus(completed[lesson.id], lesson.id === currentId),
-          });
-          const chest = chestId(unit);
-          if (chest && i === CHEST_AFTER - 1) {
-            const earned = unit.lessons.slice(0, CHEST_AFTER).every((l) => completed[l.id]);
-            items.push({ kind: 'chest', id: chest, status: chests.includes(chest) ? 'claimed' : earned ? 'ready' : 'locked' });
-          }
-        });
-        return { unit, items };
-      }),
-    [market, completed, chests, currentId],
-  );
+  const sections = course.units.map((unit) => {
+    const items: PathItem[] = [];
+    unit.lessons.forEach((lesson, i) => {
+      items.push({
+        kind: 'lesson',
+        id: lesson.id,
+        title: lesson.title,
+        number: i + 1,
+        status: lessonStatus(completed[lesson.id], lesson.id === currentId),
+      });
+      const chest = chestId(unit);
+      if (chest && i === CHEST_AFTER - 1) {
+        const earned = unit.lessons.slice(0, CHEST_AFTER).every((l) => completed[l.id]);
+        items.push({ kind: 'chest', id: chest, status: chests.includes(chest) ? 'claimed' : earned ? 'ready' : 'locked' });
+      }
+    });
+    return { unit, items };
+  });
 
   useEffect(() => {
     if (!toast) return;
@@ -93,7 +91,11 @@ export default function LearnScreen() {
     router.push(`/lesson/${item.id}`);
   };
 
-  const marketInfo = marketLabel(market);
+  // Switching course starts again from the top and scrolls to that course's current lesson.
+  useEffect(() => {
+    didScroll.current = false;
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [course.id]);
 
   const scrollToCurrent = (y: number) => {
     if (didScroll.current) return;
@@ -107,21 +109,30 @@ export default function LearnScreen() {
         <Pressable
           onPress={() => setPickerOpen(true)}
           accessibilityRole="button"
-          accessibilityLabel={`تغییر بازار، الان: ${marketInfo.title}`}
-          style={styles.marketChip}
+          accessibilityLabel={`تغییر دوره، الان: ${course.title}`}
+          style={styles.courseChip}
         >
-          <Txt mono={market !== 'both'} w={800} size={13} color={marketInfo.badgeColor}>
-            {marketInfo.badge}
-          </Txt>
-          <Txt w={800} size={14}>
-            {marketInfo.title}
-          </Txt>
+          <CourseBadge course={course} size={30} />
           <Icon name="chevronDown" size={14} color={colors.text3} strokeWidth={3} />
         </Pressable>
         <StatsRow />
       </View>
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 48 }}>
+        <Pressable onPress={() => router.push(`/course/${course.id}`)} accessibilityRole="button" style={styles.courseHead}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt w={900} size={17} numberOfLines={1}>
+              {course.title}
+            </Txt>
+            <Txt w={700} size={12} color={colors.text3}>
+              {`${fa(progress.done)} از ${fa(progress.total)} درس · ${fa(course.units.length)} واحد`}
+            </Txt>
+          </View>
+          <View style={styles.courseTrack}>
+            <View style={[styles.courseFill, { width: `${(progress.done / Math.max(1, progress.total)) * 100}%`, backgroundColor: course.color }]} />
+          </View>
+          <Icon name="info" size={20} color={colors.text3} />
+        </Pressable>
         {sections.map(({ unit, items }, unitIndex) => (
           <UnitSection
             key={unit.id}
@@ -137,11 +148,12 @@ export default function LearnScreen() {
           <View style={styles.finish}>
             <Mascot mood="party" size={120} />
             <Txt w={900} size={18} center>
-              همه‌ی درس‌های این مسیر رو تموم کردی!
+              همه‌ی درس‌های این دوره رو تموم کردی!
             </Txt>
             <Txt size={14} color={colors.text2} center>
-              توی تب تمرین مرور کن یا مهارتت رو توی شبیه‌ساز محک بزن.
+              یه دوره‌ی تازه اضافه کن، توی تب تمرین مرور کن یا مهارتت رو توی شبیه‌ساز محک بزن.
             </Txt>
+            <Button3D label="افزودن دوره‌ی جدید" onPress={() => router.push('/courses')} style={{ alignSelf: 'stretch', marginTop: 8 }} />
           </View>
         )}
       </ScrollView>
@@ -154,7 +166,7 @@ export default function LearnScreen() {
         </View>
       )}
 
-      <MarketPicker visible={pickerOpen} value={market} onChange={setMarket} onClose={() => setPickerOpen(false)} />
+      <CourseSwitcher visible={pickerOpen} onClose={() => setPickerOpen(false)} />
 
       <Modal visible={chestReward} transparent animationType="fade" onRequestClose={() => setChestReward(false)}>
         <View style={styles.modalBackdrop}>
@@ -238,6 +250,19 @@ function UnitSection({
             {unit.title}
           </Txt>
         </View>
+        {!unlocked && (
+          <Pressable
+            onPress={() => router.push(`/lesson/test-${unit.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={`آزمون پرش به واحد ${unit.title}`}
+            style={styles.jumpBtn}
+          >
+            <Icon name="arrowUp" size={16} color={colors.skyText} strokeWidth={3} />
+            <Txt w={800} size={13} color={colors.skyText}>
+              پرش
+            </Txt>
+          </Pressable>
+        )}
         <Pressable
           onPress={() => router.push(`/guide/${unit.id}`)}
           accessibilityRole="button"
@@ -401,16 +426,35 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: colors.lineSoft,
   },
-  marketChip: {
-    height: 40,
-    paddingHorizontal: 10,
+  courseChip: {
+    height: 44,
+    paddingHorizontal: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    borderRadius: 12,
+    gap: 6,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
+  },
+  courseHead: {
+    marginTop: 14,
+    marginHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  courseTrack: {
+    width: 72,
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    backgroundColor: colors.raised,
+    flexDirection: 'row',
+  },
+  courseFill: {
+    height: 10,
+    borderRadius: 5,
   },
   banner: {
     marginTop: 18,
@@ -422,6 +466,17 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 18,
     borderBottomWidth: 5,
+  },
+  jumpBtn: {
+    height: 40,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.sky,
+    backgroundColor: colors.skySoft,
   },
   guideBtn: {
     width: 48,

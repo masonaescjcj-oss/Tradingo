@@ -12,7 +12,9 @@ import { LearnCard } from '@/components/lesson/LearnCard';
 import { LessonComplete } from '@/components/lesson/LessonComplete';
 import { LessonHeader } from '@/components/lesson/LessonHeader';
 import { MatchQuestion } from '@/components/lesson/MatchQuestion';
+import { OrderQuestion } from '@/components/lesson/OrderQuestion';
 import { PredictQuestion } from '@/components/lesson/PredictQuestion';
+import { TapQuestion } from '@/components/lesson/TapQuestion';
 import { TrueFalseQuestion } from '@/components/lesson/TrueFalseQuestion';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
@@ -39,6 +41,7 @@ export default function LessonScreen() {
 function LessonPlayer({ session }: { session: Session }) {
   const insets = useSafeAreaInsets();
   const isLesson = session.kind === 'lesson';
+  const isTest = session.kind === 'test';
   const timeLimit = session.kind === 'practice' ? session.timeLimit : undefined;
 
   const hearts = useGame((s) => heartsNow(s).hearts);
@@ -54,6 +57,7 @@ function LessonPlayer({ session }: { session: Session }) {
   const [confirmExit, setConfirmExit] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(timeLimit);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [lives, setLives] = useState(session.kind === 'test' ? session.lives : 0);
 
   const firstTry = useRef(new Map<number, boolean>());
   const correctCount = useRef(0);
@@ -75,12 +79,17 @@ function LessonPlayer({ session }: { session: Session }) {
     const questions = session.steps.map((s, i) => (isQuestion(s.step) ? i : -1)).filter((i) => i >= 0);
     const firstTryCorrect = questions.filter((i) => firstTry.current.get(i) === true).length;
     const answered = firstTry.current.size;
-    const accuracy = timeLimit ? (answered ? correctCount.current / answered : 0) : questions.length ? firstTryCorrect / questions.length : 1;
+    const accuracy =
+      timeLimit || isTest ? (answered ? correctCount.current / answered : 0) : questions.length ? firstTryCorrect / questions.length : 1;
     const seconds = (Date.now() - startedAt.current) / 1000;
 
     let xp: number;
     let coinsEarned = 0;
-    if (session.kind === 'lesson') {
+    const passed = lives > 0;
+    if (session.kind === 'test') {
+      xp = passed ? 20 : 0;
+      if (passed) game.passUnitTest(session.unitId, xp);
+    } else if (session.kind === 'lesson') {
       const prev = game.completed[session.lessonId];
       const firstTime = !prev || prev.skipped;
       xp = 10 + 2 * firstTryCorrect + (accuracy >= 1 ? 5 : 0);
@@ -88,12 +97,22 @@ function LessonPlayer({ session }: { session: Session }) {
       game.completeLesson(session.lessonId, accuracy, xp, coinsEarned);
     } else {
       xp = timeLimit ? 2 * correctCount.current : 5 + firstTryCorrect;
-      game.completePractice(xp);
+      // Each practised lesson's review gap grows if all its questions were right first time.
+      const reviewed: Record<string, boolean> = {};
+      firstTry.current.forEach((ok, i) => {
+        const lessonId = session.steps[i].ref.split(':')[0];
+        reviewed[lessonId] = (reviewed[lessonId] ?? true) && ok;
+      });
+      game.completePractice(xp, reviewed);
     }
 
     setSummary({
-      title: timeUp ? 'وقت تموم شد!' : isLesson ? 'درس تموم شد!' : 'تمرین تموم شد!',
-      subtitle: timeLimit
+      title: isTest ? (passed ? 'قبول شدی!' : 'این بار نشد') : timeUp ? 'وقت تموم شد!' : isLesson ? 'درس تموم شد!' : 'تمرین تموم شد!',
+      subtitle: isTest
+        ? passed
+          ? 'این واحد و واحدهای قبلش برات باز شدن.'
+          : 'اشکالی نداره؛ درس‌ها رو یکی‌یکی جلو برو و دوباره امتحان کن.'
+        : timeLimit
         ? `${fa(correctCount.current)} جواب درست توی ${fa(timeLimit)} ثانیه`
         : isLesson
           ? `${session.title} · ${current.topic}`
@@ -131,7 +150,8 @@ function LessonPlayer({ session }: { session: Session }) {
       setCombo(0);
       game.recordMistake(current.ref);
       if (isLesson) game.loseHeart();
-      if (timeLimit) setSolved((n) => n + 1);
+      if (isTest) setLives((l) => l - 1);
+      if (timeLimit || isTest) setSolved((n) => n + 1);
       // Wrong answers come back at the end of the lesson.
       else setQueue((q) => [...q, index]);
     }
@@ -140,7 +160,7 @@ function LessonPlayer({ session }: { session: Session }) {
   };
 
   const next = () => {
-    if (pos + 1 >= queue.length) {
+    if (pos + 1 >= queue.length || (isTest && lives <= 0)) {
       finish();
       return;
     }
@@ -177,6 +197,10 @@ function LessonPlayer({ session }: { session: Session }) {
         return <TrueFalseQuestion step={step} {...common} />;
       case 'fill':
         return <FillQuestion step={step} {...common} />;
+      case 'tap':
+        return <TapQuestion step={step} {...common} />;
+      case 'order':
+        return <OrderQuestion step={step} {...common} />;
       case 'match':
         return <MatchQuestion step={step} onComplete={(flawless) => check(true, flawless)} />;
     }
@@ -187,7 +211,7 @@ function LessonPlayer({ session }: { session: Session }) {
       <LessonHeader
         progress={progress}
         onClose={() => setConfirmExit(true)}
-        hearts={isLesson ? hearts : undefined}
+        hearts={isLesson ? hearts : isTest ? lives : undefined}
         secondsLeft={timeLimit ? Math.max(0, secondsLeft ?? 0) : undefined}
       />
       <ScrollView contentContainerStyle={[styles.content, revealed && { paddingBottom: 320 }]} showsVerticalScrollIndicator={false}>

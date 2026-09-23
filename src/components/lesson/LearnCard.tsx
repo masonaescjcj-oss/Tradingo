@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { CandleAnatomy } from '@/components/CandleAnatomy';
-import { CandleChart } from '@/components/CandleChart';
+import { CandleChart, chartHeight } from '@/components/CandleChart';
 import { CandleGlyph } from '@/components/CandleGlyph';
 import { Mascot } from '@/components/Mascot';
 import { RichText } from '@/components/RichText';
@@ -34,7 +34,7 @@ export function LearnCard({ step, topic }: { step: LearnStep; topic: string }) {
           <Txt w={800} size={13} color={colors.text2}>
             {step.visual.symbol}
           </Txt>
-          <CandleChart {...step.visual.chart} width={chartWidth} height={170} />
+          <CandleChart {...step.visual.chart} width={chartWidth} height={chartHeight(step.visual.chart, 170)} />
         </View>
       )}
       {step.visual?.kind === 'glyphs' && (

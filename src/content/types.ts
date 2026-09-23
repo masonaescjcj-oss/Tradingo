@@ -9,6 +9,31 @@ export type ChartLevel = {
   ink?: string;
 };
 
+/** A shaded price band, e.g. a supply/demand zone, order block or fair value gap. */
+export type ChartZone = {
+  from: number;
+  to: number;
+  label?: string;
+  tone?: Tone;
+  /** Candle index where the zone starts; it runs to the right edge. Defaults to 0. */
+  start?: number;
+  /** Candle index where the zone ends. Defaults to the right edge. */
+  end?: number;
+};
+
+/** A straight line between two [candleIndex, price] points: trendlines, channels, necklines. */
+export type ChartSegment = {
+  from: [number, number];
+  to: [number, number];
+  tone?: Tone;
+  dashed?: boolean;
+  /** Keep drawing past `to` to the right edge. */
+  extend?: boolean;
+};
+
+/** A short text tag above a candle's high or below its low, e.g. wave counts or pattern points. */
+export type ChartNote = { index: number; text: string; at?: 'high' | 'low'; tone?: Tone };
+
 export type ChartSpec = {
   candles: Candle[];
   lines?: ChartLevel[];
@@ -16,11 +41,44 @@ export type ChartSpec = {
   highlight?: number;
   /** Show an empty "next candle?" slot after the last candle. */
   ghost?: boolean;
-  /** Simple moving average period. */
+  /** Simple moving average period (gold line). */
   ma?: number;
+  /** A second, usually slower, simple moving average (sky-blue line). */
+  ma2?: number;
+  /** Bollinger bands period (2 standard deviations). */
+  bands?: number;
+  zones?: ChartZone[];
+  segments?: ChartSegment[];
+  notes?: ChartNote[];
+  /** One volume value per candle, drawn as bars along the bottom. */
+  volume?: number[];
+  /** Show an RSI panel with this period under the chart. */
+  rsi?: number;
 };
 
-export type GlyphKind = 'bullish' | 'bearish' | 'hammer' | 'doji' | 'shootingStar' | 'bullEngulf' | 'bearEngulf';
+export type GlyphKind =
+  | 'bullish'
+  | 'bearish'
+  | 'hammer'
+  | 'invertedHammer'
+  | 'hangingMan'
+  | 'doji'
+  | 'shootingStar'
+  | 'bullEngulf'
+  | 'bearEngulf'
+  | 'bullHarami'
+  | 'bearHarami'
+  | 'piercing'
+  | 'darkCloud'
+  | 'tweezerBottom'
+  | 'tweezerTop'
+  | 'morningStar'
+  | 'eveningStar'
+  | 'threeSoldiers'
+  | 'threeCrows'
+  | 'marubozuBull'
+  | 'marubozuBear'
+  | 'insideBar';
 
 export type Tone = 'bull' | 'bear' | 'gold' | 'sky' | 'neutral';
 
@@ -97,7 +155,27 @@ export type MatchStep = {
   pairs: { term: string; sub?: string; meaning: string }[];
 };
 
-export type QuestionStep = ChoiceStep | ChartStep | PredictStep | TrueFalseStep | FillStep | MatchStep;
+/** Tap the candle on the chart that answers the prompt. */
+export type TapStep = {
+  type: 'tap';
+  prompt: string;
+  chart: ChartSpec;
+  symbol: string;
+  trend?: 'up' | 'down';
+  /** Index of the correct candle. */
+  answer: number;
+  explanation: string;
+};
+
+/** Put the items in the right order; `items` is listed in the correct order. */
+export type OrderStep = {
+  type: 'order';
+  prompt: string;
+  items: string[];
+  explanation: string;
+};
+
+export type QuestionStep = ChoiceStep | ChartStep | PredictStep | TrueFalseStep | FillStep | MatchStep | TapStep | OrderStep;
 export type Step = LearnStep | QuestionStep;
 
 export type Lesson = {
@@ -111,12 +189,30 @@ export type Market = 'forex' | 'crypto' | 'both';
 export type Unit = {
   id: string;
   title: string;
-  /** Which market track shows this unit. */
-  track: 'common' | 'forex' | 'crypto';
   color: string;
   edge: string;
   ink: string;
   lessons: Lesson[];
+};
+
+export type CourseCategory = 'foundations' | 'technical' | 'strategy' | 'risk' | 'fundamental' | 'markets';
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
+export type CourseBadge = { kind: 'text'; text: string } | { kind: 'glyph'; glyph: GlyphKind };
+
+export type Course = {
+  id: string;
+  title: string;
+  /** One line shown on the course card. */
+  subtitle: string;
+  /** A short paragraph shown on the course page. */
+  description: string;
+  category: CourseCategory;
+  level: CourseLevel;
+  color: string;
+  edge: string;
+  ink: string;
+  badge: CourseBadge;
+  units: Unit[];
 };
 
 export const isQuestion = (step: Step): step is QuestionStep => step.type !== 'learn';

@@ -7,34 +7,39 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
-import { unitsFor } from '@/content';
+import { findCourse } from '@/content';
+import { dueLessons } from '@/lib/review';
 import { practiceSteps, SPEED_SECONDS, type PracticeMode } from '@/lib/session';
 import { DAILY_REWARD, todaysXp, useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { dayKey } from '@/utils/date';
 import { fa } from '@/utils/format';
 
-const MODES: { mode: PracticeMode; title: string; sub: (count: number) => string; icon: IconName | 'bolt'; tint: string; bg: string }[] = [
+const MODES: { mode: PracticeMode; title: string; sub: (count: number, due: number) => string; icon: IconName | 'bolt'; tint: string; bg: string }[] = [
   { mode: 'mistakes', title: 'مرور اشتباه‌ها', sub: (n) => (n ? `${fa(n)} سؤالی که قبلاً غلط زدی` : 'فعلاً اشتباهی نداری'), icon: 'refresh', tint: '#FF7A8A', bg: 'rgba(255,90,110,0.14)' },
   { mode: 'speed', title: 'تمرین سرعتی', sub: () => `${fa(SPEED_SECONDS)} ثانیه؛ هر چی بیشتر، بهتر`, icon: 'bolt', tint: colors.gold, bg: colors.goldSoft },
   { mode: 'charts', title: 'شکار الگو', sub: () => 'سؤال‌های نموداری درس‌هایی که خوندی', icon: 'target', tint: colors.bull, bg: 'rgba(43,212,125,0.14)' },
-  { mode: 'mixed', title: 'تمرین ترکیبی', sub: () => 'چند سؤال از همه‌ی درس‌ها', icon: 'layers', tint: colors.sky, bg: 'rgba(90,176,255,0.14)' },
+  { mode: 'mixed', title: 'مرور هوشمند', sub: (_, due) => (due ? `${fa(due)} درس امروز وقت مرورشه` : 'چند سؤال از همه‌ی درس‌هایی که خوندی'), icon: 'layers', tint: colors.sky, bg: 'rgba(90,176,255,0.14)' },
 ];
 
 export default function PracticeScreen() {
-  const market = useGame((s) => s.market);
+  const activeCourse = useGame((s) => s.activeCourse);
+  const enrolled = useGame((s) => s.enrolled);
   const completed = useGame((s) => s.completed);
   const mistakes = useGame((s) => s.mistakes);
+  const reviews = useGame((s) => s.reviews);
   const dailyGoal = useGame((s) => s.dailyGoal);
   const xpToday = useGame((s) => todaysXp(s));
   const claimedToday = useGame((s) => s.dailyClaimedDay === dayKey());
   const claimDaily = useGame((s) => s.claimDaily);
 
-  const state = { market, completed, mistakes };
+  const state = { activeCourse, completed, mistakes, reviews };
+  const due = dueLessons(reviews).length;
   const goalMet = xpToday >= dailyGoal;
 
-  // The weakest unit the user has started, to suggest a focused review.
-  const weakest = unitsFor(market)
+  // The weakest unit the user has started in their courses, to suggest a focused review.
+  const weakest = enrolled
+    .flatMap((id) => findCourse(id)?.units ?? [])
     .map((unit) => {
       const done = unit.lessons.filter((l) => completed[l.id] && !completed[l.id].skipped).length;
       return { unit, ratio: done / unit.lessons.length, started: done > 0 };
@@ -108,7 +113,7 @@ export default function PracticeScreen() {
                   {m.title}
                 </Txt>
                 <Txt size={12.5} lh={1.6} color={colors.text2}>
-                  {m.mode === 'mistakes' ? m.sub(mistakes.length) : m.sub(count)}
+                  {m.mode === 'mistakes' ? m.sub(mistakes.length, due) : m.sub(count, due)}
                 </Txt>
               </Pressable>
             );

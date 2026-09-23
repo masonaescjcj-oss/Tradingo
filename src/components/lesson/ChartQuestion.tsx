@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { CandleChart } from '@/components/CandleChart';
+import { CandleChart, chartHeight, type CandleMark } from '@/components/CandleChart';
 import { CandleGlyph } from '@/components/CandleGlyph';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
@@ -15,7 +15,21 @@ import { OptionButton } from './OptionButton';
 import type { QuestionProps } from './types';
 
 /** The chart panel shared by chart and prediction questions. */
-export function ChartCard({ chart, symbol, trend, height = 186 }: { chart: ChartSpec; symbol: string; trend?: 'up' | 'down'; height?: number }) {
+export function ChartCard({
+  chart,
+  symbol,
+  trend,
+  height = 186,
+  onCandlePress,
+  marks,
+}: {
+  chart: ChartSpec;
+  symbol: string;
+  trend?: 'up' | 'down';
+  height?: number;
+  onCandlePress?: (index: number) => void;
+  marks?: Record<number, CandleMark>;
+}) {
   const width = useColumnWidth() - 32 - 28;
   return (
     <View style={styles.card}>
@@ -32,7 +46,14 @@ export function ChartCard({ chart, symbol, trend, height = 186 }: { chart: Chart
           </View>
         )}
       </View>
-      <CandleChart {...chart} width={width} height={height} labelSide={chart.ghost ? 'left' : 'right'} />
+      <CandleChart
+        {...chart}
+        width={width}
+        height={chartHeight(chart, height)}
+        labelSide={chart.ghost ? 'left' : 'right'}
+        onCandlePress={onCandlePress}
+        marks={marks}
+      />
     </View>
   );
 }

@@ -15,9 +15,9 @@ import { useGame, type Level } from '@/store/game';
 import { colors } from '@/theme';
 
 const LEVELS: { id: Level; label: string; hint: string }[] = [
-  { id: 'new', label: 'تازه‌کارم', hint: 'از اول اول شروع می‌کنیم.' },
-  { id: 'some', label: 'یه چیزایی بلدم', hint: 'واحد «مبانی بازار» رو رد می‌کنیم.' },
-  { id: 'pro', label: 'قبلاً ترید کردم', hint: 'مستقیم می‌ری سراغ نمودارها و مدیریت ریسک.' },
+  { id: 'new', label: 'تازه‌کارم', hint: 'از اول اول شروع می‌کنیم؛ بعداً هر وقت خواستی دوره‌ی جدید اضافه کن.' },
+  { id: 'some', label: 'یه چیزایی بلدم', hint: 'واحد اول «مبانی ترید» رو رد می‌کنیم.' },
+  { id: 'pro', label: 'قبلاً ترید کردم', hint: 'مقدمه‌ها رو رد می‌کنیم و از واحدهای پیشرفته‌تر شروع می‌کنی.' },
 ];
 
 export default function Setup() {

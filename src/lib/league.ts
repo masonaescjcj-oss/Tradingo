@@ -47,6 +47,8 @@ export type BoardRow = {
   name: string;
   xp: number;
   isUser: boolean;
+  /** A real player from the cloud league rather than a simulated one. */
+  isReal?: boolean;
   avatar: { bg: string; fg: string };
 };
 
@@ -63,12 +65,20 @@ export function weekEndsIn(now: Date): { days: number; hours: number } {
 }
 
 /**
- * Builds a deterministic weekly board of simulated traders around the user.
- * Bots accumulate XP as the week goes by, so the board feels alive.
+ * Builds the weekly board around the user. Real players from the cloud league come first;
+ * simulated traders fill the remaining seats, gaining XP as the week goes by so the board feels alive.
  */
-export function buildBoard(weekKey: string, league: number, userName: string, userXp: number, progress: number): BoardRow[] {
+export function buildBoard(
+  weekKey: string,
+  league: number,
+  userName: string,
+  userXp: number,
+  progress: number,
+  realPlayers: { name: string; xp: number }[] = [],
+): BoardRow[] {
   const rng = createRng(hashString(`${weekKey}:${league}`));
-  const names = shuffle(BOT_NAMES, rng).slice(0, BOARD_SIZE - 1);
+  const real = realPlayers.slice(0, BOARD_SIZE - 1);
+  const names = shuffle(BOT_NAMES, rng).slice(0, BOARD_SIZE - 1 - real.length);
   const scale = 1 + league * 0.35;
   const rows: BoardRow[] = names.map((name) => {
     const target = (60 + rng() * 1100) * scale;
@@ -76,6 +86,9 @@ export function buildBoard(weekKey: string, league: number, userName: string, us
     const xp = Math.round(target * Math.pow(progress, pace));
     return { name, xp, isUser: false, avatar: AVATAR_COLORS[hashString(name) % AVATAR_COLORS.length] };
   });
+  for (const p of real) {
+    rows.push({ name: p.name, xp: p.xp, isUser: false, isReal: true, avatar: AVATAR_COLORS[hashString(p.name) % AVATAR_COLORS.length] });
+  }
   rows.push({ name: userName, xp: userXp, isUser: true, avatar: { bg: '#1B3A5C', fg: '#8CC8FF' } });
   // Ties go to the user so a fresh week doesn't start them at the bottom.
   return rows.sort((a, b) => b.xp - a.xp || Number(b.isUser) - Number(a.isUser));

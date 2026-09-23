@@ -1,12 +1,63 @@
 import { colors } from '@/theme';
 
-import type { Candle, ChartLevel } from './types';
+import type { Candle, ChartLevel, GlyphKind, Tone } from './types';
 
 /** Flips a series upside down around `mid`, turning an uptrend into a downtrend. */
-function mirror(candles: Candle[], mid: number): Candle[] {
+export function mirror(candles: Candle[], mid: number): Candle[] {
   const f = (v: number) => Number((2 * mid - v).toFixed(5));
   return candles.map(([o, h, l, c]) => [f(o), f(l), f(h), f(c)]);
 }
+
+const WICKS = [0.35, 0.2, 0.5, 0.25, 0.4, 0.15, 0.3];
+
+function decimals(v: number): number {
+  const s = String(v);
+  const dot = s.indexOf('.');
+  return dot < 0 ? 0 : s.length - dot - 1;
+}
+
+/**
+ * Builds a candle series from closing prices. A number becomes a candle that opens at the
+ * previous close, with small wicks; a full [open, high, low, close] tuple is used as is.
+ *
+ *   series([1.08, 1.082, 1.081, [1.081, 1.0815, 1.078, 1.0812], 1.084], { start: 1.079 })
+ */
+export function series(points: (number | Candle)[], opts: { start?: number; wick?: number } = {}): Candle[] {
+  const nums = points.map((p) => (typeof p === 'number' ? p : p[3]));
+  const digits = Math.min(5, Math.max(...nums.map(decimals), ...points.flatMap((p) => (typeof p === 'number' ? [] : p.map(decimals)))) + 1);
+  const moves = nums.slice(1).map((v, i) => Math.abs(v - nums[i]));
+  const avg = moves.length ? moves.reduce((a, b) => a + b, 0) / moves.length : Math.abs(nums[0]) * 0.001;
+  const round = (v: number) => Number(v.toFixed(digits));
+  let prev = opts.start ?? nums[0] - avg * 0.6;
+  return points.map((p, i) => {
+    if (typeof p !== 'number') {
+      prev = p[3];
+      return p;
+    }
+    const o = prev;
+    const c = p;
+    const w = (opts.wick ?? 1) * avg;
+    const up = WICKS[i % WICKS.length] * w;
+    const down = WICKS[(i + 3) % WICKS.length] * w;
+    prev = c;
+    return [round(o), round(Math.max(o, c) + up), round(Math.min(o, c) - down), round(c)];
+  });
+}
+
+/** Returns a copy of `base` with some candles replaced, e.g. to drop a pattern at the end. */
+export function withCandles(base: Candle[], overrides: Record<number, Candle>): Candle[] {
+  return base.map((c, i) => overrides[i] ?? c);
+}
+
+const TONE: Record<Tone, { color: string; ink: string }> = {
+  bull: { color: colors.bull, ink: colors.bullInk },
+  bear: { color: colors.bear, ink: colors.bearInk },
+  gold: { color: colors.gold, ink: colors.goldInk },
+  sky: { color: colors.sky, ink: colors.skyInk },
+  neutral: { color: colors.text3, ink: colors.bg },
+};
+
+export const toneColor = (tone: Tone = 'gold') => TONE[tone];
 
 export const level = {
   resistance: (price: number, value?: string): ChartLevel => ({
@@ -24,6 +75,16 @@ export const level = {
     ink: colors.skyInk,
   }),
   unknown: (price: number): ChartLevel => ({ price, label: '؟', color: colors.gold, ink: colors.goldInk }),
+  /** Any labelled horizontal line: entry, stop, target, a Fibonacci level… */
+  line: (price: number, label: string, tone: Tone = 'gold', value?: string): ChartLevel => ({
+    price,
+    label,
+    value,
+    ...TONE[tone],
+  }),
+  entry: (price: number, value?: string): ChartLevel => ({ price, label: 'ورود', value, ...TONE.sky }),
+  stop: (price: number, value?: string): ChartLevel => ({ price, label: 'حد ضرر', value, ...TONE.bear }),
+  target: (price: number, value?: string): ChartLevel => ({ price, label: 'حد سود', value, ...TONE.bull }),
 };
 
 export const HAMMER_AFTER_DOWNTREND: Candle[] = [
@@ -158,10 +219,28 @@ export const LAST_BEARISH: Candle[] = [
   [1.0846, 1.0848, 1.0818, 1.0822],
 ];
 
-export const PATTERN_OPTIONS = {
-  hammer: { label: 'چکش', latin: 'Hammer', glyph: 'hammer' as const },
-  doji: { label: 'دوجی', latin: 'Doji', glyph: 'doji' as const },
-  shootingStar: { label: 'ستاره‌ی دنباله‌دار', latin: 'Shooting Star', glyph: 'shootingStar' as const },
-  bullEngulf: { label: 'پوشای صعودی', latin: 'Bullish Engulfing', glyph: 'bullEngulf' as const },
-  bearEngulf: { label: 'پوشای نزولی', latin: 'Bearish Engulfing', glyph: 'bearEngulf' as const },
+/** Answer options for "which pattern is this?" chart questions, one per glyph. */
+export const PATTERN_OPTIONS: Record<GlyphKind, { label: string; latin: string; glyph: GlyphKind }> = {
+  bullish: { label: 'کندل صعودی', latin: 'Bullish', glyph: 'bullish' },
+  bearish: { label: 'کندل نزولی', latin: 'Bearish', glyph: 'bearish' },
+  marubozuBull: { label: 'ماروبوزوی صعودی', latin: 'Bullish Marubozu', glyph: 'marubozuBull' },
+  marubozuBear: { label: 'ماروبوزوی نزولی', latin: 'Bearish Marubozu', glyph: 'marubozuBear' },
+  hammer: { label: 'چکش', latin: 'Hammer', glyph: 'hammer' },
+  hangingMan: { label: 'مرد آویزان', latin: 'Hanging Man', glyph: 'hangingMan' },
+  invertedHammer: { label: 'چکش معکوس', latin: 'Inverted Hammer', glyph: 'invertedHammer' },
+  shootingStar: { label: 'ستاره‌ی دنباله‌دار', latin: 'Shooting Star', glyph: 'shootingStar' },
+  doji: { label: 'دوجی', latin: 'Doji', glyph: 'doji' },
+  bullEngulf: { label: 'پوشای صعودی', latin: 'Bullish Engulfing', glyph: 'bullEngulf' },
+  bearEngulf: { label: 'پوشای نزولی', latin: 'Bearish Engulfing', glyph: 'bearEngulf' },
+  bullHarami: { label: 'هارامی صعودی', latin: 'Bullish Harami', glyph: 'bullHarami' },
+  bearHarami: { label: 'هارامی نزولی', latin: 'Bearish Harami', glyph: 'bearHarami' },
+  piercing: { label: 'الگوی نفوذی', latin: 'Piercing Line', glyph: 'piercing' },
+  darkCloud: { label: 'ابر سیاه', latin: 'Dark Cloud Cover', glyph: 'darkCloud' },
+  tweezerBottom: { label: 'کف انبری', latin: 'Tweezer Bottom', glyph: 'tweezerBottom' },
+  tweezerTop: { label: 'سقف انبری', latin: 'Tweezer Top', glyph: 'tweezerTop' },
+  insideBar: { label: 'اینساید بار', latin: 'Inside Bar', glyph: 'insideBar' },
+  morningStar: { label: 'ستاره‌ی صبحگاهی', latin: 'Morning Star', glyph: 'morningStar' },
+  eveningStar: { label: 'ستاره‌ی عصرگاهی', latin: 'Evening Star', glyph: 'eveningStar' },
+  threeSoldiers: { label: 'سه سرباز سفید', latin: 'Three White Soldiers', glyph: 'threeSoldiers' },
+  threeCrows: { label: 'سه کلاغ سیاه', latin: 'Three Black Crows', glyph: 'threeCrows' },
 };

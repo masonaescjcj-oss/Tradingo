@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
 import { UPTREND } from '@/content/charts';
+import { cloudEnabled } from '@/lib/supabase';
 import { colors } from '@/theme';
 
 export default function Welcome() {
@@ -36,11 +37,14 @@ export default function Welcome() {
           ترید رو مثل یه بازی یاد بگیر
         </Txt>
         <Txt size={15} lh={1.9} color={colors.text2} center style={{ maxWidth: 310 }}>
-          درس‌های ۵ دقیقه‌ای فارکس و کریپتو، با نمودارهای واقعی و شبیه‌ساز معامله با پول مجازی
+          بیش از ۳۰ دوره و صدها درس ۵ دقیقه‌ای فارکس و کریپتو، با نمودارهای واقعی و شبیه‌ساز معامله با پول مجازی
         </Txt>
       </View>
       <View style={styles.actions}>
         <Button3D label="شروع کن" onPress={() => router.push('/setup')} />
+        {cloudEnabled && (
+          <Button3D label="قبلاً حساب ساختم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/account')} />
+        )}
         <Txt size={12} lh={1.7} color={colors.text3} center>
           محتوای تریدینگو آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
         </Txt>
