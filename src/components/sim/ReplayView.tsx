@@ -217,6 +217,7 @@ export function ReplayView({
         badge={badge}
         trade={finished ? undefined : { book: 'replay', mids, onResult }}
         below={controls}
+        fitBelow
         viewport={viewport}
       />
 

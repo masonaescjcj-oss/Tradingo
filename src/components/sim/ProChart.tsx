@@ -61,6 +61,7 @@ export function ProChart({
   badge,
   countdown,
   corner,
+  onTitlePress,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -78,6 +79,8 @@ export function ProChart({
   countdown?: string;
   /** A button in the top-right corner of the chart (full screen, or closing it). */
   corner?: { icon: IconName; label: string; onPress: () => void };
+  /** Makes the title a button, e.g. to pick another symbol. */
+  onTitlePress?: () => void;
 }) {
   const fmt = (p: number) => formatPrice(spec, p);
   const axisW = Math.ceil(Math.max(fmt(price).length, 6) * CHAR_W + 14);
@@ -430,9 +433,24 @@ export function ProChart({
       />
 
       <View pointerEvents="box-none" style={[styles.titleRow, { maxWidth: plotW - (corner ? 48 : 8) }]}>
-        <Txt mono w={800} size={12.5} color={colors.text}>
-          {title}
-        </Txt>
+        {onTitlePress ? (
+          <Pressable
+            onPress={onTitlePress}
+            accessibilityRole="button"
+            accessibilityLabel={`نماد ${title}؛ برای عوض کردن نماد بزن`}
+            hitSlop={6}
+            style={({ pressed }) => [styles.titleButton, pressed && { opacity: 0.7 }]}
+          >
+            <Txt mono w={800} size={13} color={colors.text}>
+              {title}
+            </Txt>
+            <Icon name="chevronDown" size={15} color={colors.text2} strokeWidth={2.8} />
+          </Pressable>
+        ) : (
+          <Txt mono w={800} size={12.5} color={colors.text}>
+            {title}
+          </Txt>
+        )}
         {badge}
       </View>
       {crossCandle ? (
@@ -550,10 +568,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  titleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 28,
+    paddingHorizontal: 8,
+    marginLeft: -4,
+    marginTop: -3,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: 'rgba(23,31,49,0.9)',
+  },
   ohlc: {
     position: 'absolute',
     left: 8,
-    top: 27,
+    top: 30,
     flexDirection: 'row',
     flexWrap: 'wrap',
     columnGap: 8,

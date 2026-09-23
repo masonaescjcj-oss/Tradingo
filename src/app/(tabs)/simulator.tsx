@@ -12,8 +12,9 @@ import { ReplayView } from '@/components/sim/ReplayView';
 import { StatsView } from '@/components/sim/StatsView';
 import { ltr, pickNotice, type Notice } from '@/components/sim/text';
 import { Toast } from '@/components/sim/Toast';
-import { Segment, simStyles } from '@/components/sim/ui';
-import { useMarketFeed } from '@/components/sim/useMarketFeed';
+import { TradesView } from '@/components/sim/TradesView';
+import { SectionTitle, Segment, simStyles } from '@/components/sim/ui';
+import { midsOf, useMarketFeed } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
 import { symbolsFor } from '@/lib/simulator';
 import { START_BALANCE, useGame } from '@/store/game';
@@ -21,13 +22,14 @@ import { colors } from '@/theme';
 import { usd } from '@/utils/format';
 import { useColumnWidth } from '@/utils/layout';
 
-type Mode = 'trade' | 'replay' | 'stats' | 'challenges';
+type Mode = 'chart' | 'trades' | 'replay' | 'challenges';
 
+// Like MetaTrader: the chart, then the account's trades and history.
 const MODES: { value: Mode; label: string }[] = [
-  { value: 'trade', label: 'معامله' },
+  { value: 'chart', label: 'نمودار' },
+  { value: 'trades', label: 'معامله‌ها' },
   { value: 'replay', label: 'بازپخش' },
-  { value: 'stats', label: 'آمار' },
-  { value: 'challenges', label: 'چالش‌ها' },
+  { value: 'challenges', label: 'چالش و آمار' },
 ];
 
 export default function SimulatorScreen() {
@@ -40,7 +42,7 @@ export default function SimulatorScreen() {
   const focused = useIsFocused();
   const specs = useMemo(() => symbolsFor(market), [market]);
 
-  const [mode, setMode] = useState<Mode>('trade');
+  const [mode, setMode] = useState<Mode>('chart');
   const [notice, setNotice] = useState<(Notice & { id: number }) | null>(null);
   const [info, setInfo] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -78,16 +80,20 @@ export default function SimulatorScreen() {
         keyboardShouldPersistTaps="handled"
         onLayout={(e) => setViewport(e.nativeEvent.layout.height)}
       >
-        {mode === 'trade' ? (
+        {mode === 'chart' ? (
           <LiveView specs={specs} feed={feed} chartWidth={chartWidth} viewport={viewportHeight} onNotice={notify} onInfo={() => setInfo(true)} />
+        ) : mode === 'trades' ? (
+          <TradesView mids={midsOf(feed.series)} onNotice={notify} onInfo={() => setInfo(true)} />
         ) : mode === 'replay' ? (
           <ReplayView specs={specs} chartWidth={chartWidth} viewport={viewportHeight} onNotice={notify} onInfo={() => setInfo(true)} />
-        ) : mode === 'stats' ? (
-          <StatsView width={columnWidth - 32} />
         ) : (
-          <ChallengesView onNotice={notify} />
+          <>
+            <ChallengesView onNotice={notify} />
+            <SectionTitle>آمار عملکرد</SectionTitle>
+            <StatsView width={columnWidth - 32} />
+          </>
         )}
-        {mode === 'trade' || mode === 'replay' ? (
+        {mode === 'trades' || mode === 'replay' ? (
           <Pressable onPress={() => setConfirmReset(true)} accessibilityRole="button" hitSlop={6} style={styles.reset}>
             <Icon name="refresh" size={16} color={colors.text3} strokeWidth={2.4} />
             <Txt w={800} size={13} color={colors.text3}>

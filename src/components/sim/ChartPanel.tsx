@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Modal, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
@@ -107,7 +107,10 @@ export function ChartPanel({
   countdown,
   trade,
   below,
+  fitBelow,
   viewport,
+  symbols,
+  onSymbol,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -125,10 +128,15 @@ export function ChartPanel({
   countdown?: string;
   /** Turns on the one-click trade bar. */
   trade?: { book: SimBook; mids: Record<string, number>; onResult: (r: { error?: PlaceError; event?: TradeEvent }) => void };
-  /** Shown right under the chart, before the chart tools (e.g. replay controls). */
+  /** Shown right under the chart, before the chart tools (the order form, or replay controls). */
   below?: ReactNode;
-  /** Height of the scrolling area; the trade bar, chart and `below` fill it. */
+  /** Keeps `below` on the first screen too, by making the chart shorter. */
+  fitBelow?: boolean;
+  /** Height of the scrolling area; the trade bar and chart (and `below` with `fitBelow`) fill it. */
   viewport?: number;
+  /** Symbols the chart title can switch to. */
+  symbols?: SymbolOption[];
+  onSymbol?: (id: string) => void;
 }) {
   const tools = useGame((s) => s.simTools) ?? DEFAULT_SIM_TOOLS;
   const setTools = useGame((s) => s.setSimTools);
@@ -138,6 +146,7 @@ export function ChartPanel({
   const [full, setFull] = useState(false);
   const [sizes, setSizes] = useState<Record<string, number>>({});
   const [belowHeight, setBelowHeight] = useState(0);
+  const [menu, setMenu] = useState(false);
 
   const levels = tools.levels?.[spec.id] ?? [];
   const sel = selected?.symbol === spec.id && selected.index < levels.length ? selected.index : null;
@@ -163,7 +172,7 @@ export function ChartPanel({
   const title = timeframe ? `${spec.label} · ${timeframe}` : spec.label;
   // The trade bar, the chart and whatever sits under it fill the first screen; the rest scrolls.
   const fill = viewport
-    ? viewport - CONTENT_TOP - EDGE_BORDERS - (trade ? QUICK_H : 0) - (below ? GAP + belowHeight : 0) - TAB_CLEARANCE
+    ? viewport - CONTENT_TOP - EDGE_BORDERS - (trade ? QUICK_H : 0) - (below && fitBelow ? GAP + belowHeight : 0) - TAB_CLEARANCE
     : screen.height - 350;
   const chartHeight = Math.round(Math.min(720, Math.max(260, fill)));
   const fullHeight = Math.max(240, screen.height - insets.top - insets.bottom - (trade ? QUICK_H : 0));
@@ -180,26 +189,42 @@ export function ChartPanel({
     />
   ) : null;
 
+  const pick = symbols && onSymbol && symbols.length > 1;
   const chart = (w: number, h: number, fullscreen: boolean) => (
-    <ProChart
-      spec={spec}
-      candles={candles}
-      times={times}
-      volumes={volumes}
-      price={price}
-      lines={lines}
-      tools={tools}
-      width={w}
-      height={h}
-      title={title}
-      badge={badge}
-      countdown={countdown}
-      corner={
-        fullscreen
-          ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: () => setFull(false) }
-          : { icon: 'expand', label: 'نمایش تمام‌صفحه', onPress: () => setFull(true) }
-      }
-    />
+    <View>
+      <ProChart
+        spec={spec}
+        candles={candles}
+        times={times}
+        volumes={volumes}
+        price={price}
+        lines={lines}
+        tools={tools}
+        width={w}
+        height={h}
+        title={title}
+        badge={badge}
+        countdown={countdown}
+        corner={
+          fullscreen
+            ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: () => setFull(false) }
+            : { icon: 'expand', label: 'نمایش تمام‌صفحه', onPress: () => setFull(true) }
+        }
+        onTitlePress={pick ? () => setMenu((m) => !m) : undefined}
+      />
+      {pick && menu ? (
+        <SymbolMenu
+          symbols={symbols}
+          current={spec.id}
+          width={Math.min(320, w - 16)}
+          onClose={() => setMenu(false)}
+          onPick={(id) => {
+            setMenu(false);
+            onSymbol(id);
+          }}
+        />
+      ) : null}
+    </View>
   );
 
   return (
@@ -256,14 +281,9 @@ export function ChartPanel({
             </View>
           ) : null}
         </View>
-        <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
-          {levels.length === 0
-            ? 'با «+ سطح» یه خط افقی روی قیمت فعلی بذار و با فلش‌ها ببرش روی حمایت یا مقاومت. نمودار رو به چپ و راست بکش تا کندل‌های قبلی رو ببینی.'
-            : 'نمودار رو به چپ و راست بکش تا کندل‌های قبلی رو ببینی؛ با دکمه‌ی خط‌کش، قیمت و زمان هر کندل رو بخون.'}
-        </Txt>
-        {trade ? (
+        {levels.length === 0 ? (
           <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
-            دکمه‌های خرید و فروش بالای نمودار، فوری و بدون حد ضرر و سود معامله باز می‌کنن. برای حد ضرر، سود و سفارش لیمیت از فرم سفارش پایین‌تر استفاده کن.
+            با «+ سطح» یه خط افقی روی حمایت یا مقاومت بذار. نمودار رو به چپ و راست بکش تا کندل‌های قبلی رو ببینی.
           </Txt>
         ) : null}
         {footer}
@@ -284,7 +304,85 @@ export function ChartPanel({
   );
 }
 
+export type SymbolOption = { id: string; label: string; price: string; change: number };
+
+/** MetaTrader-style symbol list that drops down from the chart title. */
+function SymbolMenu({
+  symbols,
+  current,
+  width,
+  onPick,
+  onClose,
+}: {
+  symbols: SymbolOption[];
+  current: string;
+  width: number;
+  onPick: (id: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel="بستن فهرست نمادها" />
+      <View style={[styles.menu, { width }]} accessibilityRole="radiogroup" accessibilityLabel="انتخاب نماد">
+        {symbols.map((s) => {
+          const on = s.id === current;
+          return (
+            <Pressable
+              key={s.id}
+              onPress={() => onPick(s.id)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: on }}
+              accessibilityLabel={s.label}
+              style={({ pressed }) => [styles.menuRow, on && styles.menuRowOn, pressed && { opacity: 0.7 }]}
+            >
+              <Txt mono w={800} size={14} style={{ flex: 1 }}>
+                {s.label}
+              </Txt>
+              <Txt mono w={700} size={13} color={colors.text2}>
+                {s.price}
+              </Txt>
+              <Txt mono w={800} size={12} color={s.change >= 0 ? colors.bull : colors.bearText} style={styles.menuChange}>
+                {`${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%`}
+              </Txt>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  menuBackdrop: {
+    backgroundColor: 'rgba(5,8,15,0.45)',
+  },
+  menu: {
+    position: 'absolute',
+    top: 38,
+    left: 8,
+    direction: 'ltr',
+    padding: 6,
+    gap: 2,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minHeight: 46,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  menuRowOn: {
+    backgroundColor: colors.skySoft,
+  },
+  menuChange: {
+    minWidth: 58,
+    textAlign: 'right',
+  },
   edge: {
     // Cancels the simulator's side padding so the chart runs edge to edge.
     marginHorizontal: -16,

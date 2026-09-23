@@ -8,7 +8,6 @@ import { colors } from '@/theme';
 import { fa, faNum, usd } from '@/utils/format';
 
 import { EquityCurve } from './EquityCurve';
-import { HistoryList } from './HistoryList';
 import { faDec, faPct, ltr, rText } from './text';
 import { Card, Hint, pnlColor, Segment } from './ui';
 
@@ -57,7 +56,7 @@ function insights(s: TradeStats): string[] {
   return out.slice(0, 3);
 }
 
-/** Journal and performance numbers for the live or replay account. */
+/** Performance numbers for the live or replay account. */
 export function StatsView({ width }: { width: number }) {
   const [book, setBook] = useState<SimBook>('live');
   const sim = useGame((s) => s.sim);
@@ -105,8 +104,6 @@ export function StatsView({ width }: { width: number }) {
           <Hint key={text}>{text}</Hint>
         ))}
       </View>
-
-      <HistoryList book={book} history={account.history} limit={15} title="ژورنال معامله‌ها" />
     </View>
   );
 }
