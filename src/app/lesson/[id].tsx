@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
@@ -11,6 +11,7 @@ import { FillQuestion } from '@/components/lesson/FillQuestion';
 import { LearnCard } from '@/components/lesson/LearnCard';
 import { LessonComplete } from '@/components/lesson/LessonComplete';
 import { LessonHeader } from '@/components/lesson/LessonHeader';
+import { LineQuestion } from '@/components/lesson/LineQuestion';
 import { MatchQuestion } from '@/components/lesson/MatchQuestion';
 import { OrderQuestion } from '@/components/lesson/OrderQuestion';
 import { PredictQuestion } from '@/components/lesson/PredictQuestion';
@@ -20,11 +21,12 @@ import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { isQuestion } from '@/content';
 import { buildSession, correctAnswerText, type Session } from '@/lib/session';
-import { HEART_REFILL_COST, heartsNow, useGame } from '@/store/game';
+import { playSfx } from '@/lib/sfx';
+import { HEART_REFILL_COST, heartsNow, todaysXp, useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
-type Summary = { title: string; subtitle: string; xp: number; accuracy: number; seconds: number; coins: number };
+type Summary = { title: string; subtitle: string; xp: number; accuracy: number; seconds: number; coins: number; celebrate: boolean; goalReached: boolean };
 
 function leave() {
   if (router.canGoBack()) router.back();
@@ -58,6 +60,7 @@ function LessonPlayer({ session }: { session: Session }) {
   const [secondsLeft, setSecondsLeft] = useState(timeLimit);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [lives, setLives] = useState(session.kind === 'test' ? session.lives : 0);
+  const [shake] = useState(() => new Animated.Value(0));
 
   const firstTry = useRef(new Map<number, boolean>());
   const correctCount = useRef(0);
@@ -76,6 +79,7 @@ function LessonPlayer({ session }: { session: Session }) {
     if (finished.current) return;
     finished.current = true;
     const game = useGame.getState();
+    const xpBefore = todaysXp(game);
     const questions = session.steps.map((s, i) => (isQuestion(s.step) ? i : -1)).filter((i) => i >= 0);
     const firstTryCorrect = questions.filter((i) => firstTry.current.get(i) === true).length;
     const answered = firstTry.current.size;
@@ -87,8 +91,9 @@ function LessonPlayer({ session }: { session: Session }) {
     let coinsEarned = 0;
     const passed = lives > 0;
     if (session.kind === 'test') {
-      xp = passed ? 20 : 0;
-      if (passed) game.passUnitTest(session.unitId, xp);
+      xp = passed ? (session.mode === 'master' ? 30 : 20) : 0;
+      if (passed && session.mode === 'master') game.masterUnit(session.unitId, xp);
+      else if (passed) game.passUnitTest(session.unitId, xp);
     } else if (session.kind === 'lesson') {
       const prev = game.completed[session.lessonId];
       const firstTime = !prev || prev.skipped;
@@ -107,22 +112,39 @@ function LessonPlayer({ session }: { session: Session }) {
     }
 
     setSummary({
-      title: isTest ? (passed ? 'قبول شدی!' : 'این بار نشد') : timeUp ? 'وقت تموم شد!' : isLesson ? 'درس تموم شد!' : 'تمرین تموم شد!',
+      title: isTest
+        ? passed
+          ? session.mode === 'master'
+            ? 'استاد این واحد شدی!'
+            : 'قبول شدی!'
+          : 'این بار نشد'
+        : timeUp
+          ? 'وقت تموم شد!'
+          : isLesson
+            ? 'درس تموم شد!'
+            : 'تمرین تموم شد!',
       subtitle: isTest
         ? passed
-          ? 'این واحد و واحدهای قبلش برات باز شدن.'
-          : 'اشکالی نداره؛ درس‌ها رو یکی‌یکی جلو برو و دوباره امتحان کن.'
+          ? session.mode === 'master'
+            ? 'تاج این واحد مال تو شد و ۲۰ سکه جایزه گرفتی.'
+            : 'این واحد و واحدهای قبلش برات باز شدن.'
+          : session.mode === 'master'
+            ? 'یه کم مرور کن و دوباره امتحان کن؛ آزمون استادی سخت‌تره.'
+            : 'اشکالی نداره؛ درس‌ها رو یکی‌یکی جلو برو و دوباره امتحان کن.'
         : timeLimit
-        ? `${fa(correctCount.current)} جواب درست توی ${fa(timeLimit)} ثانیه`
-        : isLesson
-          ? `${session.title} · ${current.topic}`
-          : session.title,
+          ? `${fa(correctCount.current)} جواب درست توی ${fa(timeLimit)} ثانیه`
+          : isLesson
+            ? `${session.title} · ${current.topic}`
+            : session.title,
       xp,
       accuracy,
       seconds,
       coins: coinsEarned,
+      celebrate: !isTest || passed,
+      goalReached: xpBefore < game.dailyGoal && todaysXp(useGame.getState()) >= game.dailyGoal,
     });
     setPhase('done');
+    playSfx(isTest && !passed ? 'wrong' : 'complete');
   };
 
   // The speed round's clock only runs while a question is on screen.
@@ -157,6 +179,14 @@ function LessonPlayer({ session }: { session: Session }) {
     }
     setLastCorrect(correct);
     setPhase('feedback');
+    playSfx(correct ? 'correct' : 'wrong');
+    if (!correct) {
+      // A quick side-to-side shake, like a head shake, on a wrong answer.
+      shake.setValue(0);
+      Animated.sequence(
+        [10, -10, 7, -7, 3, 0].map((toValue) => Animated.timing(shake, { toValue, duration: 55, useNativeDriver: false })),
+      ).start();
+    }
   };
 
   const next = () => {
@@ -201,6 +231,8 @@ function LessonPlayer({ session }: { session: Session }) {
         return <TapQuestion step={step} {...common} />;
       case 'order':
         return <OrderQuestion step={step} {...common} />;
+      case 'line':
+        return <LineQuestion step={step} {...common} />;
       case 'match':
         return <MatchQuestion step={step} onComplete={(flawless) => check(true, flawless)} />;
     }
@@ -215,7 +247,9 @@ function LessonPlayer({ session }: { session: Session }) {
         secondsLeft={timeLimit ? Math.max(0, secondsLeft ?? 0) : undefined}
       />
       <ScrollView contentContainerStyle={[styles.content, revealed && { paddingBottom: 320 }]} showsVerticalScrollIndicator={false}>
-        <View key={pos}>{renderStep()}</View>
+        <Animated.View key={pos} style={{ transform: [{ translateX: shake }] }}>
+          {renderStep()}
+        </Animated.View>
       </ScrollView>
 
       {step.type !== 'match' && (

@@ -1,3 +1,4 @@
+import { mergeChallenges } from '@/lib/challenges';
 import type { GameData, LessonRecord } from '@/store/game';
 
 const later = (a: string | null, b: string | null) => ((a ?? '') >= (b ?? '') ? a : b);
@@ -28,6 +29,7 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
   const localNewerWeek = local.weekKey > remote.weekKey;
   const sameDay = local.dailyDay === remote.dailyDay;
   const base = local.onboarded ? local : remote;
+  const other = base === local ? remote : local;
   return {
     ...base,
     onboarded: local.onboarded || remote.onboarded,
@@ -50,5 +52,12 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
     mistakes: [...new Set([...local.mistakes, ...remote.mistakes])].slice(0, 40),
     practiceSessions: Math.max(local.practiceSessions, remote.practiceSessions),
     reviews: { ...(remote.reviews ?? {}), ...(local.reviews ?? {}) },
+    mastered: [...new Set([...(local.mastered ?? []), ...(remote.mastered ?? [])])],
+    // The simulator accounts travel together with `sim` from the same side, so balances,
+    // positions and orders never mix. Finished challenges are kept from both sides.
+    simOrders: base.simOrders ?? [],
+    simReplay: base.simReplay ?? other.simReplay,
+    simChallenges: mergeChallenges(local.simChallenges, remote.simChallenges),
+    simTools: base.simTools ?? other.simTools,
   };
 }

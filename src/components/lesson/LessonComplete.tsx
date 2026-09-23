@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
+import { Confetti } from '@/components/Confetti';
 import { BoltIcon, FlameIcon, Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
@@ -18,10 +19,14 @@ type Props = {
   accuracy: number;
   seconds: number;
   coins: number;
+  /** Confetti for a finished lesson or a passed test; off for a failed test. */
+  celebrate?: boolean;
+  /** This session pushed today's XP over the daily goal. */
+  goalReached?: boolean;
   onContinue: () => void;
 };
 
-export function LessonComplete({ title, subtitle, xp, accuracy, seconds, coins, onContinue }: Props) {
+export function LessonComplete({ title, subtitle, xp, accuracy, seconds, coins, celebrate = true, goalReached = false, onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const streak = useGame((s) => currentStreak(s));
   const activeDays = useGame((s) => s.activeDays);
@@ -38,6 +43,14 @@ export function LessonComplete({ title, subtitle, xp, accuracy, seconds, coins, 
         <Txt w={700} size={15} color={colors.text2} center>
           {subtitle}
         </Txt>
+        {goalReached && (
+          <View style={styles.goal}>
+            <Icon name="target" size={18} color={colors.goldInk} strokeWidth={2.8} />
+            <Txt w={900} size={14} color={colors.goldInk}>
+              هدف امروزت کامل شد!
+            </Txt>
+          </View>
+        )}
       </View>
 
       <View style={styles.stats}>
@@ -91,6 +104,7 @@ export function LessonComplete({ title, subtitle, xp, accuracy, seconds, coins, 
 
       <View style={{ flex: 1 }} />
       <Button3D label="ادامه" onPress={onContinue} />
+      {celebrate && <Confetti />}
     </View>
   );
 }
@@ -114,6 +128,16 @@ function Stat({ label, color, ink, icon, value }: { label: string; color: string
 }
 
 const styles = StyleSheet.create({
+  goal: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: colors.gold,
+  },
   wrap: {
     flex: 1,
     paddingHorizontal: 16,

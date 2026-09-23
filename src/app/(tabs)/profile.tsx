@@ -225,12 +225,34 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.disclaimer}>
+        <Pressable
+          onPress={() => game.setSound(!game.sound)}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: game.sound }}
+          accessibilityLabel="صدا و لرزش"
+          style={styles.accountRow}
+        >
+          <Icon name={game.sound ? 'volume' : 'mute'} size={22} color={game.sound ? colors.bull : colors.text3} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt w={800} size={14}>
+              صدا و لرزش
+            </Txt>
+            <Txt w={500} size={12} color={colors.text3}>
+              {game.sound ? 'صدای جواب‌ها، صندوق و پایان درس روشنه' : 'خاموشه'}
+            </Txt>
+          </View>
+          <View style={[styles.toggle, game.sound && styles.toggleOn]}>
+            <View style={[styles.knob, game.sound && styles.knobOn]} />
+          </View>
+        </Pressable>
+
+        <Pressable onPress={() => router.push('/about')} accessibilityRole="button" style={styles.disclaimer}>
           <Icon name="info" size={20} color={colors.text3} />
           <Txt size={13} lh={1.8} color={colors.text3} style={{ flex: 1 }}>
             تریدینگو فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.
           </Txt>
-        </View>
+          <Icon name="chevronBack" size={18} color={colors.text3} />
+        </Pressable>
 
         <Button3D label="پاک کردن همه‌ی پیشرفت" variant="secondary" size={15} onPress={() => setConfirmReset(true)} />
       </ScrollView>
@@ -393,6 +415,27 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
+  },
+  toggle: {
+    width: 50,
+    height: 30,
+    padding: 3,
+    borderRadius: 15,
+    backgroundColor: colors.raised,
+    flexDirection: 'row',
+  },
+  toggleOn: {
+    backgroundColor: colors.bull,
+    justifyContent: 'flex-end',
+  },
+  knob: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.text3,
+  },
+  knobOn: {
+    backgroundColor: colors.bullInk,
   },
   courseRow: {
     flexDirection: 'row',

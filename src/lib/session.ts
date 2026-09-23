@@ -1,17 +1,22 @@
 import { courseLessonIds, findCourse, findLesson, findUnitWithCourse, isQuestion, type Step } from '@/content';
 import { dueLessons, type Review } from '@/lib/review';
 import type { LessonRecord } from '@/store/game';
-import { fa } from '@/utils/format';
+import { bandDecimals } from '@/content/line';
+import { fa, formatPrice } from '@/utils/format';
 import { shuffle } from '@/utils/random';
 
 export type SessionStep = { step: Step; ref: string; topic: string };
 
 export type PracticeMode = 'mixed' | 'mistakes' | 'charts' | 'speed';
 
+/** Question types the chart-reading practice ("شکار الگو") draws from. */
+const CHART_TYPES = new Set<Step['type']>(['chart', 'predict', 'tap', 'line']);
+
 export type Session =
   | { kind: 'lesson'; lessonId: string; title: string; steps: SessionStep[] }
   | { kind: 'practice'; mode: PracticeMode; title: string; steps: SessionStep[]; timeLimit?: number }
-  | { kind: 'test'; unitId: string; title: string; steps: SessionStep[]; lives: number };
+  /** 'jump' skips ahead to a locked unit; 'master' is the harder test that crowns a finished unit. */
+  | { kind: 'test'; mode: 'jump' | 'master'; unitId: string; title: string; steps: SessionStep[]; lives: number };
 
 type SessionState = {
   activeCourse: string;
@@ -24,6 +29,8 @@ export const SPEED_SECONDS = 60;
 /** A unit test-out asks this many questions and ends after this many mistakes. */
 export const TEST_QUESTIONS = 10;
 export const TEST_LIVES = 3;
+export const MASTER_QUESTIONS = 15;
+export const MASTER_LIVES = 2;
 
 const PRACTICE_TITLES: Record<PracticeMode, string> = {
   mixed: 'مرور هوشمند',
@@ -60,7 +67,7 @@ export function practiceSteps(mode: PracticeMode, state: SessionState): SessionS
       .slice(0, 10);
   }
   const pool = practicePool(state);
-  if (mode === 'charts') return shuffle(pool.filter((s) => s.step.type === 'chart' || s.step.type === 'predict' || s.step.type === 'tap')).slice(0, 8);
+  if (mode === 'charts') return shuffle(pool.filter((s) => CHART_TYPES.has(s.step.type))).slice(0, 8);
   if (mode === 'speed') return shuffle(pool.filter((s) => s.step.type === 'choice' || s.step.type === 'truefalse')).slice(0, 30);
   // Lessons due for review come first; the rest of the session is a random mix.
   const due = new Set(dueLessons(state.reviews ?? {}));
@@ -69,20 +76,24 @@ export function practiceSteps(mode: PracticeMode, state: SessionState): SessionS
 }
 
 export function buildSession(id: string, state: SessionState): Session | null {
-  if (id.startsWith('test-')) {
-    const hit = findUnitWithCourse(id.slice('test-'.length));
+  const testMode = id.startsWith('test-') ? 'jump' : id.startsWith('master-') ? 'master' : null;
+  if (testMode) {
+    const hit = findUnitWithCourse(id.slice(id.indexOf('-') + 1));
     if (!hit) return null;
+    const count = testMode === 'master' ? MASTER_QUESTIONS : TEST_QUESTIONS;
     const pool = hit.unit.lessons.flatMap((lesson) =>
       lesson.steps
         .map((step, i) => ({ step, ref: `${lesson.id}:${i}`, topic: hit.unit.title }))
         .filter((s) => isQuestion(s.step) && s.step.type !== 'match'),
     );
     // A few questions from every lesson, so passing means the whole unit is known.
-    const perLesson = Math.ceil(TEST_QUESTIONS / hit.unit.lessons.length);
+    const perLesson = Math.ceil(count / hit.unit.lessons.length);
     const picked = hit.unit.lessons.flatMap((lesson) => shuffle(pool.filter((s) => s.ref.startsWith(`${lesson.id}:`))).slice(0, perLesson));
-    const steps = shuffle(picked).slice(0, TEST_QUESTIONS);
+    const steps = shuffle(picked).slice(0, count);
     if (steps.length === 0) return null;
-    return { kind: 'test', unitId: hit.unit.id, title: `آزمون پرش · ${hit.unit.title}`, steps, lives: TEST_LIVES };
+    return testMode === 'master'
+      ? { kind: 'test', mode: 'master', unitId: hit.unit.id, title: `آزمون استادی · ${hit.unit.title}`, steps, lives: MASTER_LIVES }
+      : { kind: 'test', mode: 'jump', unitId: hit.unit.id, title: `آزمون پرش · ${hit.unit.title}`, steps, lives: TEST_LIVES };
   }
   if (id.startsWith('practice-')) {
     const mode = id.slice('practice-'.length) as PracticeMode;
@@ -121,6 +132,10 @@ export function correctAnswerText(step: Step): string | undefined {
       return filledSentence(step.sentence, step.answers);
     case 'order':
       return step.items.map((item, i) => `${fa(i + 1)}. ${item}`).join('\n');
+    case 'line': {
+      const d = bandDecimals(step);
+      return `بین ${formatPrice(step.answer[0], d)} تا ${formatPrice(step.answer[1], d)}`;
+    }
     default:
       return undefined;
   }

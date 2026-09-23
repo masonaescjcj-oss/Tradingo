@@ -1,4 +1,5 @@
-import type { Candle, ChartSpec, Course, Lesson, Step } from './types';
+import { chartPriceRange, lineDecimals, lineExtent, roundPrice } from './line';
+import type { Candle, ChartSpec, Course, LineStep, Lesson, Step } from './types';
 
 /** Structural checks for course content. Returns human-readable problems; empty means valid. */
 export function validateCourses(courses: Course[]): string[] {
@@ -108,6 +109,9 @@ function validateStep(step: Step): string[] {
       need(step.chart.highlight == null, 'tap charts must not highlight a candle (it gives the answer away)');
       need(step.symbol, 'missing symbol');
       break;
+    case 'line':
+      out.push(...validateChart(step.chart), ...validateLine(step));
+      break;
     case 'truefalse':
       need(typeof step.answer === 'boolean', 'answer must be true or false');
       need(step.statement, 'missing statement');
@@ -132,6 +136,35 @@ function validateStep(step: Step): string[] {
       need(unique(step.items), 'items must be unique');
       break;
   }
+  return out;
+}
+
+/** Share of the visible price range the answer band must cover, so it can be hit by dragging but isn't a giveaway. */
+export const LINE_BAND_MIN = 0.03;
+export const LINE_BAND_MAX = 0.35;
+
+function validateLine(step: LineStep): string[] {
+  const out: string[] = [];
+  if (!step.symbol) out.push('missing symbol');
+  if (!step.label?.trim() || step.label.length > 12) out.push(`label "${step.label ?? ''}" is required and must be 12 chars or fewer`);
+  const [low, high] = Array.isArray(step.answer) ? step.answer : [NaN, NaN];
+  if (![low, high, step.start].every(Number.isFinite)) return [...out, 'start and answer must be numbers'];
+  if (!(low < high)) return [...out, 'answer must be [low, high] with low < high'];
+  if (step.start >= low && step.start <= high) out.push('the line must start outside the answer band');
+
+  const [lo, hi] = chartPriceRange(step.chart);
+  const span = hi - lo;
+  const near = (p: number) => p >= lo - 0.4 * span && p <= hi + 0.4 * span;
+  if (!near(low) || !near(high)) out.push(`answer band ${low}–${high} is outside the chart's price range (${lo}–${hi})`);
+  if (!near(step.start)) out.push(`start ${step.start} is outside the chart's price range (${lo}–${hi})`);
+
+  const [vLo, vHi] = lineExtent(step);
+  const share = (high - low) / (vHi - vLo);
+  if (share < LINE_BAND_MIN) out.push(`answer band is ${(share * 100).toFixed(1)}% of the visible range; make it at least ${LINE_BAND_MIN * 100}% so it can be hit`);
+  if (share > LINE_BAND_MAX) out.push(`answer band is ${(share * 100).toFixed(1)}% of the visible range; keep it under ${LINE_BAND_MAX * 100}%`);
+
+  const d = lineDecimals(step);
+  if (![low, high, step.start].every((p) => Math.abs(roundPrice(p, d) - p) < 1e-9)) out.push(`start and answer must use at most ${d} decimals`);
   return out;
 }
 

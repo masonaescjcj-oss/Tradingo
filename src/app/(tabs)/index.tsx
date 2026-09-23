@@ -12,6 +12,7 @@ import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
 import { ALL_COURSES, CHEST_AFTER, CHEST_COINS, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
+import { playSfx } from '@/lib/sfx';
 import { useGame, type LessonRecord } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -35,6 +36,7 @@ export default function LearnScreen() {
   const activeCourse = useGame((s) => s.activeCourse);
   const completed = useGame((s) => s.completed);
   const chests = useGame((s) => s.chests);
+  const mastered = useGame((s) => s.mastered);
   const claimChest = useGame((s) => s.claimChest);
   const { width } = useWindowDimensions();
   const colW = Math.min(width, MAX_WIDTH);
@@ -78,6 +80,7 @@ export default function LearnScreen() {
     if (item.kind === 'chest') {
       if (item.status === 'ready') {
         claimChest(item.id, CHEST_COINS);
+        playSfx('chest');
         setChestReward(true);
       } else if (item.status === 'locked') {
         setToast('صندوق بعد از تموم کردن درس‌های قبلی باز می‌شه.');
@@ -139,6 +142,7 @@ export default function LearnScreen() {
             unit={unit}
             index={unitIndex}
             items={items}
+            mastered={mastered.includes(unit.id)}
             width={colW}
             onItem={onItem}
             onCurrentLayout={scrollToCurrent}
@@ -190,6 +194,7 @@ function UnitSection({
   unit,
   index,
   items,
+  mastered,
   width,
   onItem,
   onCurrentLayout,
@@ -197,6 +202,7 @@ function UnitSection({
   unit: Unit;
   index: number;
   items: PathItem[];
+  mastered: boolean;
   width: number;
   onItem: (item: PathItem) => void;
   onCurrentLayout: (y: number) => void;
@@ -208,6 +214,7 @@ function UnitSection({
   const positions = items.map((_, i) => ({ x: center + OFFSETS[i % OFFSETS.length], y: top + i * ROW }));
   const height = top + items.length * ROW - 20;
   const unlocked = items.some((it) => it.kind === 'lesson' && it.status !== 'locked');
+  const finished = items.every((it) => it.kind === 'chest' || it.status === 'done' || it.status === 'perfect');
   const doneUntil = currentIndex >= 0 ? currentIndex : items.every((it) => it.status !== 'locked') ? items.length - 1 : -1;
 
   // A jagged "price line" connects the nodes; walked segments are green.
@@ -250,6 +257,16 @@ function UnitSection({
             {unit.title}
           </Txt>
         </View>
+        {finished && (
+          <Pressable
+            onPress={() => router.push(`/lesson/master-${unit.id}`)}
+            accessibilityRole="button"
+            accessibilityLabel={mastered ? `استاد واحد ${unit.title}؛ دوباره امتحان کن` : `آزمون استادی واحد ${unit.title}`}
+            style={[styles.crownBtn, mastered && styles.crownOn]}
+          >
+            <Icon name="crown" size={22} color={mastered ? colors.goldInk : unit.ink} strokeWidth={2.4} />
+          </Pressable>
+        )}
         {!unlocked && (
           <Pressable
             onPress={() => router.push(`/lesson/test-${unit.id}`)}
@@ -466,6 +483,20 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 18,
     borderBottomWidth: 5,
+  },
+  crownBtn: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  crownOn: {
+    backgroundColor: colors.gold,
+    borderColor: colors.goldEdge,
   },
   jumpBtn: {
     height: 40,

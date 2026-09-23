@@ -3,12 +3,30 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
+import { heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '@/lib/progress';
 import { nextReview, type Review } from '@/lib/review';
 import { safeStorage } from '@/lib/storage';
-import { addDays, dayKey, weekKey } from '@/utils/date';
+import { evaluateChallenge, findChallenge, type ChallengeRecord } from '@/lib/challenges';
+import { newReplaySession, replayFinished, replayPrice, stepReplay, type ReplaySession } from '@/lib/replay';
+import { findSymbol } from '@/lib/simulator';
+import {
+  cancelOrder,
+  closeAt,
+  emptyAccount,
+  flatten,
+  placeOrder,
+  processPath,
+  type Account,
+  type ClosedTrade,
+  type OrderRequest,
+  type PendingOrder,
+  type PlaceError,
+  type Position,
+  type TradeEvent,
+} from '@/lib/trading';
+import { dayKey, weekKey } from '@/utils/date';
 
-export const MAX_HEARTS = 5;
-export const HEART_REFILL_MS = 30 * 60 * 1000;
+export { HEART_REFILL_MS, MAX_HEARTS } from '@/lib/progress';
 export const HEART_REFILL_COST = 100;
 export const START_BALANCE = 10_000;
 export const DAILY_REWARD = 20;
@@ -17,18 +35,16 @@ export type Level = 'new' | 'some' | 'pro';
 
 export type LessonRecord = { best: number; perfect: boolean; skipped?: boolean };
 
-export type Position = {
-  id: string;
-  symbol: string;
-  side: 'buy' | 'sell';
-  size: number;
-  entry: number;
-  sl?: number;
-  tp?: number;
-  openedAt: number;
-};
+export type { ClosedTrade, PendingOrder, Position } from '@/lib/trading';
 
-export type ClosedTrade = Position & { exit: number; pnl: number; closedAt: number; reason: 'manual' | 'sl' | 'tp' };
+/** Which simulator account an action applies to: the live one or the market replay's. */
+export type SimBook = 'live' | 'replay';
+
+export type SimTools = { ma: boolean; ma2: boolean; bands: boolean; rsi: boolean; volume: boolean; levels: Record<string, number[]> };
+
+export type SimReplay = { session: ReplaySession | null; account: Account };
+
+export const DEFAULT_SIM_TOOLS: SimTools = { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {} };
 
 export type GameData = Data;
 
@@ -64,7 +80,19 @@ type Data = {
   /** Spaced repetition: when each studied lesson is next due for review, and the current gap in days. */
   reviews: Record<string, Review>;
   practiceSessions: number;
+  /** Sound effects and haptics on answers, chests and lesson ends. */
+  sound: boolean;
+  /** Units whose mastery test was passed; they show a crown on the path. */
+  mastered: string[];
   sim: { balance: number; positions: Position[]; history: ClosedTrade[] };
+  /** Pending limit/stop orders of the live simulator (a top-level key so older saves get a default). */
+  simOrders: PendingOrder[];
+  /** Market replay: the current session and its own practice account. */
+  simReplay: SimReplay;
+  /** Simulator challenges the learner started or finished. */
+  simChallenges: Record<string, ChallengeRecord>;
+  /** Simulator chart indicators and the learner's horizontal levels per symbol. */
+  simTools: SimTools;
 };
 
 type Actions = {
@@ -75,6 +103,8 @@ type Actions = {
   leaveCourse: (courseId: string) => void;
   setName: (name: string) => void;
   setDailyGoal: (goal: number) => void;
+  setSound: (on: boolean) => void;
+  masterUnit: (unitId: string, xp: number) => void;
   syncHearts: () => void;
   loseHeart: () => void;
   refillHearts: () => boolean;
@@ -89,9 +119,23 @@ type Actions = {
   recordMistake: (key: string) => void;
   clearMistake: (key: string) => void;
   rolloverWeek: () => void;
-  openPosition: (p: Omit<Position, 'id' | 'openedAt'>) => void;
-  closePosition: (id: string, exit: number, pnl: number, reason: ClosedTrade['reason']) => void;
+  /** Moves live prices (mid-price paths per symbol) and returns the fills and closes they caused. */
+  simProcess: (moves: { symbol: string; path: number[] }[], mids: Record<string, number>) => TradeEvent[];
+  simPlace: (book: SimBook, req: OrderRequest, mid: number, mids: Record<string, number>) => { error?: PlaceError; event?: TradeEvent };
+  simClose: (book: SimBook, id: string, mid: number) => ClosedTrade | undefined;
+  simCancel: (book: SimBook, id: string) => void;
+  simNote: (book: SimBook, tradeId: string, note: string) => void;
+  setSimTools: (patch: Partial<SimTools>) => void;
   resetSim: () => void;
+  /** Starts a replay session; open replay trades of the previous one are closed first. */
+  replayStart: (symbol: string, seed: number) => void;
+  /** Reveals the next candles of the replay and returns what they triggered. */
+  replayStep: (count: number) => TradeEvent[];
+  replayEnd: () => void;
+  resetReplay: () => void;
+  startChallenge: (id: string) => void;
+  /** Grants a finished challenge's coins and XP once. */
+  claimChallenge: (id: string) => boolean;
   resetAll: () => void;
 };
 
@@ -127,8 +171,45 @@ function initialData(): Data {
     mistakes: [],
     reviews: {},
     practiceSessions: 0,
+    sound: true,
+    mastered: [],
     sim: { balance: START_BALANCE, positions: [], history: [] },
+    simOrders: [],
+    simReplay: { session: null, account: emptyAccount(START_BALANCE) },
+    simChallenges: {},
+    simTools: DEFAULT_SIM_TOOLS,
   };
+}
+
+const simId = () => `${Date.now().toString(36)}-${Math.round(Math.random() * 1e8).toString(36)}`;
+
+// Saved state is merged shallowly, so new sim keys are read defensively.
+function liveAccount(s: Data): Account {
+  return { balance: s.sim.balance, positions: s.sim.positions, history: s.sim.history, orders: s.simOrders ?? [] };
+}
+
+function liveData(a: Account): Pick<Data, 'sim' | 'simOrders'> {
+  return { sim: { balance: a.balance, positions: a.positions, history: a.history }, simOrders: a.orders };
+}
+
+function replayOf(s: Data): SimReplay {
+  return s.simReplay ?? { session: null, account: emptyAccount(START_BALANCE) };
+}
+
+function bookAccount(s: Data, book: SimBook): Account {
+  return book === 'live' ? liveAccount(s) : replayOf(s).account;
+}
+
+function withBook(s: Data, book: SimBook, account: Account): Partial<Data> {
+  return book === 'live' ? liveData(account) : { simReplay: { ...replayOf(s), account } };
+}
+
+/** Closes the replay's open trades at its current price before its chart goes away. */
+function closeReplay(rep: SimReplay): Account {
+  if (!rep.session) return rep.account;
+  const price = replayPrice(rep.session);
+  const flat = price != null ? flatten(rep.account, { [rep.session.symbol]: price }, Date.now()) : rep.account;
+  return { ...flat, positions: [], orders: [] };
 }
 
 const DATA_KEYS = Object.keys(initialData()) as (keyof Data)[];
@@ -138,25 +219,7 @@ export function pickData(s: Data): Data {
   return Object.fromEntries(DATA_KEYS.map((k) => [k, s[k]])) as Data;
 }
 
-/** Hearts come back one at a time while below the maximum. */
-export function heartsNow(s: Pick<Data, 'hearts' | 'heartsUpdatedAt'>, now = Date.now()) {
-  if (s.hearts >= MAX_HEARTS) return { hearts: MAX_HEARTS, nextInMs: 0, updatedAt: now };
-  const gained = Math.floor((now - s.heartsUpdatedAt) / HEART_REFILL_MS);
-  const hearts = Math.min(MAX_HEARTS, s.hearts + gained);
-  const updatedAt = s.heartsUpdatedAt + gained * HEART_REFILL_MS;
-  return { hearts, nextInMs: hearts >= MAX_HEARTS ? 0 : HEART_REFILL_MS - (now - updatedAt), updatedAt };
-}
-
-/** The streak only counts if the user was active today or yesterday. */
-export function currentStreak(s: Pick<Data, 'streak' | 'lastActiveDay'>, today = dayKey()): number {
-  if (!s.lastActiveDay) return 0;
-  const yesterday = dayKey(addDays(new Date(), -1));
-  return s.lastActiveDay === today || s.lastActiveDay === yesterday ? s.streak : 0;
-}
-
-export function todaysXp(s: Pick<Data, 'dailyXp' | 'dailyDay'>): number {
-  return s.dailyDay === dayKey() ? s.dailyXp : 0;
-}
+export { currentStreak, heartsNow, todaysXp } from '@/lib/progress';
 
 export const useGame = create<GameState>()(
   persist(
@@ -196,6 +259,12 @@ export const useGame = create<GameState>()(
 
       setName: (name) => set({ name: name.trim() || 'تریدر' }),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
+      setSound: (sound) => set({ sound }),
+
+      masterUnit: (unitId, xp) => {
+        if (!get().mastered.includes(unitId)) set((s) => ({ mastered: [...s.mastered, unitId], coins: s.coins + 20 }));
+        get().addXp(xp);
+      },
 
       syncHearts: () => {
         const h = heartsNow(get());
@@ -219,13 +288,9 @@ export const useGame = create<GameState>()(
         get().rolloverWeek();
         const s = get();
         const today = dayKey();
-        const yesterday = dayKey(addDays(new Date(), -1));
-        let { streak, lastActiveDay, activeDays } = s;
-        if (lastActiveDay !== today) {
-          streak = lastActiveDay === yesterday ? streak + 1 : 1;
-          lastActiveDay = today;
-          activeDays = [...activeDays.filter((d) => d !== today), today].slice(-30);
-        }
+        const streak = nextStreak(s, today);
+        const lastActiveDay = today;
+        const activeDays = s.lastActiveDay === today ? s.activeDays : [...s.activeDays.filter((d) => d !== today), today].slice(-30);
         set({
           xp: s.xp + amount,
           dailyXp: (s.dailyDay === today ? s.dailyXp : 0) + amount,
@@ -316,25 +381,99 @@ export const useGame = create<GameState>()(
         set({ weekKey: current, weeklyXp: 0, league, lastLeagueChange });
       },
 
-      openPosition: (p) => {
-        const position: Position = { ...p, id: `${Date.now()}-${Math.round(Math.random() * 1e6)}`, openedAt: Date.now() };
-        set((s) => ({ sim: { ...s.sim, positions: [...s.sim.positions, position] } }));
+      simProcess: (moves, mids) => {
+        let account = liveAccount(get());
+        if (account.positions.length === 0 && account.orders.length === 0) return [];
+        const events: TradeEvent[] = [];
+        const now = Date.now();
+        for (const m of moves) {
+          const spec = findSymbol(m.symbol);
+          if (!spec) continue;
+          const r = processPath(account, spec, m.path, { now, newId: simId, mids });
+          account = r.account;
+          events.push(...r.events);
+        }
+        // Only write (and persist) when something actually happened.
+        if (events.length) set(liveData(account));
+        return events;
       },
 
-      closePosition: (id, exit, pnl, reason) =>
-        set((s) => {
-          const pos = s.sim.positions.find((p) => p.id === id);
-          if (!pos) return s;
-          return {
-            sim: {
-              balance: s.sim.balance + pnl,
-              positions: s.sim.positions.filter((p) => p.id !== id),
-              history: [{ ...pos, exit, pnl, reason, closedAt: Date.now() }, ...s.sim.history].slice(0, 50),
-            },
-          };
-        }),
+      simPlace: (book, req, mid, mids) => {
+        const spec = findSymbol(req.symbol);
+        if (!spec) return { error: 'price' };
+        const s = get();
+        const r = placeOrder(bookAccount(s, book), spec, req, mid, { now: Date.now(), newId: simId, mids });
+        if (r.error) return { error: r.error };
+        set(withBook(s, book, r.account));
+        return { event: r.event };
+      },
 
-      resetSim: () => set({ sim: { balance: START_BALANCE, positions: [], history: [] } }),
+      simClose: (book, id, mid) => {
+        const s = get();
+        const account = bookAccount(s, book);
+        const spec = findSymbol(account.positions.find((p) => p.id === id)?.symbol ?? '');
+        if (!spec) return undefined;
+        const r = closeAt(account, spec, id, mid, Date.now());
+        if (r.trade) set(withBook(s, book, r.account));
+        return r.trade;
+      },
+
+      simCancel: (book, id) => {
+        const s = get();
+        set(withBook(s, book, cancelOrder(bookAccount(s, book), id)));
+      },
+
+      simNote: (book, tradeId, note) => {
+        const s = get();
+        const account = bookAccount(s, book);
+        const text = note.trim().slice(0, 200);
+        const history = account.history.map((t) => (t.id === tradeId ? { ...t, note: text || undefined } : t));
+        set(withBook(s, book, { ...account, history }));
+      },
+
+      setSimTools: (patch) => set((s) => ({ simTools: { ...DEFAULT_SIM_TOOLS, ...s.simTools, ...patch } })),
+
+      resetSim: () =>
+        set((s) => ({
+          sim: { balance: START_BALANCE, positions: [], history: [] },
+          simOrders: [],
+          // Finished challenges stay finished; attempts in progress start over.
+          simChallenges: Object.fromEntries(Object.entries(s.simChallenges ?? {}).filter(([, r]) => r.completedAt != null)),
+        })),
+
+      replayStart: (symbol, seed) => {
+        const account = closeReplay(replayOf(get()));
+        set({ simReplay: { account, session: newReplaySession(symbol, seed, account.balance) } });
+      },
+
+      replayStep: (count) => {
+        const rep = replayOf(get());
+        if (!rep.session || replayFinished(rep.session)) return [];
+        const r = stepReplay(rep.account, rep.session, count, { now: Date.now(), newId: simId });
+        set({ simReplay: { account: r.account, session: r.session } });
+        return r.events;
+      },
+
+      replayEnd: () => set((s) => ({ simReplay: { account: closeReplay(replayOf(s)), session: null } })),
+
+      resetReplay: () => set({ simReplay: { session: null, account: emptyAccount(START_BALANCE) } }),
+
+      startChallenge: (id) => {
+        const s = get();
+        if (!findChallenge(id) || s.simChallenges?.[id]?.completedAt != null) return;
+        set({ simChallenges: { ...(s.simChallenges ?? {}), [id]: { startedAt: Date.now(), startBalance: s.sim.balance } } });
+      },
+
+      claimChallenge: (id) => {
+        const s = get();
+        const challenge = findChallenge(id);
+        const record = s.simChallenges?.[id];
+        if (!challenge || !record || record.completedAt != null) return false;
+        if (!evaluateChallenge(challenge, record, s.sim.history).done) return false;
+        set({ simChallenges: { ...s.simChallenges, [id]: { ...record, completedAt: Date.now() } }, coins: s.coins + challenge.coins });
+        get().addXp(challenge.xp);
+        return true;
+      },
 
       resetAll: () => set(initialData()),
     }),

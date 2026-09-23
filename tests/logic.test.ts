@@ -7,9 +7,10 @@ import { ALL_COURSES, findLesson, starterCourses } from '../src/content';
 import { rsi, sma } from '../src/content/indicators';
 import { validateCourses } from '../src/content/validate';
 import { mergeProgress } from '../src/lib/merge';
+import { currentStreak, HEART_REFILL_MS, heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '../src/lib/progress';
 import { buildBoard, userRank } from '../src/lib/league';
 import { dueLessons, nextReview } from '../src/lib/review';
-import { buildSession, correctAnswerText, filledSentence, TEST_LIVES, TEST_QUESTIONS } from '../src/lib/session';
+import { buildSession, correctAnswerText, filledSentence, MASTER_LIVES, MASTER_QUESTIONS, TEST_LIVES, TEST_QUESTIONS } from '../src/lib/session';
 import type { GameData } from '../src/store/game';
 
 describe('content', () => {
@@ -79,6 +80,15 @@ describe('sessions', () => {
     assert.ok(s.steps.every((st) => st.step.type !== 'learn' && st.step.type !== 'match'));
   });
 
+  it('builds a harder mastery test', () => {
+    const s = buildSession('master-candles', state);
+    assert.equal(s?.kind, 'test');
+    if (s?.kind !== 'test') return;
+    assert.equal(s.mode, 'master');
+    assert.equal(s.lives, MASTER_LIVES);
+    assert.ok(s.steps.length > TEST_QUESTIONS && s.steps.length <= MASTER_QUESTIONS);
+  });
+
   it('returns null for unknown ids', () => {
     assert.equal(buildSession('nope', state), null);
     assert.equal(buildSession('test-nope', state), null);
@@ -118,7 +128,13 @@ const STATE: GameData = {
   mistakes: [],
   reviews: {},
   practiceSessions: 0,
+  sound: true,
+  mastered: [],
   sim: { balance: 10000, positions: [], history: [] },
+  simOrders: [],
+  simReplay: { session: null, account: { balance: 10000, positions: [], orders: [], history: [] } },
+  simChallenges: {},
+  simTools: { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {} },
 };
 
 describe('cloud merge', () => {
@@ -142,6 +158,36 @@ describe('cloud merge', () => {
     const m = mergeProgress({ ...base, weekKey: '2026-09-19', weeklyXp: 10, league: 1 }, { ...base, weekKey: '2026-09-12', weeklyXp: 500, league: 3 });
     assert.equal(m.weeklyXp, 10);
     assert.equal(m.league, 1);
+  });
+});
+
+describe('hearts and streaks', () => {
+  it('refills one heart every interval up to the maximum', () => {
+    const now = 10 * HEART_REFILL_MS;
+    assert.equal(heartsNow({ hearts: 2, heartsUpdatedAt: now - 2 * HEART_REFILL_MS - 1000 }, now).hearts, 4);
+    assert.equal(heartsNow({ hearts: 4, heartsUpdatedAt: 0 }, now).hearts, MAX_HEARTS);
+    const partial = heartsNow({ hearts: 1, heartsUpdatedAt: now - HEART_REFILL_MS / 2 }, now);
+    assert.equal(partial.hearts, 1);
+    assert.equal(partial.nextInMs, HEART_REFILL_MS / 2);
+  });
+
+  it('keeps, extends or restarts the streak by calendar day', () => {
+    assert.equal(nextStreak({ streak: 4, lastActiveDay: '2026-09-22' }, '2026-09-23'), 5);
+    assert.equal(nextStreak({ streak: 4, lastActiveDay: '2026-09-23' }, '2026-09-23'), 4);
+    assert.equal(nextStreak({ streak: 4, lastActiveDay: '2026-09-20' }, '2026-09-23'), 1);
+    assert.equal(nextStreak({ streak: 9, lastActiveDay: '2026-02-28' }, '2026-03-01'), 10);
+    assert.equal(nextStreak({ streak: 0, lastActiveDay: null }, '2026-09-23'), 1);
+  });
+
+  it('shows a streak only if it is still alive', () => {
+    assert.equal(currentStreak({ streak: 6, lastActiveDay: '2026-09-22' }, '2026-09-23'), 6);
+    assert.equal(currentStreak({ streak: 6, lastActiveDay: '2026-09-21' }, '2026-09-23'), 0);
+    assert.equal(currentStreak({ streak: 6, lastActiveDay: null }, '2026-09-23'), 0);
+  });
+
+  it('counts only today\'s XP toward the daily goal', () => {
+    assert.equal(todaysXp({ dailyXp: 25, dailyDay: '2026-09-23' }, '2026-09-23'), 25);
+    assert.equal(todaysXp({ dailyXp: 25, dailyDay: '2026-09-22' }, '2026-09-23'), 0);
   });
 });
 

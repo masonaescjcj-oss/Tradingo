@@ -8,11 +8,14 @@ import {
   Vazirmatn_900Black,
 } from '@expo-google-fonts/vazirmatn';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, router, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
+import { Button3D } from '@/components/Button3D';
+import { Mascot } from '@/components/Mascot';
+import { Txt } from '@/components/Txt';
 import { startCloudSync } from '@/lib/cloud';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
@@ -37,6 +40,37 @@ function useStoreHydrated() {
     (onChange) => useGame.persist.onFinishHydration(onChange),
     () => useGame.persist.hasHydrated(),
     () => false,
+  );
+}
+
+/** Shown instead of a blank screen when something crashes while rendering. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <View style={styles.page} {...rtlProps}>
+      <View style={[styles.column, styles.error]}>
+        <Mascot mood="sad" size={120} />
+        <Txt w={900} size={20} center>
+          یه چیزی خراب شد!
+        </Txt>
+        <Txt size={14} lh={1.8} color={colors.text2} center>
+          پیشرفتت سالمه. دوباره امتحان کن؛ اگه باز هم این صفحه اومد، برگرد به صفحه‌ی اصلی.
+        </Txt>
+        <Txt mono size={11} color={colors.text3} center numberOfLines={3}>
+          {error.message}
+        </Txt>
+        <Button3D label="دوباره امتحان کن" onPress={retry} style={{ alignSelf: 'stretch' }} />
+        <Button3D
+          label="صفحه‌ی اصلی"
+          variant="secondary"
+          size={16}
+          onPress={() => {
+            router.replace('/');
+            retry();
+          }}
+          style={{ alignSelf: 'stretch' }}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -83,6 +117,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: colors.bg,
+  },
+  error: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    padding: 24,
   },
   // On wide web screens the app stays a phone-width column.
   column: {

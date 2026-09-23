@@ -1,13 +1,35 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Line, Polyline, Rect } from 'react-native-svg';
+import { useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, View, type GestureResponderEvent, type ViewStyle } from 'react-native';
+import Svg, { Line, Path, Polyline, Rect } from 'react-native-svg';
 
 import { bollinger, rsi as rsiValues, sma } from '@/content/indicators';
 import type { Candle, ChartSpec, Tone } from '@/content/types';
 import { colors } from '@/theme';
+import { formatPrice, priceDecimals } from '@/utils/format';
 
 import { Txt } from './Txt';
 
 export type CandleMark = 'selected' | 'correct' | 'wrong';
+
+/** A horizontal line the user drags up and down to pick a price ("draw a line" questions). */
+export type DragLine = {
+  price: number;
+  label: string;
+  color: string;
+  ink: string;
+  /** Called with the new price when a drag (or a tap that moves the line) ends. */
+  onChange: (price: number) => void;
+  disabled?: boolean;
+  /**
+   * Prices the scale must include, e.g. the line's start and every accepted answer.
+   * The scale never follows the line itself, so it stays still while dragging.
+   */
+  extent?: [number, number];
+  /** Decimals the line snaps to and shows; defaults to the usual ones for its price. */
+  decimals?: number;
+  /** Price change of one accessibility increment/decrement. */
+  step?: number;
+};
 
 type Props = ChartSpec & {
   width: number;
@@ -20,6 +42,7 @@ type Props = ChartSpec & {
   /** Makes every candle tappable (used by "tap the candle" questions). */
   onCandlePress?: (index: number) => void;
   marks?: Record<number, CandleMark>;
+  dragLine?: DragLine;
 };
 
 const PAD_T = 14;
@@ -27,6 +50,9 @@ const PAD_B = 14;
 const PAD_L = 8;
 const PILL_H = 20;
 const VIOLET = '#A78BFA';
+/** Touches this close (px) to the drag line pick it up where it is; farther ones move it to the finger first. */
+const GRAB = 26;
+const DRAG_PILL_H = 26;
 
 const TONE: Record<Tone, { color: string; ink: string }> = {
   bull: { color: colors.bull, ink: colors.bullInk },
@@ -74,6 +100,7 @@ export function CandleChart({
   grid = true,
   onCandlePress,
   marks,
+  dragLine,
 }: Props) {
   const rsiH = rsi ? Math.round(height * 0.28) : 0;
   const mainH = height - rsiH;
@@ -104,6 +131,7 @@ export function CandleChart({
     include(b.upper);
     include(b.lower);
   });
+  dragLine?.extent?.forEach(include);
 
   const span = hi - lo || 1;
   const priceBottom = mainH - PAD_B - volH;
@@ -310,6 +338,19 @@ export function CandleChart({
         ) : null}
       </Svg>
 
+      {/* Under the labels (which ignore touches), over the candles. */}
+      {dragLine && (
+        <DragLayer
+          line={dragLine}
+          lo={lo}
+          hi={hi}
+          top={PAD_T}
+          bottom={priceBottom}
+          width={width}
+          height={mainH}
+          pillSide={labelSide === 'left' ? 'right' : 'left'}
+        />
+      )}
       {zones.map((z, i) =>
         z.label ? (
           <View
@@ -390,6 +431,117 @@ export function CandleChart({
   );
 }
 
+// Web needs these so a touch drag moves the line instead of scrolling the page.
+const WEB_DRAG = Platform.OS === 'web' ? ({ cursor: 'ns-resize', touchAction: 'none', userSelect: 'none' } as unknown as ViewStyle) : null;
+
+/**
+ * The draggable line and its price tag, over the whole price area so the touch target is big.
+ * Dragging moves the line by the finger's vertical travel (converted with the chart's own scale);
+ * touching away from the line first moves it to the finger. The live position is local state,
+ * so only this layer re-renders while dragging; the parent hears about it on release.
+ */
+function DragLayer({
+  line,
+  lo,
+  hi,
+  top,
+  bottom,
+  width,
+  height,
+  pillSide,
+}: {
+  line: DragLine;
+  lo: number;
+  hi: number;
+  top: number;
+  bottom: number;
+  width: number;
+  height: number;
+  pillSide: 'left' | 'right';
+}) {
+  const [drag, setDrag] = useState<number | null>(null);
+  const grab = useRef<{ pageY: number; price: number; last: number } | null>(null);
+
+  const decimals = line.decimals ?? priceDecimals(line.price);
+  const span = hi - lo || 1;
+  const perPx = span / Math.max(1, bottom - top);
+  const snap = (v: number) => Number(Math.min(hi, Math.max(lo, v)).toFixed(decimals));
+  const toY = (v: number) => top + ((hi - Math.min(hi, Math.max(lo, v))) / span) * (bottom - top);
+  const toPrice = (yy: number) => hi - (yy - top) * perPx;
+
+  const shown = drag ?? line.price;
+  const ly = toY(shown);
+  const pillTop = Math.min(height - DRAG_PILL_H - 2, Math.max(2, ly - DRAG_PILL_H / 2));
+  const text = formatPrice(shown, decimals);
+
+  const finish = () => {
+    const g = grab.current;
+    grab.current = null;
+    setDrag(null);
+    if (g && g.last !== line.price) line.onChange(g.last);
+  };
+
+  const nudge = (dir: 1 | -1) => {
+    if (!line.step || line.disabled) return;
+    const next = snap(line.price + dir * line.step);
+    if (next !== line.price) line.onChange(next);
+  };
+
+  return (
+    <View
+      style={[styles.dragSurface, { width, height }, !line.disabled && WEB_DRAG]}
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityLabel={line.label}
+      aria-valuetext={text}
+      aria-valuenow={shown}
+      aria-valuemin={lo}
+      aria-valuemax={hi}
+      aria-disabled={!!line.disabled}
+      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+      onAccessibilityAction={(e) => nudge(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
+      onStartShouldSetResponder={() => !line.disabled}
+      onMoveShouldSetResponder={() => !line.disabled}
+      onResponderTerminationRequest={() => false}
+      onResponderGrant={(e: GestureResponderEvent) => {
+        const { pageY, locationY } = e.nativeEvent;
+        const price = Math.abs(locationY - ly) <= GRAB ? line.price : snap(toPrice(locationY));
+        grab.current = { pageY, price, last: price };
+        setDrag(price);
+        // Returning true keeps a parent scroll view from taking over the gesture on native.
+        return true;
+      }}
+      onResponderMove={(e: GestureResponderEvent) => {
+        const g = grab.current;
+        if (!g) return;
+        g.last = snap(g.price - (e.nativeEvent.pageY - g.pageY) * perPx);
+        setDrag(g.last);
+      }}
+      onResponderRelease={finish}
+      onResponderTerminate={finish}
+    >
+      <View pointerEvents="none" style={[styles.dragGlow, { top: ly - 9, backgroundColor: line.color, opacity: drag != null ? 0.3 : 0.16 }]} />
+      <View pointerEvents="none" style={[styles.dragLine, { top: ly - 1.5, backgroundColor: line.color }]} />
+      <View
+        pointerEvents="none"
+        style={[styles.dragPill, { top: pillTop, backgroundColor: line.color }, pillSide === 'left' ? { left: 6 } : { right: 6 }]}
+      >
+        {!line.disabled && (
+          <Svg width={10} height={14} viewBox="0 0 10 14">
+            <Path d="M1.5 5 L5 1.5 L8.5 5 M1.5 9 L5 12.5 L8.5 9" stroke={line.ink} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        )}
+        <Txt w={800} size={12} color={line.ink}>
+          {line.label}
+        </Txt>
+        <Txt mono w={800} size={12} color={line.ink}>
+          {text}
+        </Txt>
+      </View>
+    </View>
+  );
+}
+
 function GroupCandle({
   x,
   wickTop,
@@ -457,5 +609,32 @@ const styles = StyleSheet.create({
   tapZone: {
     position: 'absolute',
     top: 0,
+  },
+  dragSurface: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  dragGlow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 18,
+  },
+  dragLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 3,
+    borderRadius: 2,
+  },
+  dragPill: {
+    position: 'absolute',
+    height: DRAG_PILL_H,
+    paddingHorizontal: 9,
+    borderRadius: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

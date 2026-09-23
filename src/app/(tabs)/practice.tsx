@@ -10,6 +10,7 @@ import { Txt } from '@/components/Txt';
 import { findCourse } from '@/content';
 import { dueLessons } from '@/lib/review';
 import { practiceSteps, SPEED_SECONDS, type PracticeMode } from '@/lib/session';
+import { playSfx } from '@/lib/sfx';
 import { DAILY_REWARD, todaysXp, useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { dayKey } from '@/utils/date';
@@ -75,7 +76,18 @@ export default function PracticeScreen() {
           </View>
           <View style={styles.reward}>
             {goalMet && !claimedToday ? (
-              <Button3D variant="gold" height={44} radius={12} edge={4} size={14} label={`+${fa(DAILY_REWARD)} سکه`} onPress={claimDaily} />
+              <Button3D
+                variant="gold"
+                height={44}
+                radius={12}
+                edge={4}
+                size={14}
+                label={`+${fa(DAILY_REWARD)} سکه`}
+                onPress={() => {
+                  claimDaily();
+                  playSfx('chest');
+                }}
+              />
             ) : (
               <>
                 <View style={[styles.chest, claimedToday && { opacity: 0.5 }]}>

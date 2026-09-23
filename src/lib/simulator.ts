@@ -29,10 +29,25 @@ export function symbolsFor(market: Market): SymbolSpec[] {
   return SYMBOLS.filter((s) => market === 'both' || s.market === market);
 }
 
+export function findSymbol(id: string): SymbolSpec | undefined {
+  return SYMBOLS.find((s) => s.id === id);
+}
+
+/** Smallest size step of a symbol (0.01 lot, 0.001 BTC, …). */
+export function sizeStep(spec: SymbolSpec): number {
+  return spec.sizes[0];
+}
+
+/** Size with as many decimals as the symbol's step needs, in Latin digits. */
+export function formatSize(spec: SymbolSpec, size: number): string {
+  const decimals = Math.max(0, Math.round(-Math.log10(sizeStep(spec))));
+  return String(Number(size.toFixed(decimals)));
+}
+
 export const TICKS_PER_CANDLE = 8;
 export const VISIBLE_CANDLES = 36;
 
-function gaussian(rng: () => number): number {
+export function gaussian(rng: () => number): number {
   let u = 0;
   let v = 0;
   while (u === 0) u = rng();
@@ -40,10 +55,13 @@ function gaussian(rng: () => number): number {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-/** Next mid price: a random walk gently pulled back towards the symbol's base price. */
-export function nextPrice(spec: SymbolSpec, price: number, rng: () => number = Math.random): number {
-  const pull = (spec.base - price) * 0.002;
-  return price + pull + gaussian(rng) * spec.vol;
+/**
+ * Next mid price: a random walk gently pulled back towards the symbol's base price
+ * (or another anchor, e.g. the last real price after live data drops out).
+ */
+export function nextPrice(spec: SymbolSpec, price: number, rng: () => number = Math.random, anchor = spec.base): number {
+  const pull = (anchor - price) * 0.002;
+  return price + pull + gaussian(rng) * spec.vol * (anchor / spec.base);
 }
 
 export function generateHistory(spec: SymbolSpec, count: number, rng: () => number = Math.random): Candle[] {
@@ -74,6 +92,12 @@ export function applyTick(candles: Candle[], price: number, tick: number): Candl
     next[next.length - 1] = [o, Math.max(h, price), Math.min(l, price), price];
   }
   return next;
+}
+
+/** A made-up but stable volume for simulated candles: wider candles trade more. */
+export function simVolume(spec: SymbolSpec, candle: Candle): number {
+  const [o, h, l, c] = candle;
+  return Math.max(1, Math.round(((h - l) / spec.vol) * 10 + (Math.abs(c - o) / spec.vol) * 4));
 }
 
 export function quote(spec: SymbolSpec, mid: number) {

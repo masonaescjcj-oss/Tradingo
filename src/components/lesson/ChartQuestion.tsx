@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { CandleChart, chartHeight, type CandleMark } from '@/components/CandleChart';
+import { CandleChart, chartHeight, type CandleMark, type DragLine } from '@/components/CandleChart';
 import { CandleGlyph } from '@/components/CandleGlyph';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
@@ -22,6 +22,7 @@ export function ChartCard({
   height = 186,
   onCandlePress,
   marks,
+  dragLine,
 }: {
   chart: ChartSpec;
   symbol: string;
@@ -29,6 +30,7 @@ export function ChartCard({
   height?: number;
   onCandlePress?: (index: number) => void;
   marks?: Record<number, CandleMark>;
+  dragLine?: DragLine;
 }) {
   const width = useColumnWidth() - 32 - 28;
   return (
@@ -53,6 +55,7 @@ export function ChartCard({
         labelSide={chart.ghost ? 'left' : 'right'}
         onCandlePress={onCandlePress}
         marks={marks}
+        dragLine={dragLine}
       />
     </View>
   );

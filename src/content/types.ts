@@ -175,7 +175,29 @@ export type OrderStep = {
   explanation: string;
 };
 
-export type QuestionStep = ChoiceStep | ChartStep | PredictStep | TrueFalseStep | FillStep | MatchStep | TapStep | OrderStep;
+/**
+ * Drag a horizontal line on the chart to the right price: a stop, an entry, a target,
+ * a support level, a Fibonacci level… The chart's price scale always includes `start`
+ * and the whole `answer` band, so every accepted spot is reachable.
+ */
+export type LineStep = {
+  type: 'line';
+  prompt: string;
+  chart: ChartSpec;
+  symbol: string;
+  trend?: 'up' | 'down';
+  /** Short name on the line's price tag, e.g. 'حد ضرر' (12 chars max). */
+  label: string;
+  /** Line colour; defaults to sky. */
+  tone?: Tone;
+  /** Price the line starts at; must be outside the answer band. */
+  start: number;
+  /** Accepted prices [low, high], inclusive, written with the symbol's usual decimals. */
+  answer: [number, number];
+  explanation: string;
+};
+
+export type QuestionStep = ChoiceStep | ChartStep | PredictStep | TrueFalseStep | FillStep | MatchStep | TapStep | OrderStep | LineStep;
 export type Step = LearnStep | QuestionStep;
 
 export type Lesson = {
