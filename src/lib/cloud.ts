@@ -32,7 +32,7 @@ const SESSION_KEY = 'tradingo-session';
 let session: Session | null = null;
 
 /** Why a server call failed: the functions aren't installed, the session ended, the network, or anything else. */
-class CloudError extends Error {
+export class CloudError extends Error {
   constructor(
     readonly kind: 'missing' | 'session' | 'network' | 'server',
     message: string,
@@ -44,7 +44,7 @@ class CloudError extends Error {
 /** Server calls give up after this long, so a slow or filtered connection never leaves the app waiting. */
 const RPC_TIMEOUT_MS = 10_000;
 
-async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   if (!supabase) throw new CloudError('missing', 'not configured');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
@@ -81,6 +81,32 @@ export function serverReady(): Promise<boolean> {
       });
   }
   return ready;
+}
+
+let version: Promise<number> | null = null;
+
+/** Which server migration is installed (1: accounts and sync, 2: chat), or 0 when it can't be reached. */
+export function serverVersion(): Promise<number> {
+  if (!cloudEnabled) return Promise.resolve(0);
+  if (!version) {
+    version = rpc<number>('tradingo_version')
+      .then((v) => Number(v) || 0)
+      .catch((e) => {
+        if (!(e instanceof CloudError) || e.kind !== 'missing') version = null;
+        return 0;
+      });
+  }
+  return version;
+}
+
+/** The signed-in server session's token, for features that call the server themselves (chat). */
+export function sessionToken(): string | null {
+  return session?.token ?? null;
+}
+
+/** For features that find the server session has ended: signs out of the server like sync does. */
+export function sessionEnded(): Promise<void> {
+  return handleFailure(new CloudError('session', 'invalid_session'));
 }
 
 async function setSession(next: Session | null) {

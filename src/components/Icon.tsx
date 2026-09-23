@@ -40,7 +40,12 @@ export type IconName =
   | 'logout'
   | 'expand'
   | 'crosshair'
-  | 'skipEnd';
+  | 'skipEnd'
+  | 'chat'
+  | 'send'
+  | 'users'
+  | 'flag'
+  | 'trash';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -217,6 +222,21 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       );
     case 'skipEnd':
       return <Path {...p} d="M6 6l6 6-6 6M13 6l6 6-6 6" />;
+    case 'chat':
+      return <Path {...p} d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 9h8M8 12.5h5" />;
+    case 'send':
+      return <Path {...p} d="M21 3L10 14M21 3l-7 18-4-7-7-4z" />;
+    case 'users':
+      return (
+        <>
+          <Circle {...p} cx={9} cy={8} r={3.5} />
+          <Path {...p} d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.2a6.5 6.5 0 0 1 3.5 5.8" />
+        </>
+      );
+    case 'flag':
+      return <Path {...p} d="M5 21V4M5 4h11l-2 4 2 4H5" />;
+    case 'trash':
+      return <Path {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />;
   }
 }
 

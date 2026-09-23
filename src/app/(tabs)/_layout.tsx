@@ -12,6 +12,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: 'یادگیری' }} />
       <Tabs.Screen name="practice" options={{ title: 'تمرین' }} />
       <Tabs.Screen name="simulator" options={{ title: 'شبیه‌ساز' }} />
+      <Tabs.Screen name="chat" options={{ title: 'گفتگو' }} />
       <Tabs.Screen name="league" options={{ title: 'لیگ' }} />
       <Tabs.Screen name="profile" options={{ title: 'پروفایل' }} />
     </Tabs>

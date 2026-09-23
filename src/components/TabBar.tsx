@@ -11,6 +11,7 @@ const TABS: Record<string, { label: string; icon: IconName }> = {
   index: { label: 'یادگیری', icon: 'home' },
   practice: { label: 'تمرین', icon: 'target' },
   simulator: { label: 'شبیه‌ساز', icon: 'candles' },
+  chat: { label: 'گفتگو', icon: 'chat' },
   league: { label: 'لیگ', icon: 'trophy' },
   profile: { label: 'پروفایل', icon: 'user' },
 };
@@ -39,8 +40,8 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityLabel={tab.label}
               style={styles.centerTab}
             >
-              <View style={[styles.centerFace, { borderColor: focused ? colors.gold : colors.bg }]}>
-                <Icon name="candles" size={26} color={colors.bullInk} strokeWidth={2.4} />
+              <View style={[styles.centerFace, { borderColor: focused ? colors.gold : colors.bullEdge }]}>
+                <Icon name="candles" size={22} color={colors.bullInk} strokeWidth={2.4} />
               </View>
               <Txt w={800} size={11} color={color}>
                 {tab.label}
@@ -74,14 +75,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingHorizontal: 10,
+    gap: 2,
+    paddingHorizontal: 6,
     paddingTop: 6,
     backgroundColor: colors.bg,
     borderTopWidth: 2,
     borderTopColor: '#222C43',
   },
   tab: {
-    width: 64,
+    flex: 1,
+    maxWidth: 72,
     height: 58,
     alignItems: 'center',
     justifyContent: 'center',
@@ -94,25 +97,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bullSoft,
     borderColor: 'rgba(43,212,125,0.55)',
   },
+  // The simulator keeps its green coin, sized to sit inside the bar next to five other tabs.
   centerTab: {
-    width: 72,
+    flex: 1,
+    maxWidth: 72,
+    height: 58,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 3,
-    marginTop: -22,
   },
   centerFace: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 4,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bull,
     // A solid "edge" like the 3D buttons.
     shadowColor: colors.bullEdge,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
-    elevation: 4,
+    elevation: 2,
   },
 });

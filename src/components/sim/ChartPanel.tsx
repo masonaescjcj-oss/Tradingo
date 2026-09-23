@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ShareAnalysis } from '@/components/chat/ShareAnalysis';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { Candle } from '@/content/types';
@@ -22,8 +23,8 @@ const QUICK_H = 74;
 const CONTENT_TOP = 4;
 const EDGE_BORDERS = 2;
 const GAP = 12;
-/** Room at the bottom for the tab bar's raised middle button. */
-const TAB_CLEARANCE = 26;
+/** A little breathing room above the tab bar. */
+const TAB_CLEARANCE = 6;
 
 type Indicator = { key: keyof Omit<SimTools, 'levels'>; label: string; color: string; mono?: boolean };
 
@@ -147,6 +148,7 @@ export function ChartPanel({
   const [sizes, setSizes] = useState<Record<string, number>>({});
   const [belowHeight, setBelowHeight] = useState(0);
   const [menu, setMenu] = useState(false);
+  const [share, setShare] = useState(false);
 
   const levels = tools.levels?.[spec.id] ?? [];
   const sel = selected?.symbol === spec.id && selected.index < levels.length ? selected.index : null;
@@ -265,6 +267,9 @@ export function ChartPanel({
               accessibilityLabel={`انتخاب سطح ${formatPrice(spec, p)}`}
             />
           ))}
+          <Chip onPress={() => setShare(true)} label="اشتراک تحلیل" accessibilityLabel="اشتراک این نمودار و تحلیل در گفتگو">
+            <Icon name="chat" size={14} color={colors.skyText} strokeWidth={2.6} />
+          </Chip>
           {sel != null ? (
             <View style={styles.levelActions}>
               <Chip onPress={() => nudge(1)} accessibilityLabel="بالا بردن سطح">
@@ -288,6 +293,15 @@ export function ChartPanel({
         ) : null}
         {footer}
       </View>
+
+      <ShareAnalysis
+        visible={share}
+        onClose={() => setShare(false)}
+        spec={spec}
+        candles={candles}
+        levels={levels}
+        position={account.positions.filter((p) => p.symbol === spec.id).at(-1)}
+      />
 
       <Modal
         visible={full}

@@ -1,5 +1,17 @@
--- Removes everything Tradingo added to the project (its accounts, progress and leaderboard).
+-- Removes everything Tradingo added to the project (its accounts, progress, leaderboard and chat).
 -- Nothing belonging to other apps is touched.
+drop function if exists
+  public.tradingo_chat_rooms(text),
+  public.tradingo_chat_join(text, uuid),
+  public.tradingo_chat_leave(text, uuid),
+  public.tradingo_chat_create(text, text, text, text),
+  public.tradingo_chat_messages(text, uuid, bigint, bigint),
+  public.tradingo_chat_send(text, uuid, text, jsonb),
+  public.tradingo_chat_report(text, bigint),
+  public.tradingo_chat_delete(text, bigint),
+  public.tradingo_chat_blocked(text),
+  public.tradingo_session_account_or_null(text);
+drop table if exists public.tradingo_message_reports, public.tradingo_messages, public.tradingo_room_members, public.tradingo_rooms;
 drop function if exists
   public.tradingo_version(),
   public.tradingo_sign_up(text, text, text),
