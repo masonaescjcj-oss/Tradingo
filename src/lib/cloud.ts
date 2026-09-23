@@ -41,13 +41,20 @@ class CloudError extends Error {
   }
 }
 
+/** Server calls give up after this long, so a slow or filtered connection never leaves the app waiting. */
+const RPC_TIMEOUT_MS = 10_000;
+
 async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   if (!supabase) throw new CloudError('missing', 'not configured');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
   let result;
   try {
-    result = await supabase.rpc(fn, args);
+    result = await supabase.rpc(fn, args).abortSignal(controller.signal);
   } catch (e) {
     throw new CloudError('network', e instanceof Error ? e.message : String(e));
+  } finally {
+    clearTimeout(timer);
   }
   const { data, error } = result;
   if (error) {
