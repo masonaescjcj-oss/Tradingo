@@ -1,11 +1,11 @@
 import { level, series } from '../../charts';
 import { PALETTE } from '../../palette';
-import type { Unit } from '../../types';
+import type { Candle, Unit } from '../../types';
 
 /** BTC drifting lower after a 10x long at 60,000; the unknown line sits near the liquidation price. */
 const LONG_AT_60K = series([60200, 60800, 60400, 59600, 59900, 59100, 58400, 58800, 57900, 57200, 57600, 56800], {
   start: 60000,
-});
+}).map((c) => c.map(Math.round) as Candle);
 
 /** A thin altcoin: one market sell eats several bid levels and leaves a long lower wick (candle 8). */
 const THIN_BOOK_WICK = series(

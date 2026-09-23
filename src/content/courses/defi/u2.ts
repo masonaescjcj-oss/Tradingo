@@ -1,12 +1,12 @@
 import { level, series } from '../../charts';
 import { PALETTE } from '../../palette';
-import type { Unit } from '../../types';
+import type { Candle, Unit } from '../../types';
 
 /** ETH doubling from 2,000 to 4,000 after liquidity was added at 2,000. */
 const ETH_DOUBLES = series(
   [2080, 2150, 2120, 2300, 2420, 2380, 2600, 2750, 2700, 2950, 3150, 3100, 3400, 3600, 3550, 3850, 4000],
   { start: 2000 },
-);
+).map((c) => c.map(Math.round) as Candle);
 
 export const u2: Unit = {
   id: 'defi-u2',

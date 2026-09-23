@@ -3,6 +3,8 @@ import type { Candle, ChartSpec, Course, Lesson, Step } from './types';
 /** Structural checks for course content. Returns human-readable problems; empty means valid. */
 export function validateCourses(courses: Course[]): string[] {
   const problems: string[] = [];
+  // Courses are looked up separately from units and lessons, so a course may share its id
+  // with its first unit (the original single-unit courses do).
   const seen = new Map<string, string>();
   const claim = (id: string, where: string) => {
     const prev = seen.get(id);
@@ -12,7 +14,7 @@ export function validateCourses(courses: Course[]): string[] {
 
   for (const course of courses) {
     const cw = `course ${course.id}`;
-    claim(course.id, cw);
+    claim(`course:${course.id}`, cw);
     if (!course.title || !course.subtitle || !course.description) problems.push(`${cw}: title, subtitle and description are required`);
     if (!course.units.length) problems.push(`${cw}: has no units`);
     for (const unit of course.units) {
