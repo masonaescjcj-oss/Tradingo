@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
 import { ALL_UNITS, type Market } from '@/content';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
@@ -81,6 +81,34 @@ type Actions = {
 };
 
 export type GameState = Data & Actions;
+
+/**
+ * Storage that never throws: when the browser blocks storage (private mode,
+ * sandboxed frames) the app still starts, it just doesn't remember progress.
+ */
+const safeStorage: StateStorage = {
+  getItem: async (name) => {
+    try {
+      return await AsyncStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name, value) => {
+    try {
+      await AsyncStorage.setItem(name, value);
+    } catch {
+      // Progress just isn't saved.
+    }
+  },
+  removeItem: async (name) => {
+    try {
+      await AsyncStorage.removeItem(name);
+    } catch {
+      // Nothing to remove.
+    }
+  },
+};
 
 function initialData(): Data {
   const now = new Date();
@@ -275,7 +303,7 @@ export const useGame = create<GameState>()(
     {
       name: 'tradingo-game',
       version: 1,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => safeStorage),
     },
   ),
 );
