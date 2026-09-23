@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, Modal, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 
 import { Button3D } from '@/components/Button3D';
@@ -8,48 +9,127 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
+import { ALL_COURSES } from '@/content';
 import { UPTREND } from '@/content/charts';
-import { cloudEnabled } from '@/lib/supabase';
+import { useGame } from '@/store/game';
 import { colors } from '@/theme';
+import { fa } from '@/utils/format';
 
+/** The first screen: brand, a friendly hello and the two ways in. */
 export default function Welcome() {
+  const { height } = useWindowDimensions();
+  const user = useGame((s) => s.user);
+  const signedOut = useGame((s) => s.signedOut);
+  const returning = !!user && signedOut;
+  const [confirmNew, setConfirmNew] = useState(false);
+  // Small phones get a smaller stage and no feature chips, so nothing overlaps the buttons.
+  const compact = height < 720;
+  const scale = compact ? 0.78 : 1;
+
   return (
     <Screen style={styles.screen}>
       <GridBackdrop />
       <View style={styles.hero}>
-        <View style={styles.stage}>
-          <View style={styles.chart} pointerEvents="none">
-            <CandleChart candles={UPTREND} width={300} height={190} background="transparent" grid={false} />
+        <View style={[styles.stage, { width: 320 * scale, height: 290 * scale }]}>
+          <View style={[styles.chart, { left: 10 * scale, bottom: 24 * scale }]} pointerEvents="none">
+            <CandleChart candles={UPTREND} width={300 * scale} height={180 * scale} background="transparent" grid={false} />
           </View>
-          <View style={styles.mascot}>
-            <Mascot mood="happy" size={140} />
-          </View>
-          <SpeechBubble tail="bottomEnd" background={colors.text} border="#D5DBE6" style={styles.bubble}>
-            <Txt w={800} size={15} lh={1.7} color={colors.bg}>
-              سلام! من شمعکم. بیا با هم نمودار خوندن رو یاد بگیریم.
+          <FloatingMascot size={136 * scale} left={92 * scale} />
+          <SpeechBubble tail="bottomEnd" background={colors.text} border="#D5DBE6" style={[styles.bubble, { width: 200 * scale }]}>
+            <Txt w={800} size={compact ? 13 : 15} lh={1.7} color={colors.bg}>
+              {returning ? `خوش برگشتی، ${user.name}! دلم برات تنگ شده بود.` : 'سلام! من شمعکم. بیا با هم ترید رو یاد بگیریم.'}
             </Txt>
           </SpeechBubble>
         </View>
-        <Txt display size={60} color={colors.bull} style={styles.wordmark}>
+        <Txt display size={compact ? 48 : 60} color={colors.bull} style={[styles.wordmark, { lineHeight: compact ? 60 : 72 }]}>
           تریدینگو
         </Txt>
-        <Txt w={900} size={21} center>
+        <Txt w={900} size={compact ? 18 : 21} center>
           ترید رو مثل یه بازی یاد بگیر
         </Txt>
-        <Txt size={15} lh={1.9} color={colors.text2} center style={{ maxWidth: 310 }}>
-          بیش از ۳۰ دوره و صدها درس ۵ دقیقه‌ای فارکس و کریپتو، با نمودارهای واقعی و شبیه‌ساز معامله با پول مجازی
-        </Txt>
+        {!compact && (
+          <View style={styles.features}>
+            <Feature text={`${fa(ALL_COURSES.length)} دوره`} />
+            <Feature text="درس‌های ۵ دقیقه‌ای" />
+            <Feature text="شبیه‌ساز معامله" />
+          </View>
+        )}
       </View>
+
       <View style={styles.actions}>
-        <Button3D label="شروع کن" onPress={() => router.push('/setup')} />
-        {cloudEnabled && (
-          <Button3D label="قبلاً حساب ساختم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/account')} />
+        {returning ? (
+          <>
+            <Button3D label="ورود به حسابم" onPress={() => router.push('/login')} />
+            <Button3D label="ساخت حساب جدید" variant="secondary" size={16} onPress={() => setConfirmNew(true)} />
+          </>
+        ) : (
+          <>
+            <Button3D label="شروع کن" onPress={() => router.push('/onboarding')} />
+            <Button3D label="حساب دارم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/login')} />
+          </>
         )}
         <Txt size={12} lh={1.7} color={colors.text3} center>
           محتوای تریدینگو آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
         </Txt>
       </View>
+
+      <Modal visible={confirmNew} transparent animationType="fade" onRequestClose={() => setConfirmNew(false)}>
+        <View style={styles.backdrop}>
+          <View style={styles.dialog}>
+            <Mascot mood="think" size={90} />
+            <Txt w={900} size={18} center>
+              حساب جدید بسازی؟
+            </Txt>
+            <Txt size={14} lh={1.8} color={colors.text2} center>
+              {`پیشرفت حساب «${user?.name ?? ''}» روی این دستگاه پاک می‌شه و از اول شروع می‌کنی.`}
+            </Txt>
+            <Button3D
+              label="آره، از اول"
+              variant="danger"
+              size={16}
+              onPress={() => {
+                setConfirmNew(false);
+                useGame.getState().resetAll();
+                router.push('/onboarding');
+              }}
+              style={{ alignSelf: 'stretch' }}
+            />
+            <Button3D label="نه، برمی‌گردم" variant="secondary" size={16} onPress={() => setConfirmNew(false)} style={{ alignSelf: 'stretch' }} />
+          </View>
+        </View>
+      </Modal>
     </Screen>
+  );
+}
+
+/** The mascot gently bobbing up and down. */
+function FloatingMascot({ size, left }: { size: number; left: number }) {
+  const [bob] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bob, { toValue: -8, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+        Animated.timing(bob, { toValue: 0, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [bob]);
+  return (
+    <Animated.View style={[styles.mascot, { left, transform: [{ translateY: bob }] }]}>
+      <Mascot mood="happy" size={size} />
+    </Animated.View>
+  );
+}
+
+function Feature({ text }: { text: string }) {
+  return (
+    <View style={styles.feature}>
+      <View style={styles.dot} />
+      <Txt w={800} size={13} color={colors.text2}>
+        {text}
+      </Txt>
+    </View>
   );
 }
 
@@ -71,46 +151,83 @@ function GridBackdrop() {
 const styles = StyleSheet.create({
   screen: {
     paddingHorizontal: 24,
-    paddingBottom: 28,
+    paddingBottom: 24,
     overflow: 'hidden',
   },
   hero: {
     flex: 1,
+    minHeight: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
   },
   stage: {
-    width: 320,
-    height: 300,
     direction: 'ltr',
   },
   chart: {
     position: 'absolute',
-    left: 10,
-    bottom: 24,
     opacity: 0.4,
   },
   mascot: {
     position: 'absolute',
-    left: 90,
     bottom: 0,
   },
   bubble: {
     position: 'absolute',
-    top: 6,
+    top: 0,
     right: 0,
-    width: 196,
     borderRadius: 18,
   },
   wordmark: {
-    marginTop: 6,
-    lineHeight: 72,
+    marginTop: 4,
     textShadowColor: '#0B3D24',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 0,
   },
+  features: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: 'rgba(23,31,49,0.8)',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.bull,
+  },
   actions: {
-    gap: 14,
+    gap: 12,
+    paddingTop: 12,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(5,8,15,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 380,
+    alignItems: 'center',
+    gap: 12,
+    padding: 22,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.bg,
   },
 });

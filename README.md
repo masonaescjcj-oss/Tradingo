@@ -25,11 +25,13 @@ npm run validate:content   # بررسی ساختار همه‌ی دوره‌ها
 ```
 src/
   app/                 صفحه‌ها (Expo Router)
-    welcome.tsx, setup.tsx      خوش‌آمد و انتخاب بازار/سطح
+    welcome.tsx                 صفحه‌ی شروع
+    onboarding.tsx              معرفی مرحله‌به‌مرحله و ثبت‌نام
+    signup.tsx, login.tsx       ثبت‌نام و ورود با موبایل (بدون کد تأیید)
     (tabs)/                     یادگیری، تمرین، شبیه‌ساز، لیگ، پروفایل
     courses.tsx                 کاتالوگ همه‌ی دوره‌ها (جست‌وجو و دسته‌بندی)
     course/[id].tsx             صفحه‌ی هر دوره و افزودن آن
-    account.tsx                 ورود، ثبت‌نام و همگام‌سازی
+    account.tsx                 حساب کاربری، همگام‌سازی و خروج
     about.tsx                   درباره و سلب مسئولیت
     lesson/[id].tsx             اجرای درس و تمرین
     guide/[unitId].tsx          راهنمای نوشتاری هر واحد

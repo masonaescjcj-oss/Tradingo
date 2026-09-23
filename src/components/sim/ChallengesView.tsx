@@ -77,7 +77,7 @@ function ChallengeCard({
         </Txt>
         <View style={styles.reward}>
           <Txt w={800} size={11.5} color={colors.gold}>
-            {`${fa(c.coins)} سکه · ${fa(c.xp)} امتیاز`}
+            {`${fa(c.coins)} سکه، ${fa(c.xp)} امتیاز`}
           </Txt>
         </View>
       </View>

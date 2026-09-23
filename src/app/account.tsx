@@ -1,40 +1,55 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { BackHeader } from '@/components/BackHeader';
 import { Button3D } from '@/components/Button3D';
-import { Icon } from '@/components/Icon';
+import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { signIn, signOut, signUp, syncNow, useCloud } from '@/lib/cloud';
+import { logout } from '@/lib/auth';
+import { resetTo } from '@/lib/nav';
+import { syncNow, useCloud } from '@/lib/cloud';
+import { formatMobile } from '@/lib/phone';
+import { cloudEnabled } from '@/lib/supabase';
 import { useGame } from '@/store/game';
-import { colors, fonts } from '@/theme';
+import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
-/** Sign in to keep progress in the cloud and play in the real league. */
+/** The learner's account: who they're signed in as, sync status and sign-out. */
 export default function AccountScreen() {
-  const cloud = useCloud();
-  const onboarded = useGame((s) => s.onboarded);
-
+  const user = useGame((s) => s.user);
   return (
     <Screen>
-      <BackHeader caption="حساب کاربری" title={cloud.email ? 'همگام‌سازی' : 'ورود یا ثبت‌نام'} />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {cloud.status === 'off' ? (
-          <Notice mood="think" title="حساب ابری هنوز وصل نشده" body="این نسخه به سرور وصل نیست؛ پیشرفتت فقط روی همین دستگاه ذخیره می‌شه." />
-        ) : cloud.email ? (
-          <SignedIn onboarded={onboarded} />
-        ) : (
-          <AuthForm />
-        )}
-      </ScrollView>
+      <BackHeader caption="پروفایل" title="حساب کاربری" />
+      <ScrollView contentContainerStyle={styles.content}>{user ? <SignedIn /> : <Guest />}</ScrollView>
     </Screen>
   );
 }
 
-function SignedIn({ onboarded }: { onboarded: boolean }) {
+function Guest() {
+  return (
+    <View style={{ gap: 16 }}>
+      <View style={styles.notice}>
+        <Mascot mood="think" size={84} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Txt w={900} size={17}>
+            هنوز حساب نساختی
+          </Txt>
+          <Txt size={14} lh={1.8} color={colors.text2}>
+            با یه حساب، پیشرفتت به اسم خودت ذخیره می‌شه{cloudEnabled ? ' و روی همه‌ی دستگاه‌ها یکیه' : ''}. کد تأیید هم لازم نیست.
+          </Txt>
+        </View>
+      </View>
+      <Button3D label="ساخت حساب" onPress={() => router.push('/signup')} />
+      <Button3D label="حساب دارم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/login')} />
+    </View>
+  );
+}
+
+function SignedIn() {
+  const user = useGame((s) => s.user)!;
   const cloud = useCloud();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -42,13 +57,14 @@ function SignedIn({ onboarded }: { onboarded: boolean }) {
     return () => clearInterval(t);
   }, []);
   const since = cloud.lastSyncedAt ? Math.max(0, Math.round((now - cloud.lastSyncedAt) / 60000)) : null;
-  const statusText =
-    cloud.status === 'syncing'
+  const syncText = !user.cloud
+    ? 'روی همین دستگاه ذخیره می‌شه'
+    : cloud.status === 'syncing'
       ? 'در حال همگام‌سازی…'
       : cloud.status === 'error'
         ? 'همگام‌سازی نشد'
         : since == null
-          ? 'هنوز همگام‌سازی نشده'
+          ? 'به سرور وصله'
           : since < 1
             ? 'همین الان همگام شد'
             : `${fa(since)} دقیقه پیش همگام شد`;
@@ -57,136 +73,58 @@ function SignedIn({ onboarded }: { onboarded: boolean }) {
     <View style={{ gap: 16 }}>
       <View style={styles.card}>
         <View style={styles.avatar}>
-          <Icon name="user" size={28} color={colors.skyText} />
-        </View>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Txt mono w={700} size={14} numberOfLines={1}>
-            {cloud.email}
+          <Txt display size={30} color={colors.skyText}>
+            {user.name.charAt(0)}
           </Txt>
-          <Txt w={700} size={13} color={cloud.status === 'error' ? colors.bearText : colors.bullText}>
-            {statusText}
+        </View>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Txt w={900} size={18}>
+            {user.name}
+          </Txt>
+          <Txt mono w={700} size={14} color={colors.text2}>
+            {formatMobile(user.mobile)}
           </Txt>
         </View>
       </View>
-      {cloud.error ? (
+
+      <View style={styles.rows}>
+        <Row icon={user.cloud ? 'refresh' : 'phone'} label="ذخیره‌ی پیشرفت" value={syncText} tone={cloud.status === 'error' ? colors.bearText : colors.bullText} />
+        <Row icon="clock" label="عضویت از" value={new Date(user.createdAt).toLocaleDateString('fa-IR')} />
+      </View>
+      {cloud.error && user.cloud ? (
         <Txt size={13} lh={1.7} color={colors.bearText}>
           {cloud.error}
         </Txt>
       ) : null}
-      <View style={styles.perks}>
-        <Perk icon="refresh" text="پیشرفتت روی همه‌ی دستگاه‌ها یکیه" />
-        <Perk icon="trophy" text="توی لیگ با بازیکن‌های واقعی رقابت می‌کنی" />
-        <Perk icon="shield" text="با پاک شدن مرورگر یا گوشی، پیشرفتت از بین نمی‌ره" />
-      </View>
-      {!onboarded && <Button3D label="انتخاب مسیر یادگیری" onPress={() => router.replace('/setup')} />}
-      {onboarded && <Button3D label="برو به درس‌ها" onPress={() => router.dismissTo('/(tabs)')} />}
-      <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
-      <Button3D label="خروج از حساب" variant="secondary" size={16} onPress={signOut} />
-      <Txt size={12} lh={1.7} color={colors.text3} center>
-        بعد از خروج، پیشرفت روی این دستگاه می‌مونه و دفعه‌ی بعد با حسابت ادغام می‌شه.
+
+      {user.cloud && (
+        <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
+      )}
+      <Button3D
+        label="خروج از حساب"
+        variant="secondary"
+        size={16}
+        onPress={async () => {
+          await logout();
+          resetTo('/welcome');
+        }}
+      />
+      <Txt size={12} lh={1.8} color={colors.text3} center>
+        بعد از خروج، پیشرفتت روی این دستگاه می‌مونه و با ورود دوباره برمی‌گرده.
       </Txt>
     </View>
   );
 }
 
-function AuthForm() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ tone: 'error' | 'info'; text: string } | null>(null);
-
-  const valid = /\S+@\S+\.\S+/.test(email.trim()) && password.length >= 6;
-
-  const submit = async () => {
-    setBusy(true);
-    setMessage(null);
-    const result = mode === 'signin' ? await signIn(email, password) : await signUp(email, password);
-    setBusy(false);
-    if (result === 'confirm') {
-      setMessage({ tone: 'info', text: 'یه لینک تأیید به ایمیلت فرستادیم. بعد از تأیید، همین‌جا وارد شو.' });
-      setMode('signin');
-    } else if (result) {
-      setMessage({ tone: 'error', text: result });
-    }
-  };
-
+function Row({ icon, label, value, tone = colors.text }: { icon: IconName; label: string; value: string; tone?: string }) {
   return (
-    <View style={{ gap: 16 }}>
-      <Notice
-        mood="happy"
-        title="پیشرفتت رو امن نگه دار"
-        body="با یه حساب رایگان، درس‌ها و امتیازهات روی همه‌ی دستگاه‌ها ذخیره می‌شه و توی لیگ واقعی بازی می‌کنی."
-      />
-      <View style={styles.tabs}>
-        {(['signin', 'signup'] as const).map((m) => (
-          <Pressable
-            key={m}
-            onPress={() => setMode(m)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === m }}
-            style={[styles.tab, mode === m && styles.tabOn]}
-          >
-            <Txt w={800} size={15} color={mode === m ? colors.skyText : colors.text2}>
-              {m === 'signin' ? 'ورود' : 'ثبت‌نام'}
-            </Txt>
-          </Pressable>
-        ))}
-      </View>
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        placeholder="ایمیل"
-        placeholderTextColor={colors.faint}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-        accessibilityLabel="ایمیل"
-        style={[styles.input, styles.ltr]}
-      />
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        placeholder="رمز عبور (حداقل ۶ کاراکتر)"
-        placeholderTextColor={colors.faint}
-        secureTextEntry
-        autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-        accessibilityLabel="رمز عبور"
-        onSubmitEditing={() => valid && !busy && submit()}
-        style={[styles.input, styles.ltr]}
-      />
-      {message ? (
-        <Txt size={14} lh={1.7} color={message.tone === 'error' ? colors.bearText : colors.skyText}>
-          {message.text}
-        </Txt>
-      ) : null}
-      <Button3D label={busy ? '…' : mode === 'signin' ? 'ورود' : 'ساخت حساب'} disabled={!valid || busy} onPress={submit} />
-    </View>
-  );
-}
-
-function Notice({ mood, title, body }: { mood: 'happy' | 'think'; title: string; body: string }) {
-  return (
-    <View style={styles.notice}>
-      <Mascot mood={mood} size={80} />
-      <View style={{ flex: 1, gap: 4 }}>
-        <Txt w={900} size={17}>
-          {title}
-        </Txt>
-        <Txt size={14} lh={1.8} color={colors.text2}>
-          {body}
-        </Txt>
-      </View>
-    </View>
-  );
-}
-
-function Perk({ icon, text }: { icon: 'refresh' | 'trophy' | 'shield'; text: string }) {
-  return (
-    <View style={styles.perk}>
-      <Icon name={icon} size={20} color={colors.bull} />
-      <Txt w={700} size={14} style={{ flex: 1 }}>
-        {text}
+    <View style={styles.row}>
+      <Icon name={icon} size={20} color={colors.text3} />
+      <Txt w={700} size={14} color={colors.text2} style={{ flex: 1 }}>
+        {label}
+      </Txt>
+      <Txt w={800} size={14} color={tone}>
+        {value}
       </Txt>
     </View>
   );
@@ -202,61 +140,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  tabs: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 4,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-  },
-  tab: {
-    flex: 1,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-  },
-  tabOn: {
-    backgroundColor: colors.skySoft,
-  },
-  input: {
-    height: 52,
-    paddingHorizontal: 14,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
-    color: colors.text,
-    fontFamily: fonts.medium,
-    fontSize: 16,
-    outlineWidth: 0,
-  },
-  ltr: {
-    textAlign: 'left',
-    writingDirection: 'ltr',
-  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: 18,
+    gap: 14,
+    padding: 16,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.skySoft,
   },
-  perks: {
-    gap: 10,
+  rows: {
+    gap: 12,
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
-  perk: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,

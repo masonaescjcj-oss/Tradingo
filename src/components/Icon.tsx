@@ -35,7 +35,9 @@ export type IconName =
   | 'play'
   | 'crown'
   | 'volume'
-  | 'mute';
+  | 'mute'
+  | 'phone'
+  | 'logout';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -190,6 +192,15 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       return <Path {...p} d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" />;
     case 'volume':
       return <Path {...p} d="M4 9h4l5-4v14l-5-4H4zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />;
+    case 'phone':
+      return (
+        <>
+          <Rect {...p} x={6.5} y={2.5} width={11} height={19} rx={2.5} />
+          <Path {...p} d="M10.5 18.5h3" />
+        </>
+      );
+    case 'logout':
+      return <Path {...p} d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l-4-4 4-4M6 12h10" />;
     case 'mute':
       return <Path {...p} d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6" />;
   }

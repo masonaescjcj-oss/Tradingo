@@ -11,9 +11,9 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
-import { useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
-import { cloudEnabled } from '@/lib/supabase';
+import { resetTo } from '@/lib/nav';
+import { formatMobile } from '@/lib/phone';
 import { currentStreak, useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
 import { fa, faNum } from '@/utils/format';
@@ -22,7 +22,6 @@ const GOALS = [10, 20, 30, 50];
 
 export default function ProfileScreen() {
   const game = useGame();
-  const cloudEmail = useCloud((c) => c.email);
   const streak = currentStreak(game);
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(game.name);
@@ -115,20 +114,18 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {cloudEnabled && (
-          <Pressable onPress={() => router.push('/account')} accessibilityRole="button" style={styles.accountRow}>
-            <Icon name={cloudEmail ? 'shield' : 'user'} size={22} color={cloudEmail ? colors.bull : colors.skyText} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Txt w={800} size={14}>
-                {cloudEmail ? 'پیشرفتت توی حسابت ذخیره می‌شه' : 'ورود یا ساخت حساب'}
-              </Txt>
-              <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>
-                {cloudEmail ?? 'برای ذخیره‌ی ابری پیشرفت و لیگ واقعی'}
-              </Txt>
-            </View>
-            <Icon name="chevronBack" size={20} color={colors.text3} />
-          </Pressable>
-        )}
+        <Pressable onPress={() => router.push('/account')} accessibilityRole="button" style={styles.accountRow}>
+          <Icon name={game.user ? 'shield' : 'user'} size={22} color={game.user ? colors.bull : colors.skyText} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt w={800} size={14}>
+              {game.user ? 'حساب کاربری' : 'ساخت حساب یا ورود'}
+            </Txt>
+            <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>
+              {game.user ? formatMobile(game.user.mobile) : 'پیشرفتت رو به اسم خودت ذخیره کن؛ کد تأیید لازم نیست'}
+            </Txt>
+          </View>
+          <Icon name="chevronBack" size={20} color={colors.text3} />
+        </Pressable>
 
         <View style={styles.stats}>
           <StatCard icon={<FlameIcon size={28} />} value={fa(streak)} label="روز پیاپی" />
@@ -276,7 +273,7 @@ export default function ProfileScreen() {
               onPress={() => {
                 setConfirmReset(false);
                 game.resetAll();
-                router.replace('/welcome');
+                resetTo('/welcome');
               }}
               style={{ alignSelf: 'stretch' }}
             />

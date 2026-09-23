@@ -308,7 +308,7 @@ function LessonPlayer({ session }: { session: Session }) {
               هر ۳۰ دقیقه یه قلب برمی‌گرده. می‌تونی با سکه پرشون کنی یا با تمرین کردن قلب بگیری.
             </Txt>
             <Button3D
-              label={`پر کردن قلب‌ها · ${fa(HEART_REFILL_COST)} سکه`}
+              label={`پر کردن قلب‌ها (${fa(HEART_REFILL_COST)} سکه)`}
               variant="gold"
               size={16}
               disabled={coins < HEART_REFILL_COST}

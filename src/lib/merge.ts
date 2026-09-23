@@ -53,6 +53,9 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
     practiceSessions: Math.max(local.practiceSessions, remote.practiceSessions),
     reviews: { ...(remote.reviews ?? {}), ...(local.reviews ?? {}) },
     mastered: [...new Set([...(local.mastered ?? []), ...(remote.mastered ?? [])])],
+    user: local.user ?? remote.user ?? null,
+    signedOut: false,
+    answers: { ...(remote.answers ?? {}), ...(local.answers ?? {}) },
     // The simulator accounts travel together with `sim` from the same side, so balances,
     // positions and orders never mix. Finished challenges are kept from both sides.
     simOrders: base.simOrders ?? [],

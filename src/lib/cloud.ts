@@ -9,7 +9,8 @@ type Status = 'off' | 'signedOut' | 'syncing' | 'synced' | 'error';
 
 type CloudState = {
   status: Status;
-  email: string | null;
+  /** Mobile number of the signed-in cloud account. */
+  mobile: string | null;
   userId: string | null;
   lastSyncedAt: number | null;
   error: string | null;
@@ -18,7 +19,7 @@ type CloudState = {
 /** Account and sync status, for the account screen. Not persisted: the Supabase session is. */
 export const useCloud = create<CloudState>()(() => ({
   status: cloudEnabled ? 'signedOut' : 'off',
-  email: null,
+  mobile: null,
   userId: null,
   lastSyncedAt: null,
   error: null,
@@ -76,11 +77,11 @@ export function startCloudSync() {
   supabase.auth.onAuthStateChange((event, session) => {
     const user = session?.user;
     if (!user) {
-      useCloud.setState({ status: 'signedOut', email: null, userId: null });
+      useCloud.setState({ status: 'signedOut', mobile: null, userId: null });
       return;
     }
     const isNewUser = useCloud.getState().userId !== user.id;
-    useCloud.setState({ email: user.email ?? null, userId: user.id });
+    useCloud.setState({ mobile: mobileOf(user.email), userId: user.id });
     // Supabase warns against awaiting other Supabase calls inside this callback.
     if (isNewUser || event === 'SIGNED_IN') setTimeout(syncNow, 0);
   });
@@ -101,28 +102,43 @@ export function startCloudSync() {
 }
 
 const AUTH_ERRORS: Record<string, string> = {
-  'Invalid login credentials': 'ایمیل یا رمز عبور درست نیست.',
-  'User already registered': 'با این ایمیل قبلاً حساب ساخته شده؛ وارد شو.',
-  'Email not confirmed': 'اول ایمیلت رو تأیید کن؛ لینک تأیید برات فرستاده شده.',
+  'Invalid login credentials': 'شماره موبایل یا رمز عبور درست نیست.',
+  'User already registered': 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.',
+  'Email not confirmed': 'حساب هنوز فعال نشده. توی تنظیمات Supabase گزینه‌ی تأیید ایمیل (Confirm email) رو خاموش کن.',
 };
 
-const authError = (message: string) => AUTH_ERRORS[message] ?? message;
+const authError = (message: string) => AUTH_ERRORS[message] ?? 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.';
 
-export async function signIn(email: string, password: string): Promise<string | null> {
-  if (!supabase) return 'سرور وصل نیست.';
-  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-  return error ? authError(error.message) : null;
+/**
+ * Accounts use the mobile number and a password, with no SMS code for now. Supabase gets
+ * a stand-in email built from the number, so no SMS provider is needed; turn off
+ * "Confirm email" in the Supabase project.
+ */
+const aliasEmail = (mobile: string) => `${mobile}@mobile.tradingo.app`;
+const mobileOf = (email?: string | null) => (email?.endsWith('@mobile.tradingo.app') ? email.split('@')[0] : null);
+
+/** Returns an error message, or null when the cloud account is signed in. */
+export async function cloudSignIn(mobile: string, password: string): Promise<{ error: string | null; name?: string }> {
+  if (!supabase) return { error: 'سرور وصل نیست.' };
+  const { data, error } = await supabase.auth.signInWithPassword({ email: aliasEmail(mobile), password });
+  if (error || !data.user) return { error: authError(error?.message ?? '') };
+  useCloud.setState({ mobile, userId: data.user.id });
+  await syncNow();
+  return { error: null, name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : undefined };
 }
 
-/** Returns an error message, 'confirm' when the email must be confirmed first, or null when signed in. */
-export async function signUp(email: string, password: string): Promise<string | null> {
+/** Returns an error message, or null when the cloud account was created and signed in. */
+export async function cloudSignUp(mobile: string, password: string, name: string): Promise<string | null> {
   if (!supabase) return 'سرور وصل نیست.';
-  const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+  const { data, error } = await supabase.auth.signUp({ email: aliasEmail(mobile), password, options: { data: { name, mobile } } });
   if (error) return authError(error.message);
-  return data.session ? null : 'confirm';
+  if (!data.session || !data.user) return AUTH_ERRORS['Email not confirmed'];
+  useCloud.setState({ mobile, userId: data.user.id });
+  await syncNow();
+  return null;
 }
 
-export async function signOut() {
+export async function cloudSignOut() {
   await supabase?.auth.signOut();
 }
 

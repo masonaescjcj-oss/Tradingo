@@ -128,7 +128,7 @@ export default function LearnScreen() {
               {course.title}
             </Txt>
             <Txt w={700} size={12} color={colors.text3}>
-              {`${fa(progress.done)} از ${fa(progress.total)} درس · ${fa(course.units.length)} واحد`}
+              {`${fa(progress.done)} از ${fa(progress.total)} درس، ${fa(course.units.length)} واحد`}
             </Txt>
           </View>
           <View style={styles.courseTrack}>

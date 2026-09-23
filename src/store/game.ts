@@ -33,6 +33,17 @@ export const DAILY_REWARD = 20;
 
 export type Level = 'new' | 'some' | 'pro';
 
+export type UserAccount = {
+  name: string;
+  /** 09XXXXXXXXX */
+  mobile: string;
+  /** Salted SHA-256, only for signing back in on this device. */
+  passwordHash: string;
+  createdAt: number;
+  /** Also registered on the server (Supabase). */
+  cloud: boolean;
+};
+
 export type LessonRecord = { best: number; perfect: boolean; skipped?: boolean };
 
 export type { ClosedTrade, PendingOrder, Position } from '@/lib/trading';
@@ -84,6 +95,12 @@ type Data = {
   sound: boolean;
   /** Units whose mastery test was passed; they show a crown on the path. */
   mastered: string[];
+  /** The learner's account on this device (mobile + password, no verification code yet). */
+  user: UserAccount | null;
+  /** True after "sign out": the progress stays on the device until they sign in again. */
+  signedOut: boolean;
+  /** Answers from onboarding, kept for personalisation and stats. */
+  answers: { reason?: string; source?: string };
   sim: { balance: number; positions: Position[]; history: ClosedTrade[] };
   /** Pending limit/stop orders of the live simulator (a top-level key so older saves get a default). */
   simOrders: PendingOrder[];
@@ -105,6 +122,10 @@ type Actions = {
   setDailyGoal: (goal: number) => void;
   setSound: (on: boolean) => void;
   masterUnit: (unitId: string, xp: number) => void;
+  setAnswers: (answers: { reason?: string; source?: string }) => void;
+  createAccount: (user: UserAccount) => void;
+  signOutAccount: () => void;
+  signInAccount: () => void;
   syncHearts: () => void;
   loseHeart: () => void;
   refillHearts: () => boolean;
@@ -173,6 +194,9 @@ function initialData(): Data {
     practiceSessions: 0,
     sound: true,
     mastered: [],
+    user: null,
+    signedOut: false,
+    answers: {},
     sim: { balance: START_BALANCE, positions: [], history: [] },
     simOrders: [],
     simReplay: { session: null, account: emptyAccount(START_BALANCE) },
@@ -257,9 +281,17 @@ export const useGame = create<GameState>()(
           return { enrolled, activeCourse: s.activeCourse === courseId ? enrolled[0] : s.activeCourse };
         }),
 
-      setName: (name) => set({ name: name.trim() || 'تریدر' }),
+      setName: (name) => {
+        const clean = name.trim() || 'تریدر';
+        set((s) => ({ name: clean, user: s.user ? { ...s.user, name: clean } : null }));
+      },
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setSound: (sound) => set({ sound }),
+
+      setAnswers: (answers) => set((s) => ({ answers: { ...s.answers, ...answers } })),
+      createAccount: (user) => set({ user, name: user.name, signedOut: false }),
+      signOutAccount: () => set({ signedOut: true }),
+      signInAccount: () => set({ signedOut: false }),
 
       masterUnit: (unitId, xp) => {
         if (!get().mastered.includes(unitId)) set((s) => ({ mastered: [...s.mastered, unitId], coins: s.coins + 20 }));

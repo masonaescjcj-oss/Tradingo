@@ -37,7 +37,7 @@ export default function CoursesScreen() {
 
   return (
     <Screen>
-      <BackHeader caption={`${fa(ALL_COURSES.length)} دوره · ${fa(lessonCount)} درس`} title="همه‌ی دوره‌ها" />
+      <BackHeader caption={`${fa(ALL_COURSES.length)} دوره، ${fa(lessonCount)} درس`} title="همه‌ی دوره‌ها" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.search}>
           <Icon name="search" size={20} color={colors.text3} />
@@ -127,7 +127,7 @@ function CourseCard({ course, enrolled, progress }: { course: Course; enrolled: 
           </Txt>
           <View style={styles.dot} />
           <Txt w={700} size={11} color={colors.text3}>
-            {`${fa(course.units.length)} واحد · ${fa(progress.total)} درس`}
+            {`${fa(course.units.length)} واحد، ${fa(progress.total)} درس`}
           </Txt>
         </View>
       </View>
