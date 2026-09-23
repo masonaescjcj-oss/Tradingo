@@ -1,7 +1,6 @@
 import { level, mirror, series } from '../../charts';
 import { PALETTE } from '../../palette';
-import type { Candle } from '../../types';
-import type { Unit } from '../../types';
+import type { Candle, Unit } from '../../types';
 
 /** Linearly maps a candle series onto a new price range; RSI only depends on relative moves, so it is unchanged. */
 function fit(candles: Candle[], lo: number, hi: number, digits: number): Candle[] {

@@ -229,6 +229,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 16,
+    outlineWidth: 0,
   },
   ltr: {
     textAlign: 'left',

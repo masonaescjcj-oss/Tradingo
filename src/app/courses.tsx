@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'right',
     writingDirection: 'rtl',
+    outlineWidth: 0,
   },
   chips: {
     gap: 8,

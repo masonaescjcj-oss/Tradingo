@@ -294,7 +294,7 @@ export const u1: Unit = {
           chart: { candles: RANGE_BTC, lines: [level.resistance(61000), level.support(60000)], volume: RANGE_BTC_VOL },
           symbol: 'BTC/USDT · 1H',
           answer: 9,
-          explanation: 'کندل‌های قبلی زیر ۶۱٬۰۰۰ بسته شدن. این کندل با بدنه‌ی بلند و حجم تقریباً دو برابر، اولین بسته شدن بالای مقاومته.',
+          explanation: 'کندل‌های قبلی زیر ۶۱٬۰۰۰ بسته شدن. این کندل با بدنه‌ی بلند و حجمی بیش از دو برابر میانگین، اولین بسته شدن بالای مقاومته.',
         },
         {
           type: 'truefalse',

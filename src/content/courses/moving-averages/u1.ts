@@ -60,7 +60,7 @@ const BTC_HAMMER_ON_MA = series([60200, 60700, 60450, 61050, 61600, 61350, 61950
   start: 59900,
 });
 
-/** EUR/USD downtrend rallying into the SMA 8; last candle is a shooting star. */
+/** EUR/USD downtrend rallying into the SMA 8; last candle is a long-upper-wick pin bar. */
 const EUR_STAR_AT_MA = series([1.089, 1.0872, 1.088, 1.0858, 1.0838, 1.0846, 1.0822, 1.08, 1.0786, 1.0794, 1.0806, [1.0806, 1.0828, 1.0802, 1.0804]], {
   start: 1.0898,
 });
@@ -192,10 +192,10 @@ export const u1: Unit = {
         },
         {
           type: 'truefalse',
-          statement: 'EMA به همه‌ی کندل‌های دوره وزن برابر می‌ده.',
+          statement: 'بعد از یه برگشت قیمت، EMA ۵۰ معمولاً زودتر از SMA ۵۰ جهتش رو عوض می‌کنه.',
           topic: 'میانگین نمایی · EMA',
-          answer: false,
-          explanation: 'وزن برابر ویژگی SMA هست. EMA به کندل‌های جدیدتر وزن بیشتری می‌ده و وزن کندل‌های قدیمی کم‌کم کمتر می‌شه.',
+          answer: true,
+          explanation: 'با دوره‌ی برابر، EMA به کندل‌های تازه وزن بیشتری می‌ده؛ پس بعد از برگشت قیمت زودتر می‌چرخه. البته همین سرعت، سیگنال فیک بیشتری هم می‌سازه.',
         },
         {
           type: 'chart',
@@ -293,7 +293,7 @@ export const u1: Unit = {
         },
         {
           type: 'predict',
-          prompt: 'روند نزولیه و قیمت تا میانگین بالا اومده و یه ستاره‌ی دنباله‌دار ساخته. چی کار می‌کنی؟',
+          prompt: 'روند نزولیه و قیمت تا میانگین بالا اومده و یه کندل با سایه‌ی بالایی بلند (پین‌بار) ساخته. چی کار می‌کنی؟',
           chart: { candles: EUR_STAR_AT_MA, ma: 8, ghost: true },
           symbol: 'EUR/USD · 1H',
           trend: 'down',

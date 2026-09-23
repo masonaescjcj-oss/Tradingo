@@ -416,7 +416,7 @@ export const u1: Unit = {
           prompt: 'ناحیه‌ی مشخص‌شده با «؟» جاییه که چند محاسبه‌ی فیبو روی هم افتادن. اسمش چیه؟',
           chart: {
             candles: PRZ_Q,
-            zones: [{ from: 1.2634, to: 1.2648, label: '؟', tone: 'gold', start: 18 }],
+            zones: [{ from: 1.2634, to: 1.2655, label: '؟', tone: 'gold', start: 18 }],
             notes: [
               { index: 3, text: 'X', at: 'low' },
               { index: 9, text: 'A', at: 'high' },
@@ -496,7 +496,7 @@ export const u1: Unit = {
           chart: {
             candles: PRZ_FAIL,
             ghost: true,
-            zones: [{ from: 1.2634, to: 1.2648, label: 'PRZ', tone: 'gold', start: 18 }],
+            zones: [{ from: 1.2634, to: 1.2655, label: 'PRZ', tone: 'gold', start: 18 }],
             notes: [
               { index: 3, text: 'X', at: 'low' },
               { index: 9, text: 'A', at: 'high' },
