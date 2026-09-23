@@ -2,13 +2,14 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { AuthField } from '@/components/auth/AuthField';
 import { BackHeader } from '@/components/BackHeader';
 import { Button3D } from '@/components/Button3D';
 import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { logout } from '@/lib/auth';
+import { logout, uploadAccount } from '@/lib/auth';
 import { resetTo } from '@/lib/nav';
 import { syncNow, useCloud } from '@/lib/cloud';
 import { formatMobile } from '@/lib/phone';
@@ -97,6 +98,7 @@ function SignedIn() {
         </Txt>
       ) : null}
 
+      {!user.cloud && cloudEnabled && <MoveToServer />}
       {user.cloud && (
         <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
       )}
@@ -112,6 +114,34 @@ function SignedIn() {
       <Txt size={12} lh={1.8} color={colors.text3} center>
         بعد از خروج، پیشرفتت روی این دستگاه می‌مونه و با ورود دوباره برمی‌گرده.
       </Txt>
+    </View>
+  );
+}
+
+/** For accounts made before the server was ready: register them on the server with the same password. */
+function MoveToServer() {
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  return (
+    <View style={styles.move}>
+      <Txt w={900} size={15}>
+        حسابت فقط روی این دستگاهه
+      </Txt>
+      <Txt size={13} lh={1.8} color={colors.text2}>
+        با رمزت حساب رو به سرور منتقل کن تا روی گوشی و مرورگرهای دیگه هم با همین شماره وارد بشی.
+      </Txt>
+      <AuthField label="رمز عبور" icon="lock" ltr secret value={password} onChangeText={setPassword} placeholder="رمز عبورت" error={message} />
+      <Button3D
+        label={busy ? 'چند لحظه…' : 'انتقال به سرور'}
+        size={16}
+        disabled={busy || !password}
+        onPress={async () => {
+          setBusy(true);
+          setMessage(await uploadAccount(password));
+          setBusy(false);
+        }}
+      />
     </View>
   );
 }
@@ -165,6 +195,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
+  },
+  move: {
+    gap: 10,
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.goldCardLine,
+    backgroundColor: colors.goldCard,
   },
   row: {
     flexDirection: 'row',

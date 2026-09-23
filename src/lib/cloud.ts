@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { pickData, useGame, type GameData } from '@/store/game';
 
 import { mergeProgress } from './merge';
+import { safeStorage } from './storage';
 import { cloudEnabled, supabase } from './supabase';
 
 type Status = 'off' | 'signedOut' | 'syncing' | 'synced' | 'error';
@@ -11,12 +12,13 @@ type CloudState = {
   status: Status;
   /** Mobile number of the signed-in cloud account. */
   mobile: string | null;
+  /** Set while signed in to the server (the mobile number). */
   userId: string | null;
   lastSyncedAt: number | null;
   error: string | null;
 };
 
-/** Account and sync status, for the account screen. Not persisted: the Supabase session is. */
+/** Server account and sync status, for the account and league screens. */
 export const useCloud = create<CloudState>()(() => ({
   status: cloudEnabled ? 'signedOut' : 'off',
   mobile: null,
@@ -25,135 +27,206 @@ export const useCloud = create<CloudState>()(() => ({
   error: null,
 }));
 
-async function push(userId: string) {
-  if (!supabase) return;
-  const s = pickData(useGame.getState());
-  const results = await Promise.all([
-    supabase.from('progress').upsert({ user_id: userId, state: s }),
-    supabase.from('profiles').upsert({ id: userId, name: s.name, xp: s.xp, streak: s.streak, league: s.league }),
-    s.weeklyXp > 0
-      ? supabase.from('weekly_xp').upsert({ user_id: userId, week: s.weekKey, league: s.league, name: s.name, xp: Math.min(s.weeklyXp, 50000) })
-      : Promise.resolve({ error: null }),
-  ]);
-  const failed = results.find((r) => r.error);
-  if (failed?.error) throw new Error(failed.error.message);
+type Session = { token: string; mobile: string };
+const SESSION_KEY = 'tradingo-session';
+let session: Session | null = null;
+
+/** Why a server call failed: the functions aren't installed, the session ended, the network, or anything else. */
+class CloudError extends Error {
+  constructor(
+    readonly kind: 'missing' | 'session' | 'network' | 'server',
+    message: string,
+  ) {
+    super(message);
+  }
 }
 
-async function pullAndMerge(userId: string) {
-  if (!supabase) return;
-  const { data, error } = await supabase.from('progress').select('state').eq('user_id', userId).maybeSingle();
-  if (error) throw new Error(error.message);
-  if (data?.state) {
-    const merged = mergeProgress(pickData(useGame.getState()), { ...pickData(useGame.getState()), ...(data.state as Partial<GameData>) });
-    useGame.setState(merged);
+async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  if (!supabase) throw new CloudError('missing', 'not configured');
+  let result;
+  try {
+    result = await supabase.rpc(fn, args);
+  } catch (e) {
+    throw new CloudError('network', e instanceof Error ? e.message : String(e));
   }
+  const { data, error } = result;
+  if (error) {
+    if (error.code === 'PGRST202' || error.code === 'PGRST205' || error.code === '42883') throw new CloudError('missing', error.message);
+    if (error.message?.includes('invalid_session')) throw new CloudError('session', error.message);
+    if (!error.code) throw new CloudError('network', error.message);
+    throw new CloudError('server', error.message);
+  }
+  return data as T;
+}
+
+let ready: Promise<boolean> | null = null;
+
+/** Whether the tradingo_* functions are installed and reachable (asked once per app run). */
+export function serverReady(): Promise<boolean> {
+  if (!cloudEnabled) return Promise.resolve(false);
+  if (!ready) {
+    ready = rpc<number>('tradingo_version')
+      .then(() => true)
+      .catch((e) => {
+        // Try again next time if it was just the network.
+        if (!(e instanceof CloudError) || e.kind !== 'missing') ready = null;
+        return false;
+      });
+  }
+  return ready;
+}
+
+async function setSession(next: Session | null) {
+  session = next;
+  useCloud.setState(
+    next ? { mobile: next.mobile, userId: next.mobile, error: null } : { status: cloudEnabled ? 'signedOut' : 'off', mobile: null, userId: null },
+  );
+  if (next) await safeStorage.setItem(SESSION_KEY, JSON.stringify(next));
+  else await safeStorage.removeItem(SESSION_KEY);
+}
+
+/** What goes to the server: everything except this device's own account and sign-in state. */
+function syncable(state: GameData): Partial<GameData> {
+  const { user: _user, signedOut: _signedOut, ...rest } = state;
+  return rest;
+}
+
+async function push() {
+  if (!session) return;
+  const s = pickData(useGame.getState());
+  await rpc('tradingo_save', {
+    p_token: session.token,
+    p_state: syncable(s),
+    p_week: s.weekKey,
+    p_weekly_xp: Math.min(s.weeklyXp, 50000),
+    p_league: s.league,
+  });
+}
+
+async function pullAndMerge() {
+  if (!session) return;
+  const data = await rpc<{ state: Partial<GameData> | null } | null>('tradingo_load', { p_token: session.token });
+  if (data?.state) {
+    const local = pickData(useGame.getState());
+    const merged = mergeProgress(local, { ...local, ...syncable({ ...local, ...data.state } as GameData) });
+    useGame.setState({ ...merged, user: local.user, signedOut: local.signedOut });
+  }
+}
+
+function describe(e: unknown): string {
+  if (e instanceof CloudError && e.kind === 'network') return 'ارتباط با سرور برقرار نشد؛ پیشرفتت روی دستگاه امنه و بعداً همگام می‌شه.';
+  return 'همگام‌سازی با سرور انجام نشد.';
+}
+
+async function handleFailure(e: unknown) {
+  if (e instanceof CloudError && e.kind === 'session') {
+    await setSession(null);
+    useCloud.setState({ error: 'نشستت روی سرور تموم شده؛ برای همگام‌سازی دوباره وارد شو.' });
+    return;
+  }
+  useCloud.setState({ status: 'error', error: describe(e) });
 }
 
 /** Pulls, merges and pushes progress now. */
 export async function syncNow() {
-  const { userId } = useCloud.getState();
-  if (!supabase || !userId) return;
+  if (!session) return;
   useCloud.setState({ status: 'syncing', error: null });
   try {
-    await pullAndMerge(userId);
-    await push(userId);
+    await pullAndMerge();
+    await push();
     useCloud.setState({ status: 'synced', lastSyncedAt: Date.now() });
   } catch (e) {
-    useCloud.setState({ status: 'error', error: e instanceof Error ? e.message : String(e) });
+    await handleFailure(e);
   }
 }
 
 let started = false;
 
-/**
- * Keeps progress in sync with Supabase while signed in: merges on sign-in and
- * pushes a few seconds after each change. Safe to call more than once.
- */
+/** Restores the saved session and pushes progress a few seconds after each change. Safe to call more than once. */
 export function startCloudSync() {
-  if (!supabase || started) return;
+  if (!cloudEnabled || started) return;
   started = true;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  supabase.auth.onAuthStateChange((event, session) => {
-    const user = session?.user;
-    if (!user) {
-      useCloud.setState({ status: 'signedOut', mobile: null, userId: null });
-      return;
+  safeStorage.getItem(SESSION_KEY).then((raw) => {
+    if (!raw || session) return;
+    try {
+      const saved = JSON.parse(raw) as Session;
+      if (saved.token && saved.mobile) setSession(saved).then(syncNow);
+    } catch {
+      // A broken saved session is simply ignored.
     }
-    const isNewUser = useCloud.getState().userId !== user.id;
-    useCloud.setState({ mobile: mobileOf(user.email), userId: user.id });
-    // Supabase warns against awaiting other Supabase calls inside this callback.
-    if (isNewUser || event === 'SIGNED_IN') setTimeout(syncNow, 0);
   });
 
   useGame.subscribe(() => {
-    const { userId, status } = useCloud.getState();
-    if (!userId || status === 'syncing') return;
+    if (!session || useCloud.getState().status === 'syncing') return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(async () => {
       try {
-        await push(userId);
+        await push();
         useCloud.setState({ status: 'synced', lastSyncedAt: Date.now(), error: null });
       } catch (e) {
-        useCloud.setState({ status: 'error', error: e instanceof Error ? e.message : String(e) });
+        await handleFailure(e);
       }
     }, 3000);
   });
 }
 
 const AUTH_ERRORS: Record<string, string> = {
-  'Invalid login credentials': 'شماره موبایل یا رمز عبور درست نیست.',
-  'User already registered': 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.',
-  'Email not confirmed': 'حساب هنوز فعال نشده. توی تنظیمات Supabase گزینه‌ی تأیید ایمیل (Confirm email) رو خاموش کن.',
+  mobile_taken: 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.',
+  invalid_credentials: 'شماره موبایل یا رمز عبور درست نیست.',
+  locked: 'چند بار رمز اشتباه زده شده؛ ۱۵ دقیقه‌ی دیگه دوباره امتحان کن.',
+  weak_password: 'رمز باید بین ۶ تا ۷۲ کاراکتر باشه.',
+  invalid_mobile: 'شماره موبایل درست نیست.',
+  invalid_name: 'اسم باید بین ۱ تا ۲۰ حرف باشه.',
+  rate_limited: 'الان ثبت‌نام‌ها زیاده؛ یه دقیقه‌ی دیگه امتحان کن.',
 };
 
-const authError = (message: string) => AUTH_ERRORS[message] ?? 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.';
+type AuthResult = { error: string | null; offline?: boolean; name?: string };
 
-/**
- * Accounts use the mobile number and a password, with no SMS code for now. Supabase gets
- * a stand-in email built from the number, so no SMS provider is needed; turn off
- * "Confirm email" in the Supabase project.
- */
-const aliasEmail = (mobile: string) => `${mobile}@mobile.tradingo.app`;
-const mobileOf = (email?: string | null) => (email?.endsWith('@mobile.tradingo.app') ? email.split('@')[0] : null);
-
-/** Returns an error message, or null when the cloud account is signed in. */
-export async function cloudSignIn(mobile: string, password: string): Promise<{ error: string | null; name?: string }> {
-  if (!supabase) return { error: 'سرور وصل نیست.' };
-  const { data, error } = await supabase.auth.signInWithPassword({ email: aliasEmail(mobile), password });
-  if (error || !data.user) return { error: authError(error?.message ?? '') };
-  useCloud.setState({ mobile, userId: data.user.id });
-  await syncNow();
-  return { error: null, name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : undefined };
+async function authenticate(fn: 'tradingo_sign_up' | 'tradingo_sign_in', args: Record<string, unknown>, mobile: string): Promise<AuthResult> {
+  // Without the server functions (not installed yet, or unreachable) the account stays on this device.
+  if (!(await serverReady())) return { error: null, offline: true };
+  try {
+    const res = await rpc<{ token?: string; name?: string; error?: string }>(fn, args);
+    if (res.error || !res.token) return { error: AUTH_ERRORS[res.error ?? ''] ?? 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.' };
+    await setSession({ token: res.token, mobile });
+    await syncNow();
+    return { error: null, name: res.name };
+  } catch (e) {
+    if (e instanceof CloudError && (e.kind === 'network' || e.kind === 'missing')) return { error: null, offline: true };
+    return { error: 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.' };
+  }
 }
 
-/** Returns an error message, or null when the cloud account was created and signed in. */
-export async function cloudSignUp(mobile: string, password: string, name: string): Promise<string | null> {
-  if (!supabase) return 'سرور وصل نیست.';
-  const { data, error } = await supabase.auth.signUp({ email: aliasEmail(mobile), password, options: { data: { name, mobile } } });
-  if (error) return authError(error.message);
-  if (!data.session || !data.user) return AUTH_ERRORS['Email not confirmed'];
-  useCloud.setState({ mobile, userId: data.user.id });
-  await syncNow();
-  return null;
+/** Creates the server account. `offline` means the server isn't available and the caller keeps a device-only account. */
+export function cloudSignUp(mobile: string, password: string, name: string): Promise<AuthResult> {
+  return authenticate('tradingo_sign_up', { p_mobile: mobile, p_password: password, p_name: name }, mobile);
+}
+
+/** Signs in on the server and merges the saved progress. */
+export function cloudSignIn(mobile: string, password: string): Promise<AuthResult> {
+  return authenticate('tradingo_sign_in', { p_mobile: mobile, p_password: password }, mobile);
 }
 
 export async function cloudSignOut() {
-  await supabase?.auth.signOut();
+  const token = session?.token;
+  await setSession(null);
+  if (token) await rpc('tradingo_sign_out', { p_token: token }).catch(() => {});
+}
+
+export async function cloudSetName(name: string) {
+  if (!session) return;
+  await rpc('tradingo_set_name', { p_token: session.token, p_name: name }).catch(handleFailure);
 }
 
 /** Real players in the user's league this week, best first (excluding the user). */
 export async function fetchLeagueBoard(week: string, league: number): Promise<{ name: string; xp: number }[]> {
-  const { userId } = useCloud.getState();
-  if (!supabase || !userId) return [];
-  const { data, error } = await supabase
-    .from('weekly_xp')
-    .select('user_id, name, xp')
-    .eq('week', week)
-    .eq('league', league)
-    .neq('user_id', userId)
-    .order('xp', { ascending: false })
-    .limit(14);
-  if (error || !data) return [];
-  return data.map((r) => ({ name: String(r.name), xp: Number(r.xp) }));
+  if (!session) return [];
+  try {
+    const rows = await rpc<{ player_name: string; weekly_xp: number }[]>('tradingo_league', { p_token: session.token, p_week: week, p_league: league });
+    return (rows ?? []).map((r) => ({ name: String(r.player_name), xp: Number(r.weekly_xp) }));
+  } catch {
+    return [];
+  }
 }

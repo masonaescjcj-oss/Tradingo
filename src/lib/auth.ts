@@ -11,45 +11,49 @@ export const MIN_PASSWORD = 6;
  * this device. Returns an error message, or null on success. No verification code yet.
  */
 export async function register(name: string, mobile: string, password: string): Promise<string | null> {
+  let cloud = false;
   if (cloudEnabled) {
-    const error = await cloudSignUp(mobile, password, name);
-    if (error) return error;
+    const result = await cloudSignUp(mobile, password, name);
+    if (result.error) return result.error;
+    cloud = !result.offline;
   }
   useGame.getState().createAccount({
     name: name.trim() || 'تریدر',
     mobile,
     passwordHash: passwordHash(mobile, password),
     createdAt: Date.now(),
-    cloud: cloudEnabled,
+    cloud,
   });
   return null;
 }
 
 /** Signs in with mobile and password. Returns an error message, or null on success. */
 export async function login(mobile: string, password: string): Promise<string | null> {
-  const game = useGame.getState();
   if (cloudEnabled) {
-    const { error, name } = await cloudSignIn(mobile, password);
-    if (error) return error;
-    const user = useGame.getState().user;
-    if (!user || user.mobile !== mobile) {
-      game.createAccount({
-        name: name ?? useGame.getState().name,
-        mobile,
-        passwordHash: passwordHash(mobile, password),
-        createdAt: Date.now(),
-        cloud: true,
-      });
+    const result = await cloudSignIn(mobile, password);
+    if (result.error) return result.error;
+    if (!result.offline) {
+      const user = useGame.getState().user;
+      if (!user || user.mobile !== mobile) {
+        useGame.getState().createAccount({
+          name: result.name ?? useGame.getState().name,
+          mobile,
+          passwordHash: passwordHash(mobile, password),
+          createdAt: Date.now(),
+          cloud: true,
+        });
+      }
+      useGame.getState().signInAccount();
+      return null;
     }
-    useGame.getState().signInAccount();
-    return null;
   }
-  const user = game.user;
+  // Device-only account (no server, or the server is unreachable).
+  const user = useGame.getState().user;
   if (!user || user.mobile !== mobile) {
-    return 'این شماره روی این دستگاه ثبت نشده. تا وقتی سرور وصل نشده، ورود فقط روی دستگاهی کار می‌کنه که باهاش ثبت‌نام کردی.';
+    return 'این شماره روی این دستگاه ثبت نشده. اگه با گوشی یا مرورگر دیگه‌ای ثبت‌نام کردی، وقتی به سرور وصل باشی از همون شماره وارد شو.';
   }
   if (user.passwordHash !== passwordHash(mobile, password)) return 'رمز عبور درست نیست.';
-  game.signInAccount();
+  useGame.getState().signInAccount();
   return null;
 }
 
@@ -57,4 +61,20 @@ export async function login(mobile: string, password: string): Promise<string | 
 export async function logout() {
   if (cloudEnabled) await cloudSignOut();
   useGame.getState().signOutAccount();
+}
+
+/**
+ * Moves a device-only account (made while the server wasn't set up) to the server.
+ * If the number is already registered there, signs in instead. Returns an error message or null.
+ */
+export async function uploadAccount(password: string): Promise<string | null> {
+  const user = useGame.getState().user;
+  if (!user) return 'حسابی روی این دستگاه نیست.';
+  if (user.passwordHash !== passwordHash(user.mobile, password)) return 'رمز عبور درست نیست.';
+  let result = await cloudSignUp(user.mobile, password, user.name);
+  if (result.error === 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.') result = await cloudSignIn(user.mobile, password);
+  if (result.error) return result.error;
+  if (result.offline) return 'سرور هنوز در دسترس نیست؛ بعداً دوباره امتحان کن.';
+  useGame.getState().createAccount({ ...user, cloud: true });
+  return null;
 }

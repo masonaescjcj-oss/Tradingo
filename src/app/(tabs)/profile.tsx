@@ -11,6 +11,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
+import { cloudSetName } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
 import { resetTo } from '@/lib/nav';
 import { formatMobile } from '@/lib/phone';
@@ -50,6 +51,7 @@ export default function ProfileScreen() {
 
   const saveName = () => {
     game.setName(draftName);
+    if (draftName.trim()) cloudSetName(draftName.trim());
     setEditingName(false);
   };
 
