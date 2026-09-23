@@ -5,6 +5,8 @@
 
 > محتوای اپ آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
 
+**نسخه‌ی وب:** https://tradingo.vercel.app
+
 برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md)
 
 ## اجرا
@@ -16,6 +18,7 @@ npm run build:web    # خروجی استاتیک وب در پوشه‌ی dist
 npm run lint
 npm run typecheck
 npm run validate:content   # بررسی ساختار همه‌ی دوره‌ها و درس‌ها
+npx vercel@latest deploy --prod   # انتشار نسخه‌ی وب روی Vercel (تنظیمات در vercel.json)
 ```
 
 برای حساب ابری، همگام‌سازی و لیگ واقعی، آدرس و کلید Publishable پروژه‌ی Supabase توی `.env.local` قرار می‌گیره (نمونه: `.env.example`) و SQL نصب یه بار روی پروژه اجرا می‌شه. تریدینگو توی پروژه‌ی مشترک فقط جدول‌ها و توابع `tradingo_*` رو داره و به اپ‌های دیگه دست نمی‌زنه (جزئیات در [docs/SUPABASE.md](docs/SUPABASE.md)). بدون این‌ها اپ کامل و آفلاین کار می‌کنه.

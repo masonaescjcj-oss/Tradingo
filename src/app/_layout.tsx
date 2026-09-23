@@ -10,7 +10,7 @@ import {
 import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider, router, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
@@ -75,7 +75,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Vazirmatn_400Regular,
     Vazirmatn_500Medium,
     Vazirmatn_700Bold,
@@ -86,6 +86,13 @@ export default function RootLayout() {
     JetBrainsMono_800ExtraBold,
   });
   const hydrated = useStoreHydrated();
+  // On a slow or unstable connection, don't wait forever for the fonts: show the app with
+  // system fonts and let the brand fonts swap in when they arrive.
+  const [fontsTimedOut, setFontsTimedOut] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setFontsTimedOut(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -101,7 +108,7 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <View style={styles.page} {...rtlProps}>
         <View style={styles.column}>
-          {fontsLoaded && hydrated ? (
+          {(fontsLoaded || fontError || fontsTimedOut) && hydrated ? (
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
               <Stack.Screen name="lesson/[id]" options={{ gestureEnabled: false, animation: 'slide_from_bottom' }} />
             </Stack>
