@@ -1,3 +1,4 @@
+import { canonicalCourseId, canonicalCourseIds } from '@/content';
 import { mergeChallenges } from '@/lib/challenges';
 import type { GameData, LessonRecord } from '@/store/game';
 
@@ -48,7 +49,9 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
     league: sameWeek ? Math.max(local.league, remote.league) : localNewerWeek ? local.league : remote.league,
     completed: mergeCompleted(local.completed, remote.completed),
     chests: [...new Set([...remote.chests, ...local.chests])],
-    enrolled: [...new Set([...local.enrolled, ...remote.enrolled])],
+    // Either side may still use course ids from before the topics were merged.
+    enrolled: canonicalCourseIds([...local.enrolled, ...remote.enrolled]),
+    activeCourse: canonicalCourseId(base.activeCourse),
     mistakes: [...new Set([...local.mistakes, ...remote.mistakes])].slice(0, 40),
     practiceSessions: Math.max(local.practiceSessions, remote.practiceSessions),
     reviews: { ...(remote.reviews ?? {}), ...(local.reviews ?? {}) },

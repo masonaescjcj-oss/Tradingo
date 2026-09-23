@@ -1,16 +1,14 @@
-import { ALL_COURSES } from './courses';
+import { ALL_COURSES, COURSE_ALIASES } from './courses';
 import type { Course, CourseCategory, CourseLevel, Lesson, Market, Unit } from './types';
 
 export * from './types';
 export { ALL_COURSES };
 
 export const CATEGORIES: { id: CourseCategory; title: string; subtitle: string }[] = [
-  { id: 'foundations', title: 'مبانی', subtitle: 'از صفر شروع کن' },
-  { id: 'technical', title: 'تحلیل تکنیکال', subtitle: 'نمودار رو بخون' },
-  { id: 'strategy', title: 'استراتژی‌ها', subtitle: 'از تحلیل تا معامله' },
+  { id: 'foundations', title: 'مبانی و بازارها', subtitle: 'از صفر شروع کن' },
+  { id: 'technical', title: 'تحلیل', subtitle: 'نمودار رو بخون' },
   { id: 'risk', title: 'ریسک و روانشناسی', subtitle: 'زنده موندن توی بازار' },
-  { id: 'fundamental', title: 'فاندامنتال', subtitle: 'چرا بازار حرکت می‌کنه' },
-  { id: 'markets', title: 'بازارها و امنیت', subtitle: 'طلا، شاخص‌ها و دیفای' },
+  { id: 'strategy', title: 'استراتژی‌ها', subtitle: 'از تحلیل تا معامله' },
 ];
 
 export const LEVEL_LABEL: Record<CourseLevel, string> = {
@@ -32,7 +30,15 @@ for (const course of ALL_COURSES) {
   }
 }
 
-export const findCourse = (id: string): Course | undefined => courseById.get(id);
+/** The current id of a course, also for ids from before the topics were merged. */
+export const canonicalCourseId = (id: string): string => COURSE_ALIASES[id] ?? id;
+
+/** Course ids mapped to current ones, without duplicates or unknown ids, in order. */
+export function canonicalCourseIds(ids: string[]): string[] {
+  return [...new Set(ids.map(canonicalCourseId))].filter((id) => courseById.has(id));
+}
+
+export const findCourse = (id: string): Course | undefined => courseById.get(canonicalCourseId(id));
 export const findUnit = (id: string): Unit | undefined => unitById.get(id)?.unit;
 export const findUnitWithCourse = (id: string): { course: Course; unit: Unit } | undefined => unitById.get(id);
 export const findLesson = (id: string): LessonHit | undefined => lessonById.get(id);
@@ -50,7 +56,7 @@ export function courseProgress(course: Course, completed: Record<string, unknown
 /** Courses a new learner starts with, based on the market they picked. */
 export function starterCourses(market: Market): string[] {
   const markets = market === 'forex' ? ['forex'] : market === 'crypto' ? ['crypto'] : ['forex', 'crypto'];
-  return ['basics', ...markets, 'candles', 'trend', 'risk'];
+  return ['basics', ...markets, 'technical', 'risk'];
 }
 
 /** A reward chest sits after the second lesson of units with three or more lessons. */

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
+import { canonicalCourseId, canonicalCourseIds, findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
 import type { ChestReward } from '@/lib/chest';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
 import { heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '@/lib/progress';
@@ -270,17 +270,19 @@ export const useGame = create<GameState>()(
 
       openCourse: (courseId) => {
         if (!findCourse(courseId)) return;
+        const id = canonicalCourseId(courseId);
         set((s) => ({
-          activeCourse: courseId,
-          enrolled: s.enrolled.includes(courseId) ? s.enrolled : [...s.enrolled, courseId],
+          activeCourse: id,
+          enrolled: s.enrolled.includes(id) ? s.enrolled : [...s.enrolled, id],
         }));
       },
 
       leaveCourse: (courseId) =>
         set((s) => {
-          const enrolled = s.enrolled.filter((id) => id !== courseId);
+          const id = canonicalCourseId(courseId);
+          const enrolled = s.enrolled.filter((e) => e !== id);
           if (enrolled.length === 0) return s;
-          return { enrolled, activeCourse: s.activeCourse === courseId ? enrolled[0] : s.activeCourse };
+          return { enrolled, activeCourse: s.activeCourse === id ? enrolled[0] : s.activeCourse };
         }),
 
       setName: (name) => {
@@ -515,14 +517,18 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'tradingo-game',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => safeStorage),
       migrate: (persisted, version) => {
-        const state = persisted as Partial<Data>;
+        let state = persisted as Partial<Data>;
         // v1 had a single path per market; turn it into the matching starter courses.
-        if (version < 2) {
-          const enrolled = starterCourses(state.market ?? 'both');
-          return { ...state, enrolled, activeCourse: 'basics' } as GameState;
+        if (version < 2) state = { ...state, enrolled: starterCourses(state.market ?? 'both'), activeCourse: 'basics' };
+        // v3 merged the short topic courses into long ones; point old course ids at them.
+        if (version < 3) {
+          const merged = canonicalCourseIds(state.enrolled ?? []);
+          const enrolled = merged.length ? merged : ['basics'];
+          const active = canonicalCourseId(state.activeCourse ?? enrolled[0]);
+          state = { ...state, enrolled, activeCourse: enrolled.includes(active) ? active : enrolled[0] };
         }
         return state as GameState;
       },

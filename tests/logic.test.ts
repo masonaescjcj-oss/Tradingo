@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import { series, withCandles } from '../src/content/charts';
-import { ALL_COURSES, findLesson, starterCourses } from '../src/content';
+import { ALL_COURSES, canonicalCourseIds, findCourse, findLesson, starterCourses } from '../src/content';
+import { COURSE_ALIASES } from '../src/content/courses';
 import { rsi, sma } from '../src/content/indicators';
 import { validateCourses } from '../src/content/validate';
 import { mergeProgress } from '../src/lib/merge';
@@ -18,9 +19,20 @@ describe('content', () => {
     assert.deepEqual(validateCourses(ALL_COURSES), []);
   });
 
-  it('has 30+ courses with at least 3 units each (psychology u1 aside)', () => {
-    assert.ok(ALL_COURSES.length >= 30);
-    for (const c of ALL_COURSES) assert.ok(c.units.length >= 3, `${c.id} has ${c.units.length} units`);
+  it('has one long course per topic, each with at least 6 units', () => {
+    assert.ok(ALL_COURSES.length >= 6 && ALL_COURSES.length <= 10);
+    for (const c of ALL_COURSES) assert.ok(c.units.length >= 6, `${c.id} has ${c.units.length} units`);
+    // All of crypto lives in one course.
+    const crypto = findCourse('crypto')!;
+    for (const unit of ['crypto', 'defi-u1', 'leverage-u1', 'onchain-u1']) assert.ok(crypto.units.some((u) => u.id === unit), unit);
+  });
+
+  it('maps course ids from before the merge to the long courses', () => {
+    for (const [old, now] of Object.entries(COURSE_ALIASES)) {
+      assert.equal(findCourse(old)?.id, now, old);
+      assert.ok(!ALL_COURSES.some((c) => c.id === old), `${old} is still a course of its own`);
+    }
+    assert.deepEqual(canonicalCourseIds(['candles', 'trend', 'basics', 'orders', 'gone']), ['technical', 'basics']);
   });
 
   it('keeps the original lesson ids so saved progress survives', () => {
@@ -152,7 +164,8 @@ describe('cloud merge', () => {
     assert.equal(m.streak, 5);
     assert.deepEqual(m.completed.a, { best: 1, perfect: true });
     assert.ok(m.completed.b);
-    assert.deepEqual(m.enrolled, ['basics', 'smc']);
+    // A course id from before the merge (smc) comes back as the long course that holds it.
+    assert.deepEqual(m.enrolled, ['basics', 'advanced']);
     assert.deepEqual([...m.chests].sort(), ['x', 'y']);
   });
 
