@@ -1,12 +1,24 @@
 /**
- * Live crypto candles from Binance's public market data (no API key).
+ * Live candles from Binance's public market data (no API key).
  * data-api.binance.vision serves market data only and allows browser requests (CORS);
  * api.binance.com is tried second. Any failure is reported to the caller, which falls
  * back to the simulated prices.
+ *
+ * Binance has no forex, so EUR/USD follows its EUR/USDT pair and gold follows PAX Gold
+ * (one token is one troy ounce of gold). Both trade around the clock and sit within a
+ * fraction of a percent of the real quotes.
  */
 import type { Candle } from '@/content/types';
 
-export const LIVE_SYMBOLS = ['BTCUSDT', 'ETHUSDT'];
+/** The Binance pair behind each simulator symbol that has live prices. */
+export const LIVE_SOURCES: Record<string, string> = {
+  BTCUSDT: 'BTCUSDT',
+  ETHUSDT: 'ETHUSDT',
+  EURUSD: 'EURUSDT',
+  XAUUSD: 'PAXGUSDT',
+};
+
+export const LIVE_SYMBOLS = Object.keys(LIVE_SOURCES);
 export const BINANCE_HOSTS = ['https://data-api.binance.vision', 'https://api.binance.com'];
 export const LIVE_INTERVAL = '1m';
 export const LIVE_POLL_MS = 2500;
@@ -17,7 +29,21 @@ export type Kline = { openTime: number; candle: Candle; volume: number };
 export type Feed = { candles: Candle[]; volumes: number[]; lastOpen: number };
 
 export function supportsLive(symbol: string): boolean {
-  return LIVE_SYMBOLS.includes(symbol);
+  return symbol in LIVE_SOURCES;
+}
+
+export function binanceSymbol(symbol: string): string {
+  return LIVE_SOURCES[symbol] ?? symbol;
+}
+
+/**
+ * Whether the real forex market is shut for the weekend (roughly Friday 21:00 to
+ * Sunday 21:00 UTC). The Binance pairs keep trading, so the app only mentions it.
+ */
+export function forexWeekend(now: Date = new Date()): boolean {
+  const day = now.getUTCDay();
+  const hour = now.getUTCHours();
+  return (day === 5 && hour >= 21) || day === 6 || (day === 0 && hour < 21);
 }
 
 /** Parses Binance's kline arrays ([openTime, "open", "high", "low", "close", "volume", …]). Throws on anything else. */

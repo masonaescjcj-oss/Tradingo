@@ -338,3 +338,23 @@ describe('live market data', () => {
     await assert.rejects(fetchKlines('BTCUSDT', 2, { fetchImpl, hosts: ['https://a'] }));
   });
 });
+
+describe('live sources', () => {
+  it('follows EUR/USD and gold with Binance pairs', async () => {
+    const { binanceSymbol, supportsLive } = await import('../src/lib/marketData');
+    assert.equal(binanceSymbol('EURUSD'), 'EURUSDT');
+    assert.equal(binanceSymbol('XAUUSD'), 'PAXGUSDT');
+    assert.equal(binanceSymbol('BTCUSDT'), 'BTCUSDT');
+    assert.ok(supportsLive('XAUUSD'));
+    assert.ok(!supportsLive('GBPUSD'));
+  });
+
+  it('knows when the real forex market is shut for the weekend', async () => {
+    const { forexWeekend } = await import('../src/lib/marketData');
+    assert.ok(!forexWeekend(new Date(Date.UTC(2026, 8, 25, 20, 0)))); // Friday 20:00
+    assert.ok(forexWeekend(new Date(Date.UTC(2026, 8, 25, 22, 0)))); // Friday 22:00
+    assert.ok(forexWeekend(new Date(Date.UTC(2026, 8, 26, 12, 0)))); // Saturday
+    assert.ok(forexWeekend(new Date(Date.UTC(2026, 8, 27, 20, 0)))); // Sunday 20:00
+    assert.ok(!forexWeekend(new Date(Date.UTC(2026, 8, 27, 22, 0)))); // Sunday 22:00
+  });
+});

@@ -19,10 +19,10 @@ export type SymbolSpec = {
 };
 
 export const SYMBOLS: SymbolSpec[] = [
-  { id: 'EURUSD', label: 'EUR/USD', market: 'forex', base: 1.085, decimals: 5, vol: 0.00012, spread: 0.00008, contract: 100_000, sizes: [0.01, 0.1, 1], sizeUnit: 'لات', step: 0.0005, defaultStop: 0.002 },
-  { id: 'XAUUSD', label: 'XAU/USD', market: 'forex', base: 2350, decimals: 2, vol: 0.6, spread: 0.3, contract: 100, sizes: [0.01, 0.1, 1], sizeUnit: 'لات', step: 1, defaultStop: 5 },
-  { id: 'BTCUSDT', label: 'BTC/USDT', market: 'crypto', base: 60_000, decimals: 1, vol: 30, spread: 10, contract: 1, sizes: [0.001, 0.01, 0.1], sizeUnit: 'BTC', step: 100, defaultStop: 400 },
-  { id: 'ETHUSDT', label: 'ETH/USDT', market: 'crypto', base: 3000, decimals: 2, vol: 2, spread: 0.8, contract: 1, sizes: [0.01, 0.1, 1], sizeUnit: 'ETH', step: 5, defaultStop: 25 },
+  { id: 'EURUSD', label: 'EUR/USD', market: 'forex', base: 1.14, decimals: 5, vol: 0.00012, spread: 0.00008, contract: 100_000, sizes: [0.01, 0.1, 1], sizeUnit: 'لات', step: 0.0005, defaultStop: 0.002 },
+  { id: 'XAUUSD', label: 'XAU/USD', market: 'forex', base: 4200, decimals: 2, vol: 1, spread: 0.5, contract: 100, sizes: [0.01, 0.1, 1], sizeUnit: 'لات', step: 1, defaultStop: 8 },
+  { id: 'BTCUSDT', label: 'BTC/USDT', market: 'crypto', base: 84_000, decimals: 1, vol: 40, spread: 12, contract: 1, sizes: [0.001, 0.01, 0.1], sizeUnit: 'BTC', step: 100, defaultStop: 550 },
+  { id: 'ETHUSDT', label: 'ETH/USDT', market: 'crypto', base: 2700, decimals: 2, vol: 1.8, spread: 0.7, contract: 1, sizes: [0.01, 0.1, 1], sizeUnit: 'ETH', step: 5, defaultStop: 22 },
 ];
 
 export function symbolsFor(market: Market): SymbolSpec[] {

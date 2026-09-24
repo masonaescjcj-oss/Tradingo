@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import { countdownLabel } from '@/lib/chartMath';
-import { LIVE_SYMBOLS, supportsLive } from '@/lib/marketData';
+import { forexWeekend, LIVE_SYMBOLS, supportsLive } from '@/lib/marketData';
 import { findSymbol, formatPrice, simCountdown, type SymbolSpec } from '@/lib/simulator';
 import { summarize, type Account, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { useGame } from '@/store/game';
@@ -50,7 +50,7 @@ export function LiveView({
 
   const toggleLive = () => {
     if (!feed.live && LIVE_SYMBOLS.some((id) => busyIds.has(id))) {
-      onNotice({ text: 'اول معامله‌ها و سفارش‌های BTC و ETH رو ببند؛ قیمت واقعی با قیمت شبیه‌سازی‌شده فرق داره.', tone: 'gold' });
+      onNotice({ text: 'اول معامله‌ها و سفارش‌های بازت رو ببند؛ قیمت واقعی با قیمت شبیه‌سازی‌شده فرق داره.', tone: 'gold' });
       return;
     }
     feed.setLive(!feed.live);
@@ -74,9 +74,14 @@ export function LiveView({
           قیمت زنده
         </Txt>
         <Txt w={700} size={11.5} color={colors.text3} style={{ flex: 1 }}>
-          {feed.status === 'loading' ? 'در حال گرفتن قیمت از بایننس…' : feed.status === 'on' ? 'کندل‌های ۱ دقیقه‌ای واقعی از بایننس' : 'BTC و ETH از بایننس'}
+          {feed.status === 'loading' ? 'در حال گرفتن قیمت از بایننس…' : feed.status === 'on' ? 'کندل‌های ۱ دقیقه‌ای واقعی از بایننس' : 'کریپتو، یورو/دلار و طلا از بایننس'}
         </Txt>
       </Pressable>
+      {liveHere && spec.market === 'forex' ? (
+        <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
+          {`${spec.id === 'XAUUSD' ? 'قیمت طلا از توکن PAXG بایننس میاد (هر توکن یه انس طلا).' : 'قیمت یورو/دلار از جفت EUR/USDT بایننس میاد.'} با قیمت بروکرها کمی فرق داره.${forexWeekend(new Date(now)) ? ' بازار واقعی فارکس آخر هفته تعطیله، ولی این جفت ۲۴ ساعته معامله می‌شه.' : ''}`}
+        </Txt>
+      ) : null}
       {feed.status === 'failed' ? (
         <Txt w={700} size={11.5} lh={1.7} color={colors.gold}>
           به قیمت زنده وصل نشد (شاید اینترنت یا منطقه محدوده). شبیه‌ساز با قیمت شبیه‌سازی‌شده ادامه می‌ده.
@@ -85,7 +90,7 @@ export function LiveView({
     </View>
   ) : (
     <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
-      فارکس و طلا فعلاً قیمت شبیه‌سازی‌شده دارن؛ قیمت زنده فقط برای BTC و ETH هست.
+      این نماد فعلاً فقط قیمت شبیه‌سازی‌شده داره.
     </Txt>
   );
 

@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useState } from 'react';
 import { create } from 'zustand';
 
 import type { Candle } from '@/content/types';
-import { BINANCE_HOSTS, feedFromKlines, fetchKlines, LIVE_POLL_MS, LIVE_SYMBOLS, mergeFeed, type Kline } from '@/lib/marketData';
+import { BINANCE_HOSTS, binanceSymbol, feedFromKlines, fetchKlines, LIVE_POLL_MS, LIVE_SYMBOLS, mergeFeed, type Kline } from '@/lib/marketData';
 import { applyTick, backfillTimes, generateHistory, HISTORY_CANDLES, nextPrice, SIM_CANDLE_MS, SYMBOLS, tickTimes } from '@/lib/simulator';
 
 export type Series = {
@@ -64,8 +64,8 @@ function toSimulated(prev: Record<string, Series>): Record<string, Series> {
 
 /**
  * Prices for every simulator symbol: a simulated tick each second, and (when switched on)
- * real one-minute candles for BTC and ETH from Binance, polled every few seconds while
- * the screen is focused. `onMoves` gets each price change so orders and stops can be checked.
+ * real one-minute candles from Binance (crypto, EUR/USD and gold), polled every few seconds
+ * while the screen is focused. `onMoves` gets each price change so orders and stops can be checked.
  */
 export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, number>) => void, focused = true) {
   const [series, setSeries] = useState(initialSeries);
@@ -108,6 +108,8 @@ export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, numbe
     for (const { symbol, klines } of updates) {
       const cur = series[symbol];
       if (!cur) continue;
+      // A symbol whose first load failed stays simulated; a two-candle poll can't replace its history.
+      if (!initial && cur.source !== 'live') continue;
       const feed =
         initial || cur.source !== 'live' || cur.lastOpen == null
           ? feedFromKlines(klines.slice(-HISTORY_CANDLES))
@@ -138,17 +140,15 @@ export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, numbe
     let hosts = BINANCE_HOSTS;
     let failures = 0;
     const load = async (initial: boolean) => {
-      try {
-        const results = await Promise.all(LIVE_SYMBOLS.map((s) => fetchKlines(s, initial ? HISTORY_CANDLES : 2, { hosts })));
-        if (cancelled) return;
+      // Each pair on its own, so one that's missing doesn't stop the others.
+      const results = await Promise.allSettled(LIVE_SYMBOLS.map((s) => fetchKlines(binanceSymbol(s), initial ? HISTORY_CANDLES : 2, { hosts })));
+      if (cancelled) return;
+      const ok = results.flatMap((r, i) => (r.status === 'fulfilled' ? [{ symbol: LIVE_SYMBOLS[i], ...r.value }] : []));
+      if (ok.length) {
         failures = 0;
-        hosts = [results[0].host, ...BINANCE_HOSTS.filter((h) => h !== results[0].host)];
-        applyLive(
-          results.map((r, i) => ({ symbol: LIVE_SYMBOLS[i], klines: r.klines })),
-          initial,
-        );
-      } catch {
-        if (cancelled) return;
+        hosts = [ok[0].host, ...BINANCE_HOSTS.filter((h) => h !== ok[0].host)];
+        applyLive(ok, initial);
+      } else {
         failures += 1;
         // A first failure, or several in a row, means live data isn't reachable from here.
         if (initial || failures >= 3) {
