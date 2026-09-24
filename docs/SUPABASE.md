@@ -40,6 +40,17 @@
 باز هم یکی موند. Edge Function به اسم `tradingo-coach` ([`supabase/functions/tradingo-coach`](../supabase/functions/tradingo-coach)) هم
 کنار توابع اپ دیگه (که بهشون دست نخورد) منتشر شد. تا کلید هوش مصنوعی تنظیم نشه، اپ می‌گه «دستیار هنوز راه‌اندازی نشده».
 
+**دوئل با دوست نصب شده (۲۴ سپتامبر ۲۰۲۶، [`20260927000000_tradingo_duels.sql`](../supabase/migrations/20260927000000_tradingo_duels.sql)).**
+اثر انگشت بقیه‌ی پروژه قبل و بعد باز هم دقیقاً یکی بود (۱۹۹۴ شیء). ساختن دوئل، باز کردنش با کد، پنهان بودن امتیاز سازنده تا وقتی
+دوست بازی نکرده، ثبت نتیجه، ارسال دوباره، رد شدن نفر سوم، رد شدن امتیاز یا داده‌ی نامعتبر و بسته بودن دسترسی مستقیم به جدول روی سرور
+تست شد و حساب‌های آزمایشی پاک شدن.
+
+قانون‌های دوئل سمت سرور:
+- هر دوئل یه کد شش‌حرفی داره و فقط یه نفر (غیر از سازنده) می‌تونه بازیش کنه؛ دوئل باز بعد از ۷ روز منقضی می‌شه
+- امتیازها باید توی محدوده‌ای باشن که اپ می‌تونه بسازه، و داده‌ی دوئل حداکثر ۲۴ کیلوبایت (۶۵ کندل نمودار، ۸۰ کندل معامله، ۵ سؤال)
+- هر حساب حداکثر ۳۰ دوئل در روز می‌سازه؛ دوئل‌های بالای ۹۰ روز پاک می‌شن
+- بازی با شمعک کاملاً روی گوشی اجرا می‌شه و به سرور نیازی نداره
+
 ### راه‌انداختن دستیار (یه بار)
 
 توی داشبورد Supabase برو به **Edge Functions → Secrets** و این‌ها رو اضافه کن (اسم‌ها با `TRADINGO_` شروع می‌شن تا با
@@ -70,7 +81,8 @@
 توی داشبورد Supabase برو به **SQL Editor → New query**، کل فایل
 [`supabase/migrations/20260924000000_tradingo.sql`](../supabase/migrations/20260924000000_tradingo.sql)
 رو بچسبون و **Run** بزن؛ بعد همین کار رو با
-[`supabase/migrations/20260925000000_tradingo_chat.sql`](../supabase/migrations/20260925000000_tradingo_chat.sql) (گفتگو) بکن.
+[`supabase/migrations/20260925000000_tradingo_chat.sql`](../supabase/migrations/20260925000000_tradingo_chat.sql) (گفتگو)، `20260926000000_tradingo_ai.sql` (دستیار) و
+[`supabase/migrations/20260927000000_tradingo_duels.sql`](../supabase/migrations/20260927000000_tradingo_duels.sql) (دوئل) بکن.
 اجرای دوباره‌شون ضرری نداره.
 
 این فایل قبل از تحویل روی PostgreSQL 16 با نقش‌های مشابه Supabase و PostgREST تست شده: ثبت‌نام، شماره‌ی تکراری،
@@ -110,6 +122,9 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 | `src/app/(tabs)/chat.tsx`، `src/app/chat/[id].tsx` | فهرست گروه‌ها و صفحه‌ی هر گروه |
 | `supabase/migrations/20260926000000_tradingo_ai.sql`، `supabase/functions/tradingo-coach` | سقف روزانه و تابع دستیار |
 | `src/lib/coach.ts`، `src/lib/coachApi.ts`، `src/app/chat/coach.tsx` | اطلاعاتی که دستیار می‌بینه و صفحه‌ی گفتگو با شمعک |
+| `supabase/migrations/20260927000000_tradingo_duels.sql` | دوئل با دوست: ساختن، باز کردن با کد، ثبت نتیجه و فهرست |
+| `src/lib/duel.ts`، `src/lib/duelData.ts`، `src/lib/duelApi.ts` | راندها، امتیازدهی، شمعک، نمودارهای بایننس و تماس با سرور |
+| `src/app/duel/`، `src/components/duel/` | صفحه‌ی دوئل‌ها، سه راند، نتیجه و دعوت |
 
 ## قدم‌های بعدی (مرحله‌ی ۳ نقشه‌ی راه)
 
