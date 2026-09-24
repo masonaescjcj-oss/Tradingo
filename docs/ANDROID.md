@@ -46,10 +46,21 @@ npx eas-cli@latest submit -p android --profile production  # فرستادن آخ
 
 ```bash
 npx expo prebuild -p android --clean
-cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pexpo.useLegacyPackaging=true   # APK تست (کتابخونه‌های بومی فشرده، کوچیک‌تر)
+cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pexpo.useLegacyPackaging=true \
+  -Pandroid.injected.signing.store.file=/path/to/chartoon-release.keystore \
+  -Pandroid.injected.signing.store.password=… -Pandroid.injected.signing.key.alias=chartoon -Pandroid.injected.signing.key.password=…
 ```
 
-این APK با کلید دیباگ امضا می‌شه: برای تست روی گوشی خوبه ولی گوگل‌پلی قبولش نمی‌کنه. اگه بعداً نسخه‌ی فروشگاه رو نصب کنی، اول باید این یکی رو پاک کنی (امضاها فرق دارن). برای انتشار محلی باید یه کلید آپلود بسازی (`keytool -genkeypair ...`)، امضا رو توی Gradle تنظیم کنی و فایل کلید و رمزش رو جایی امن نگه داری؛ هیچ‌وقت توی مخزن نذار (`*.jks` و `*.keystore` توی `.gitignore` هستن).
+**کلید امضای چارتون** (`chartoon-release.keystore`، نام مستعار `chartoon`، RSA 4096، معتبر تا ۲۰۵۴) از ۲۴ سپتامبر ۲۰۲۶ ساخته شده و
+همه‌ی APKها (کافه‌بازار، مایکت، نصب مستقیم) باید با همین امضا بشن؛ نسخه‌ای با کلید دیگه روی نسخه‌ی قبلی نصب نمی‌شه. فایل و رمزش
+فقط پیش صاحب اپه: دو نسخه‌ی پشتیبان جدا نگه دار و هیچ‌وقت توی مخزن نذار (`*.jks` و `*.keystore` توی `.gitignore` هستن). برای
+گوگل‌پلی همین کلید «کلید آپلود» می‌شه و Play App Signing کلید امضای نهایی رو خودش نگه می‌داره.
+
+اثر انگشت SHA-256 این کلید (عمومیه و مشکلی نداره دیده بشه):
+`4D:39:BB:D8:23:88:EF:5B:B3:F9:A3:3D:CE:EE:4A:01:26:B7:A5:84:57:BE:47:1C:71:DA:85:58:3C:1C:82:B5`
+
+بدون پارامترهای `injected.signing` بیلد با کلید دیباگ عمومی امضا می‌شه: Play Protect هشدار «App scan recommended» می‌ده و گوگل‌پلی
+قبولش نمی‌کنه؛ فقط برای تست خیلی سریع.
 
 اگه Gradle موقع دانلود از Maven Central خطای 429 داد، یه آینه‌ی Maven Central (مثلاً `maven-central.storage-download.googleapis.com/maven2`) رو اول فهرست مخزن‌ها بذار.
 
@@ -69,7 +80,7 @@ cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pe
 2. **تست بسته:** حساب‌های شخصی جدید باید قبل از انتشار عمومی، اپ رو حداقل ۱۴ روز با حداقل ۱۲ تستر توی Closed testing نگه دارن (قانون فعلی گوگل؛ قبل از شروع توی کنسول چک کن).
 3. **ساخت اپ:** اسم، زبان پیش‌فرض فارسی، نوع App، رایگان.
 4. **اولین AAB رو دستی آپلود کن** (Testing → Internal testing). Play App Signing رو قبول کن.
-5. **لینک‌های دوئل:** از **Setup → App signing** اثر انگشت SHA-256 کلید امضای گوگل رو بردار و این فایل رو توی `public/.well-known/assetlinks.json` بذار و نسخه‌ی وب رو دوباره منتشر کن. بعد از اون لینک‌های دوئل مستقیم توی اپ باز می‌شن (تا اون موقع توی مرورگر باز می‌شن و باز هم کار می‌کنن):
+5. **لینک‌های دوئل:** `public/.well-known/assetlinks.json` از قبل اثر انگشت کلید چارتون رو داره (برای APKهای نصب مستقیم و فروشگاه‌های ایرانی). بعد از آپلود توی گوگل‌پلی، از **Setup → App signing** اثر انگشت SHA-256 کلید امضای گوگل رو هم به همون فهرست `sha256_cert_fingerprints` اضافه کن و نسخه‌ی وب رو دوباره منتشر کن. تا نسخه‌ی وب منتشر نشه، لینک‌های دوئل توی مرورگر باز می‌شن (و باز هم کار می‌کنن). شکل فایل:
 
    ```json
    [{ "relation": ["delegate_permission/common.handle_all_urls"],

@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "net.chartoon.app",
+      "sha256_cert_fingerprints": [
+        "4D:39:BB:D8:23:88:EF:5B:B3:F9:A3:3D:CE:EE:4A:01:26:B7:A5:84:57:BE:47:1C:71:DA:85:58:3C:1C:82:B5"
+      ]
+    }
+  }
+]
