@@ -1,63 +1,8 @@
 import Svg, { Circle, Ellipse, G, Path, Rect } from 'react-native-svg';
 
-export type MascotMood = 'happy' | 'sad' | 'party' | 'think';
+import { MOODS, type MascotMood } from '@/lib/mascotArt';
 
-type MoodSpec = {
-  body: string;
-  dark: string;
-  arms: string;
-  brows?: string;
-  pupilX: [number, number];
-  pupilY: number;
-  cheek: number;
-  mouthLine?: string;
-  mouthFill?: string;
-  sparkle?: boolean;
-  tear?: boolean;
-};
-
-const MOODS: Record<MascotMood, MoodSpec> = {
-  happy: {
-    body: '#2BD47D',
-    dark: '#0B3D24',
-    arms: 'M32 92 Q16 96 14 112 M108 88 Q126 80 126 60',
-    pupilX: [57, 87],
-    pupilY: 73,
-    cheek: 0.55,
-    mouthLine: 'M58 96 Q70 108 82 96',
-  },
-  sad: {
-    body: '#FF5A6E',
-    dark: '#4A0F1A',
-    arms: 'M32 92 Q20 104 22 120 M108 92 Q120 104 118 120',
-    brows: 'M44 54 L64 60 M96 54 L76 60',
-    pupilX: [55, 85],
-    pupilY: 77,
-    cheek: 0,
-    mouthLine: 'M58 106 Q70 96 82 106',
-    tear: true,
-  },
-  party: {
-    body: '#FFC53D',
-    dark: '#4A3300',
-    arms: 'M32 84 Q12 72 16 46 M108 84 Q128 72 124 46',
-    pupilX: [56, 86],
-    pupilY: 72,
-    cheek: 0.6,
-    mouthFill: 'M56 94 Q70 118 84 94 Z',
-    sparkle: true,
-  },
-  think: {
-    body: '#2BD47D',
-    dark: '#0B3D24',
-    arms: 'M32 94 Q18 104 22 120 M108 94 Q122 110 90 108',
-    brows: 'M46 55 L64 54 M78 51 L96 56',
-    pupilX: [58, 88],
-    pupilY: 69,
-    cheek: 0.3,
-    mouthLine: 'M62 102 Q70 99 80 102',
-  },
-};
+export type { MascotMood } from '@/lib/mascotArt';
 
 /** «شمعک», the candlestick mascot. Height is 170/140 of the width. */
 export function Mascot({ mood = 'happy', size = 140 }: { mood?: MascotMood; size?: number }) {

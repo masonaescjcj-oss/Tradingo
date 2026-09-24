@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { BoltIcon, Icon, type IconName } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
+import { QuestsCard } from '@/components/QuestsCard';
 import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
@@ -100,6 +101,8 @@ export default function PracticeScreen() {
             )}
           </View>
         </View>
+
+        <QuestsCard />
 
         <Txt w={900} size={16} color={colors.text2}>
           حالت‌های تمرین

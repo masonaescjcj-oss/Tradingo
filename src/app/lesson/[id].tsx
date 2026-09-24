@@ -20,13 +20,33 @@ import { TrueFalseQuestion } from '@/components/lesson/TrueFalseQuestion';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { isQuestion } from '@/content';
+import { sessionMilestone } from '@/lib/milestones';
+import { streakRepair } from '@/lib/progress';
+import type { QuestLog } from '@/lib/quests';
 import { buildSession, correctAnswerText, type Session } from '@/lib/session';
+import { weekDots, type ShareCard } from '@/lib/shareCard';
+import { boostActive } from '@/lib/shop';
 import { playSfx } from '@/lib/sfx';
-import { HEART_REFILL_COST, heartsNow, todaysXp, useGame } from '@/store/game';
+import { currentStreak, HEART_REFILL_COST, heartsNow, todaysXp, useGame } from '@/store/game';
 import { colors } from '@/theme';
+import { dayKey, faWeekdayIndex, weekStart } from '@/utils/date';
 import { fa } from '@/utils/format';
 
-type Summary = { title: string; subtitle: string; xp: number; accuracy: number; seconds: number; coins: number; celebrate: boolean; goalReached: boolean };
+type Summary = {
+  title: string;
+  subtitle: string;
+  xp: number;
+  accuracy: number;
+  seconds: number;
+  coins: number;
+  celebrate: boolean;
+  goalReached: boolean;
+  boosted: boolean;
+  questsBefore: QuestLog | null;
+  share: ShareCard | null;
+  /** A long streak that just broke but can still be repaired. */
+  repairable: number | null;
+};
 
 function leave() {
   if (router.canGoBack()) router.back();
@@ -64,6 +84,7 @@ function LessonPlayer({ session }: { session: Session }) {
 
   const firstTry = useRef(new Map<number, boolean>());
   const correctCount = useRef(0);
+  const bestCombo = useRef(0);
   const startedAt = useRef(0);
   const finished = useRef(false);
 
@@ -80,6 +101,10 @@ function LessonPlayer({ session }: { session: Session }) {
     finished.current = true;
     const game = useGame.getState();
     const xpBefore = todaysXp(game);
+    const before = { completed: game.completed, streak: currentStreak(game), bestStreak: game.bestStreak };
+    const questsBefore = game.quests;
+    // A double-XP boost from the shop doubles what this session earns.
+    const mult = boostActive(game.boostUntil) ? 2 : 1;
     const questions = session.steps.map((s, i) => (isQuestion(s.step) ? i : -1)).filter((i) => i >= 0);
     const firstTryCorrect = questions.filter((i) => firstTry.current.get(i) === true).length;
     const answered = firstTry.current.size;
@@ -91,17 +116,17 @@ function LessonPlayer({ session }: { session: Session }) {
     let coinsEarned = 0;
     const passed = lives > 0;
     if (session.kind === 'test') {
-      xp = passed ? (session.mode === 'master' ? 30 : 20) : 0;
+      xp = (passed ? (session.mode === 'master' ? 30 : 20) : 0) * mult;
       if (passed && session.mode === 'master') game.masterUnit(session.unitId, xp);
       else if (passed) game.passUnitTest(session.unitId, xp);
     } else if (session.kind === 'lesson') {
       const prev = game.completed[session.lessonId];
       const firstTime = !prev || prev.skipped;
-      xp = 10 + 2 * firstTryCorrect + (accuracy >= 1 ? 5 : 0);
+      xp = (10 + 2 * firstTryCorrect + (accuracy >= 1 ? 5 : 0)) * mult;
       coinsEarned = firstTime ? (accuracy >= 1 ? 15 : 10) : 2;
       game.completeLesson(session.lessonId, accuracy, xp, coinsEarned);
     } else {
-      xp = timeLimit ? 2 * correctCount.current : 5 + firstTryCorrect;
+      xp = (timeLimit ? 2 * correctCount.current : 5 + firstTryCorrect) * mult;
       // Each practised lesson's review gap grows if all its questions were right first time.
       const reviewed: Record<string, boolean> = {};
       firstTry.current.forEach((ok, i) => {
@@ -110,6 +135,17 @@ function LessonPlayer({ session }: { session: Session }) {
       });
       game.completePractice(xp, reviewed);
     }
+    game.logActivity({ seconds: Math.round(seconds), combo: bestCombo.current });
+
+    const after = useGame.getState();
+    const share = sessionMilestone({
+      name: after.name,
+      lessonId: session.kind === 'lesson' ? session.lessonId : undefined,
+      before,
+      after: { completed: after.completed, streak: currentStreak(after), bestStreak: after.bestStreak },
+      week: weekDots(weekStart(), after.activeDays, after.frozenDays ?? [], faWeekdayIndex(new Date()), dayKey),
+    });
+    const repair = streakRepair(after);
 
     setSummary({
       title: isTest
@@ -141,7 +177,11 @@ function LessonPlayer({ session }: { session: Session }) {
       seconds,
       coins: coinsEarned,
       celebrate: !isTest || passed,
-      goalReached: xpBefore < game.dailyGoal && todaysXp(useGame.getState()) >= game.dailyGoal,
+      goalReached: xpBefore < game.dailyGoal && todaysXp(after) >= game.dailyGoal,
+      boosted: mult > 1 && xp > 0,
+      questsBefore,
+      share,
+      repairable: repair ? repair.streak : null,
     });
     setPhase('done');
     playSfx(isTest && !passed ? 'wrong' : 'complete');
@@ -165,6 +205,7 @@ function LessonPlayer({ session }: { session: Session }) {
     if (!firstTry.current.has(index)) firstTry.current.set(index, flawless);
     if (correct) {
       correctCount.current += 1;
+      bestCombo.current = Math.max(bestCombo.current, combo + 1);
       setSolved((n) => n + 1);
       setCombo((c) => c + 1);
       if (session.kind === 'practice' && session.mode === 'mistakes') game.clearMistake(current.ref);

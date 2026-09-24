@@ -5,7 +5,9 @@ import { canonicalCourseId, canonicalCourseIds, findCourse, findUnitWithCourse, 
 import type { ChestReward } from '@/lib/chest';
 import type { Drawing } from '@/lib/drawings';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
-import { heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '@/lib/progress';
+import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRepair, todaysXp, type LostStreak } from '@/lib/progress';
+import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
+import { extendBoost, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
 import { nextReview, type Review } from '@/lib/review';
 import { safeStorage } from '@/lib/storage';
 import { evaluateChallenge, findChallenge, type ChallengeRecord } from '@/lib/challenges';
@@ -29,7 +31,7 @@ import {
 import { dayKey, weekKey } from '@/utils/date';
 
 export { HEART_REFILL_MS, MAX_HEARTS } from '@/lib/progress';
-export const HEART_REFILL_COST = 100;
+export const HEART_REFILL_COST = PRICES.hearts;
 export const START_BALANCE = 10_000;
 export const DAILY_REWARD = 20;
 
@@ -121,6 +123,16 @@ type Data = {
   simChallenges: Record<string, ChallengeRecord>;
   /** Simulator chart indicators and the learner's horizontal levels per symbol. */
   simTools: SimTools;
+  /** What was done today towards the daily quests. */
+  quests: QuestLog | null;
+  /** Streak freezes held: each covers one missed day, used up automatically. */
+  freezes: number;
+  /** Days kept in the streak by a freeze or a repair (last 30), shown as ice on the calendar. */
+  frozenDays: string[];
+  /** When the double-XP boost runs out (ms since epoch). */
+  boostUntil: number;
+  /** A streak that broke recently, which the shop can still repair. */
+  lostStreak: LostStreak | null;
 };
 
 type Actions = {
@@ -149,6 +161,11 @@ type Actions = {
   /** Opens a path chest once: its coins, XP and (for the best tiers) a full set of hearts. */
   claimChest: (id: string, reward: ChestReward) => void;
   claimDaily: () => void;
+  /** Counts activity towards today's quests, e.g. seconds studied or the best answer streak. */
+  logActivity: (patch: Partial<Record<QuestMetric, number>>) => void;
+  /** Opens today's quest chest once all three quests are done. */
+  claimQuestChest: (reward: ChestReward) => boolean;
+  buy: (item: ShopItemId) => BuyResult;
   recordMistake: (key: string) => void;
   clearMistake: (key: string) => void;
   rolloverWeek: () => void;
@@ -214,8 +231,15 @@ function initialData(): Data {
     simReplay: { session: null, account: emptyAccount(START_BALANCE) },
     simChallenges: {},
     simTools: DEFAULT_SIM_TOOLS,
+    quests: null,
+    freezes: 0,
+    frozenDays: [],
+    boostUntil: 0,
+    lostStreak: null,
   };
 }
+
+const lastDays = (days: string[]) => [...new Set(days)].sort().slice(-30);
 
 const simId = () => `${Date.now().toString(36)}-${Math.round(Math.random() * 1e8).toString(36)}`;
 
@@ -323,29 +347,28 @@ export const useGame = create<GameState>()(
         set({ hearts: Math.max(0, h.hearts - 1), heartsUpdatedAt: wasFull ? Date.now() : h.updatedAt });
       },
 
-      refillHearts: () => {
-        const { coins } = get();
-        if (coins < HEART_REFILL_COST) return false;
-        set({ coins: coins - HEART_REFILL_COST, hearts: MAX_HEARTS, heartsUpdatedAt: Date.now() });
-        return true;
-      },
+      refillHearts: () => get().buy('hearts') === 'ok',
 
       addXp: (amount) => {
         get().rolloverWeek();
         const s = get();
         const today = dayKey();
-        const streak = nextStreak(s, today);
-        const lastActiveDay = today;
+        const step = advanceStreak(s, today);
         const activeDays = s.lastActiveDay === today ? s.activeDays : [...s.activeDays.filter((d) => d !== today), today].slice(-30);
         set({
           xp: s.xp + amount,
           dailyXp: (s.dailyDay === today ? s.dailyXp : 0) + amount,
           dailyDay: today,
           weeklyXp: s.weeklyXp + amount,
-          streak,
-          bestStreak: Math.max(s.bestStreak, streak),
-          lastActiveDay,
+          streak: step.streak,
+          bestStreak: Math.max(s.bestStreak, step.streak),
+          lastActiveDay: today,
           activeDays,
+          freezes: Math.max(0, (s.freezes ?? 0) - step.freezesUsed),
+          frozenDays: step.frozen.length ? lastDays([...(s.frozenDays ?? []), ...step.frozen]) : (s.frozenDays ?? []),
+          // A long streak that just broke can still be repaired for a day or two.
+          lostStreak: step.lost >= REPAIR_MIN && s.lastActiveDay ? { value: step.lost, since: s.lastActiveDay, day: today } : (s.lostStreak ?? null),
+          quests: addToLog(s.quests, today, { xp: amount }),
         });
       },
 
@@ -359,6 +382,7 @@ export const useGame = create<GameState>()(
           completed: { ...s.completed, [lessonId]: record },
           coins: s.coins + coins,
           reviews: { ...s.reviews, [lessonId]: nextReview(s.reviews[lessonId], accuracy >= 0.8) },
+          quests: addToLog(s.quests, dayKey(), { lessons: 1, perfect: accuracy >= 1 ? 1 : 0 }),
         }));
         get().addXp(xp);
       },
@@ -374,6 +398,7 @@ export const useGame = create<GameState>()(
           practiceSessions: s.practiceSessions + 1,
           hearts: Math.min(MAX_HEARTS, h.hearts + 1),
           heartsUpdatedAt: h.updatedAt,
+          quests: addToLog(s.quests, dayKey(), { practice: 1 }),
         }));
         get().addXp(xp);
       },
@@ -404,6 +429,55 @@ export const useGame = create<GameState>()(
         const today = dayKey();
         if (s.dailyClaimedDay === today || todaysXp(s) < s.dailyGoal) return;
         set({ dailyClaimedDay: today, coins: s.coins + DAILY_REWARD });
+      },
+
+      logActivity: (patch) => set((s) => ({ quests: addToLog(s.quests, dayKey(), patch) })),
+
+      claimQuestChest: (reward) => {
+        const s = get();
+        const today = dayKey();
+        const log = logFor(s.quests, today);
+        const quests = questsFor(today, s.dailyGoal);
+        if (log.chest || questsDone(quests, log, today) < quests.length) return false;
+        const hearts = reward.hearts ? { hearts: MAX_HEARTS, heartsUpdatedAt: Date.now() } : null;
+        set({ quests: { ...log, chest: true }, coins: s.coins + reward.coins, ...hearts });
+        if (reward.xp > 0) get().addXp(reward.xp);
+        return true;
+      },
+
+      buy: (item) => {
+        const s = get();
+        const price = PRICES[item];
+        const now = Date.now();
+        if (item === 'freeze' && (s.freezes ?? 0) >= MAX_FREEZES) return 'full';
+        if (item === 'hearts' && heartsNow(s, now).hearts >= MAX_HEARTS) return 'full';
+        const repair = item === 'repair' ? streakRepair(s) : null;
+        if (item === 'repair' && !repair) return 'unavailable';
+        if (s.coins < price) return 'coins';
+        const coins = s.coins - price;
+        switch (item) {
+          case 'freeze':
+            set({ coins, freezes: (s.freezes ?? 0) + 1 });
+            break;
+          case 'boost':
+            set({ coins, boostUntil: extendBoost(s.boostUntil, now) });
+            break;
+          case 'hearts':
+            set({ coins, hearts: MAX_HEARTS, heartsUpdatedAt: now });
+            break;
+          case 'repair':
+            if (!repair) return 'unavailable';
+            set({
+              coins,
+              streak: repair.streak,
+              bestStreak: Math.max(s.bestStreak, repair.streak),
+              lastActiveDay: repair.lastActiveDay,
+              frozenDays: lastDays([...(s.frozenDays ?? []), ...repair.frozen]),
+              lostStreak: null,
+            });
+            break;
+        }
+        return 'ok';
       },
 
       recordMistake: (key) =>
@@ -452,7 +526,7 @@ export const useGame = create<GameState>()(
         const s = get();
         const r = placeOrder(bookAccount(s, book), spec, req, mid, { now: Date.now(), newId: simId, mids });
         if (r.error) return { error: r.error };
-        set(withBook(s, book, r.account));
+        set({ ...withBook(s, book, r.account), quests: addToLog(s.quests, dayKey(), { trades: 1, stopTrades: req.sl != null ? 1 : 0 }) });
         return { event: r.event };
       },
 

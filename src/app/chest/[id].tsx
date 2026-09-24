@@ -10,22 +10,33 @@ import { CoinIcon, HeartIcon, Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import { CHEST_AFTER, findUnitWithCourse } from '@/content';
 import { CHEST_REWARDS, chestPlan, UPGRADE_TAPS } from '@/lib/chest';
+import { logFor, questChestDay, questsDone, questsFor } from '@/lib/quests';
 import { playSfx } from '@/lib/sfx';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
+import { dayKey } from '@/utils/date';
 import { fa } from '@/utils/format';
 
-/** Opening a path chest: three taps that may upgrade it, then the reward. */
+/** Opening a path chest (or the daily quest chest): three taps that may upgrade it, then the reward. */
 export default function ChestScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const completed = useGame((s) => s.completed);
-  const claimed = useGame((s) => s.chests.includes(id));
+  const questDay = questChestDay(id);
+  const quests = useGame((s) => s.quests);
+  const questLog = questDay ? logFor(quests, questDay) : null;
+  const dailyGoal = useGame((s) => s.dailyGoal);
+  const pathClaimed = useGame((s) => s.chests.includes(id));
   const claimChest = useGame((s) => s.claimChest);
+  const claimQuestChest = useGame((s) => s.claimQuestChest);
 
   const plan = chestPlan(id);
-  const unit = findUnitWithCourse(id.replace(/-chest$/, ''))?.unit;
-  const earned = !!unit && unit.lessons.slice(0, CHEST_AFTER).every((l) => completed[l.id]);
+  const unit = questDay ? undefined : findUnitWithCourse(id.replace(/-chest$/, ''))?.unit;
+  // A quest chest opens once all of that day's quests are done, and only on that day.
+  const earned = questDay
+    ? questDay === dayKey() && !!questLog && questsDone(questsFor(questDay, dailyGoal), questLog, questDay) === 3
+    : !!unit && unit.lessons.slice(0, CHEST_AFTER).every((l) => completed[l.id]);
+  const claimed = questDay ? !!questLog?.chest : pathClaimed;
 
   const [taps, setTaps] = useState(0);
   const [opened, setOpened] = useState(false);
@@ -67,7 +78,8 @@ export default function ChestScreen() {
 
   const open = () => {
     if (done || !earned) return;
-    claimChest(id, reward);
+    if (questDay) claimQuestChest(reward);
+    else claimChest(id, reward);
     playSfx('chest');
     setOpened(true);
     pop.setValue(0.8);
@@ -75,8 +87,10 @@ export default function ChestScreen() {
   };
 
   const rotate = shake.interpolate({ inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1], outputRange: ['0deg', '-9deg', '8deg', '-6deg', '4deg', '0deg'] });
-  const message = !earned
-    ? 'این صندوق بعد از تموم کردن درس‌های قبلیِ واحد باز می‌شه.'
+  const message = !earned && !claimed
+    ? questDay
+      ? 'این صندوق بعد از تموم کردن هر سه مأموریت امروز باز می‌شه.'
+      : 'این صندوق بعد از تموم کردن درس‌های قبلیِ واحد باز می‌شه.'
     : done
       ? opened
         ? 'نوش جونت!'

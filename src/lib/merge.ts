@@ -1,5 +1,6 @@
 import { canonicalCourseId, canonicalCourseIds } from '@/content';
 import { mergeChallenges } from '@/lib/challenges';
+import { mergeQuestLogs } from '@/lib/quests';
 import type { GameData, LessonRecord } from '@/store/game';
 
 const later = (a: string | null, b: string | null) => ((a ?? '') >= (b ?? '') ? a : b);
@@ -65,5 +66,11 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
     simReplay: base.simReplay ?? other.simReplay,
     simChallenges: mergeChallenges(local.simChallenges, remote.simChallenges),
     simTools: base.simTools ?? other.simTools,
+    quests: mergeQuestLogs(local.quests, remote.quests),
+    // Freezes are spent with the streak, so they come from the same side as the streak.
+    freezes: localNewerDay ? (local.freezes ?? 0) : (remote.freezes ?? 0),
+    frozenDays: [...new Set([...(remote.frozenDays ?? []), ...(local.frozenDays ?? [])])].sort().slice(-30),
+    boostUntil: Math.max(local.boostUntil ?? 0, remote.boostUntil ?? 0),
+    lostStreak: localNewerDay ? (local.lostStreak ?? null) : (remote.lostStreak ?? null),
   };
 }

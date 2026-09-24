@@ -4,9 +4,11 @@
  */
 import { courseLessonIds, findCourse, findLesson } from '@/content';
 import type { GameData } from '@/store/game';
+import { dayKey } from '@/utils/date';
 
 import { LEAGUES } from './league';
 import { currentStreak, heartsNow, todaysXp } from './progress';
+import { questProgress, questsFor } from './quests';
 import { findSymbol, formatPrice } from './simulator';
 import { tradeR, tradeStats } from './stats';
 import { liquidationPrice, openPnl, summarize } from './trading';
@@ -61,6 +63,7 @@ export function coachContext(g: GameData, mids: Record<string, number> | null, n
     .slice(0, 6)
     .map((h) => `${h.course.title} › ${h.unit.title} › ${h.lesson.title}`);
 
+  const day = dayKey(new Date(now));
   const data = {
     today: new Date(now).toISOString().slice(0, 10),
     learner: {
@@ -75,6 +78,7 @@ export function coachContext(g: GameData, mids: Record<string, number> | null, n
       league: LEAGUES[g.league]?.name,
       hearts: heartsNow(g, now).hearts,
       coins: g.coins,
+      streakFreezes: g.freezes ?? 0,
     },
     learning: {
       activeCourse: g.activeCourse ? courseState(g.activeCourse, g.completed) : null,
@@ -82,6 +86,7 @@ export function coachContext(g: GameData, mids: Record<string, number> | null, n
       lessonsCompleted: Object.keys(g.completed).length,
       unitsMastered: g.mastered.length,
       lessonsWithRecentMistakes: mistakeLessons,
+      todaysQuests: questsFor(day, g.dailyGoal).map((q) => ({ quest: q.title, progress: questProgress(q, g.quests, day), target: q.target })),
     },
     simulator: {
       note: 'virtual money practice account',

@@ -9,11 +9,13 @@ import { CourseBadge } from '@/components/CourseBadge';
 import { MarketPicker, marketLabel } from '@/components/MarketPicker';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
+import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
 import { cloudSetName } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
 import { resetTo } from '@/lib/nav';
+import { profileCard, type ShareCard } from '@/lib/shareCard';
 import { formatMobile } from '@/lib/phone';
 import { currentStreak, useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
@@ -28,6 +30,7 @@ export default function ProfileScreen() {
   const [draftName, setDraftName] = useState(game.name);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [card, setCard] = useState<ShareCard | null>(null);
 
   const studied = Object.values(game.completed).filter((r) => !r.skipped).length;
   const courses = game.enrolled.map(findCourse).filter((c): c is Course => !!c);
@@ -152,6 +155,26 @@ export default function ProfileScreen() {
           <StatCard icon={<BoltIcon size={28} />} value={faNum(game.xp)} label="کل امتیاز" />
           <StatCard icon={<Hexagon size={26} color={LEAGUES[game.league].color} />} value={LEAGUES[game.league].name} label="لیگ فعلی" />
           <StatCard icon={<Icon name="book" size={28} color={colors.bull} />} value={fa(studied)} label="درس خونده‌شده" />
+        </View>
+
+        <View style={styles.actions}>
+          <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" style={styles.action}>
+            <Icon name="bag" size={20} color={colors.gold} strokeWidth={2.4} />
+            <Txt w={900} size={14}>
+              فروشگاه
+            </Txt>
+          </Pressable>
+          <Pressable
+            onPress={() => setCard(profileCard({ name: game.name, xp: game.xp, streak, league: LEAGUES[game.league].name, lessons: studied }))}
+            accessibilityRole="button"
+            accessibilityLabel="اشتراک پیشرفتم"
+            style={styles.action}
+          >
+            <Icon name="share" size={20} color={colors.skyText} strokeWidth={2.4} />
+            <Txt w={900} size={14}>
+              اشتراک پیشرفتم
+            </Txt>
+          </Pressable>
         </View>
 
         <View style={{ gap: 12 }}>
@@ -300,6 +323,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
+      <ShareSheet card={card} onClose={() => setCard(null)} />
     </Screen>
   );
 }
@@ -404,6 +428,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  action: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
   stat: {
     flexBasis: '46%',

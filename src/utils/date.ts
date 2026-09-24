@@ -30,3 +30,9 @@ export function faWeekdayIndex(date: Date): number {
 }
 
 export const FA_WEEKDAYS_SHORT = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+
+/** Time left until the next local midnight, when daily goals and quests start over. */
+export function msToMidnight(now: Date = new Date()): number {
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return next.getTime() - now.getTime();
+}

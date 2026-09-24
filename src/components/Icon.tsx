@@ -46,7 +46,10 @@ export type IconName =
   | 'users'
   | 'flag'
   | 'trash'
-  | 'pin';
+  | 'pin'
+  | 'snow'
+  | 'bag'
+  | 'share';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -240,6 +243,22 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       return <Path {...p} d="M9 3h6M10 3v6l-3 4h10l-3-4V3M12 13v8" />;
     case 'trash':
       return <Path {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />;
+    case 'snow':
+      return <Path {...p} d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5M3 10.5l3.8-.7-1.3-3.6M21 13.5l-3.8.7 1.3 3.6M3 13.5l3.8.7-1.3 3.6M21 10.5l-3.8-.7 1.3-3.6" />;
+    case 'bag':
+      return (
+        <>
+          <Path {...p} d="M5 8h14l-1 12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" />
+          <Path {...p} d="M9 11V6a3 3 0 0 1 6 0v5" />
+        </>
+      );
+    case 'share':
+      return (
+        <>
+          <Path {...p} d="M12 3v12M7.5 7.5 12 3l4.5 4.5" />
+          <Path {...p} d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+        </>
+      );
   }
 }
 

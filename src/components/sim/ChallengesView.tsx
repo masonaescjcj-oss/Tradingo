@@ -1,10 +1,13 @@
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
+import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
 import { CHALLENGES, evaluateChallenge, type Challenge } from '@/lib/challenges';
+import { challengeCard, type ShareCard } from '@/lib/shareCard';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -18,7 +21,10 @@ export function ChallengesView({ onNotice }: { onNotice: (n: Notice) => void }) 
   const records = useGame((s) => s.simChallenges) ?? {};
   const startChallenge = useGame((s) => s.startChallenge);
   const claimChallenge = useGame((s) => s.claimChallenge);
+  const name = useGame((s) => s.name);
+  const [card, setCard] = useState<ShareCard | null>(null);
   const finished = CHALLENGES.filter((c) => records[c.id]?.completedAt != null).length;
+  const share = (c: Challenge) => setCard(challengeCard({ name, title: c.title, coins: c.coins, xp: c.xp }));
 
   return (
     <View style={{ gap: 12 }}>
@@ -43,10 +49,14 @@ export function ChallengesView({ onNotice }: { onNotice: (n: Notice) => void }) 
           claimed={records[c.id]?.completedAt != null}
           onStart={() => startChallenge(c.id)}
           onClaim={() => {
-            if (claimChallenge(c.id)) onNotice({ text: `چالش «${c.title}» انجام شد! +${fa(c.coins)} سکه و +${fa(c.xp)} امتیاز`, tone: 'gold' });
+            if (!claimChallenge(c.id)) return;
+            onNotice({ text: `چالش «${c.title}» انجام شد! +${fa(c.coins)} سکه و +${fa(c.xp)} امتیاز`, tone: 'gold' });
+            share(c);
           }}
+          onShare={() => share(c)}
         />
       ))}
+      <ShareSheet card={card} onClose={() => setCard(null)} />
 
       <Hint>چالش‌ها برای تمرین نظم و مدیریت ریسکن. توی بازار واقعی هم همین قانون‌ها (حد ضرر، ریسک کم، ریسک به ریوارد خوب) از سود سریع مهم‌ترن.</Hint>
     </View>
@@ -60,6 +70,7 @@ function ChallengeCard({
   claimed,
   onStart,
   onClaim,
+  onShare,
 }: {
   challenge: Challenge;
   status: ReturnType<typeof evaluateChallenge>;
@@ -67,6 +78,7 @@ function ChallengeCard({
   claimed: boolean;
   onStart: () => void;
   onClaim: () => void;
+  onShare: () => void;
 }) {
   const ready = status.done && !claimed;
   return (
@@ -95,9 +107,15 @@ function ChallengeCard({
       {claimed ? (
         <View style={styles.doneRow}>
           <Icon name="check" size={16} color={colors.gold} strokeWidth={3} />
-          <Txt w={800} size={13} color={colors.gold}>
+          <Txt w={800} size={13} color={colors.gold} style={{ flex: 1 }}>
             انجام شد و جایزه‌ش رو گرفتی
           </Txt>
+          <Pressable onPress={onShare} accessibilityRole="button" accessibilityLabel={`اشتراک چالش ${c.title}`} hitSlop={6} style={styles.share}>
+            <Icon name="share" size={15} color={colors.text} strokeWidth={2.6} />
+            <Txt w={800} size={12.5}>
+              اشتراک
+            </Txt>
+          </Pressable>
         </View>
       ) : ready ? (
         <Button3D variant="gold" label="دریافت جایزه" height={42} radius={12} edge={4} size={15} onPress={onClaim} />
@@ -158,5 +176,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  share: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 32,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.raised,
   },
 });

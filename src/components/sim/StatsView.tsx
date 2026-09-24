@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Button3D } from '@/components/Button3D';
+import { Icon } from '@/components/Icon';
+import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
+import { tradingCard, type ShareCard } from '@/lib/shareCard';
 import { tradeStats, type TradeStats } from '@/lib/stats';
 import { useGame, type SimBook } from '@/store/game';
 import { colors } from '@/theme';
@@ -61,6 +65,8 @@ export function StatsView({ width }: { width: number }) {
   const [book, setBook] = useState<SimBook>('live');
   const sim = useGame((s) => s.sim);
   const replay = useGame((s) => s.simReplay);
+  const name = useGame((s) => s.name);
+  const [card, setCard] = useState<ShareCard | null>(null);
   const account = book === 'live' ? sim : (replay?.account ?? { balance: 0, history: [] });
   const stats = tradeStats(account.history, account.balance);
 
@@ -104,11 +110,35 @@ export function StatsView({ width }: { width: number }) {
           <Hint key={text}>{text}</Hint>
         ))}
       </View>
+
+      {stats.count > 0 ? (
+        <Button3D
+          variant="secondary"
+          height={46}
+          radius={14}
+          edge={3}
+          onPress={() => setCard(tradingCard({ name, count: stats.count, winRate: stats.winRate, net: stats.net, profitFactor: stats.profitFactor }))}
+          accessibilityLabel="اشتراک آمار معامله‌ها"
+        >
+          <View style={styles.shareRow}>
+            <Icon name="share" size={17} color={colors.text} strokeWidth={2.6} />
+            <Txt w={900} size={15}>
+              اشتراک آمار معامله‌هام
+            </Txt>
+          </View>
+        </Button3D>
+      ) : null}
+      <ShareSheet card={card} onClose={() => setCard(null)} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
