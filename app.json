@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Tradingo",
-    "slug": "tradingo",
+    "name": "Chartoon",
+    "slug": "chartoon",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -53,7 +53,7 @@
         }
       ]
     ],
-    "scheme": "tradingo",
+    "scheme": "chartoon",
     "experiments": {
       "typedRoutes": true
     }

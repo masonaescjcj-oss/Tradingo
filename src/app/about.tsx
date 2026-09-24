@@ -14,7 +14,7 @@ const SECTIONS: { icon: IconName; title: string; body: string }[] = [
   {
     icon: 'info',
     title: 'فقط برای آموزش',
-    body: 'تریدینگو یه اپ آموزشیه. هیچ‌کدوم از درس‌ها، مثال‌ها، نمودارها و سناریوها توصیه‌ی خرید، فروش یا سرمایه‌گذاری روی هیچ دارایی‌ای نیست و تریدینگو کارگزار یا مشاور مالی نیست.',
+    body: 'چارتون یه اپ آموزشیه. هیچ‌کدوم از درس‌ها، مثال‌ها، نمودارها و سناریوها توصیه‌ی خرید، فروش یا سرمایه‌گذاری روی هیچ دارایی‌ای نیست و چارتون کارگزار یا مشاور مالی نیست.',
   },
   {
     icon: 'shield',
@@ -38,19 +38,19 @@ const SECTIONS: { icon: IconName; title: string; body: string }[] = [
   },
 ];
 
-/** What Tradingo is, the full risk disclaimer and a note on data. */
+/** What Chartoon is, the full risk disclaimer and a note on data. */
 export default function AboutScreen() {
   const lessons = ALL_COURSES.reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.length, 0), 0);
   const version = Constants.expoConfig?.version ?? '1.0.0';
   return (
     <Screen>
-      <BackHeader caption="تریدینگو" title="درباره و سلب مسئولیت" />
+      <BackHeader caption="چارتون" title="درباره و سلب مسئولیت" />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <Mascot mood="happy" size={96} />
           <View style={{ flex: 1, gap: 4 }}>
             <Txt display size={30} color={colors.bull}>
-              تریدینگو
+              چارتون
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2}>
               {`ترید رو مثل یه بازی یاد بگیر: ${fa(ALL_COURSES.length)} دوره و ${fa(lessons)} درس کوتاه، از صفر تا استراتژی‌های پیشرفته.`}

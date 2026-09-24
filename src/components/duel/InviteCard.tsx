@@ -16,7 +16,7 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
   const [note, setNote] = useState<string | null>(null);
 
   const invite = async () => {
-    const outcome = await shareText(`بیا با من دوئل تریدینگو بازی کن! سه راند: سؤال، پیش‌بینی نمودار و معامله. کد دوئل: ${code}`, duelLink(code));
+    const outcome = await shareText(`بیا با من دوئل چارتون بازی کن! سه راند: سؤال، پیش‌بینی نمودار و معامله. کد دوئل: ${code}`, duelLink(code));
     setNote(outcome === 'copied' ? 'لینک دعوت کپی شد؛ برای دوستت بفرستش.' : outcome === 'failed' ? `کد رو خودت بفرست: ${code}` : null);
   };
 

@@ -42,7 +42,7 @@ export default function Welcome() {
           </SpeechBubble>
         </View>
         <Txt display size={compact ? 48 : 60} color={colors.bull} style={[styles.wordmark, { lineHeight: compact ? 60 : 72 }]}>
-          تریدینگو
+          چارتون
         </Txt>
         <Txt w={900} size={compact ? 18 : 21} center>
           ترید رو مثل یه بازی یاد بگیر
@@ -69,7 +69,7 @@ export default function Welcome() {
           </>
         )}
         <Txt size={12} lh={1.7} color={colors.text3} center>
-          محتوای تریدینگو آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
+          محتوای چارتون آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
         </Txt>
       </View>
 

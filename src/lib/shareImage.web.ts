@@ -96,7 +96,7 @@ export async function cardImageUrl(card: ShareCard): Promise<string | null> {
   }
 }
 
-const fileName = (card: ShareCard) => `tradingo-${card.kind}.png`;
+const fileName = (card: ShareCard) => `chartoon-${card.kind}.png`;
 
 function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob);

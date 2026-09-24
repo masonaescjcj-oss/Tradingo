@@ -12,7 +12,7 @@ import { mascotMarkup, type MascotMood } from './mascotArt';
 
 export const CARD_W = 1080;
 export const CARD_H = 1350;
-export const APP_URL = 'tradingo.vercel.app';
+export const APP_URL = 'chartoon.net';
 /** Fonts the card uses; the web export embeds them so the PNG looks like the preview. */
 export const CARD_FONTS = ['Lalezar_400Regular', 'Vazirmatn_900Black', 'Vazirmatn_700Bold'] as const;
 
@@ -60,7 +60,7 @@ export function streakCard(p: { name: string; streak: number; best: number; week
     week: p.week,
     mood: 'party',
     name: p.name,
-    text: `${fa(p.streak)} روزه که هر روز با تریدینگو ترید یاد می‌گیرم 🔥\n${APP_URL}`,
+    text: `${fa(p.streak)} روزه که هر روز با چارتون ترید یاد می‌گیرم 🔥\n${APP_URL}`,
   };
 }
 
@@ -80,7 +80,7 @@ export function unitCard(p: { name: string; unitTitle: string; courseTitle: stri
     ],
     mood: 'happy',
     name: p.name,
-    text: `واحد «${p.unitTitle}» از دوره‌ی ${p.courseTitle} رو توی تریدینگو تموم کردم 💪\n${APP_URL}`,
+    text: `واحد «${p.unitTitle}» از دوره‌ی ${p.courseTitle} رو توی چارتون تموم کردم 💪\n${APP_URL}`,
   };
 }
 
@@ -99,7 +99,7 @@ export function courseCard(p: { name: string; courseTitle: string; color: string
     ],
     mood: 'party',
     name: p.name,
-    text: `دوره‌ی ${p.courseTitle} رو توی تریدینگو کامل تموم کردم 🎓\n${APP_URL}`,
+    text: `دوره‌ی ${p.courseTitle} رو توی چارتون کامل تموم کردم 🎓\n${APP_URL}`,
   };
 }
 
@@ -120,7 +120,7 @@ export function challengeCard(p: { name: string; title: string; coins: number; x
     mood: 'party',
     name: p.name,
     note: PLAY_MONEY,
-    text: `چالش «${p.title}» رو توی شبیه‌ساز تریدینگو بردم 🏆\n${APP_URL}`,
+    text: `چالش «${p.title}» رو توی شبیه‌ساز چارتون بردم 🏆\n${APP_URL}`,
   };
 }
 
@@ -133,7 +133,7 @@ export function tradingCard(p: { name: string; count: number; winRate: number | 
     kicker: 'آمار معامله‌هام',
     hero: p.winRate == null ? '—' : `${fa(Math.round(p.winRate * 100))}٪`,
     heroLabel: 'درصد برد',
-    title: 'توی شبیه‌ساز معامله‌ی تریدینگو',
+    title: 'توی شبیه‌ساز معامله‌ی چارتون',
     stats: [
       { label: 'معامله', value: faNum(p.count) },
       { label: 'سود خالص', value: usd(p.net, true), ltr: true, color: p.net >= 0 ? colors.bullText : colors.bearText },
@@ -142,7 +142,7 @@ export function tradingCard(p: { name: string; count: number; winRate: number | 
     mood: p.net >= 0 ? 'party' : 'think',
     name: p.name,
     note: PLAY_MONEY,
-    text: `آمار معامله‌هام توی شبیه‌ساز تریدینگو: ${faNum(p.count)} معامله${p.winRate == null ? '' : `، ${fa(Math.round(p.winRate * 100))}٪ برد`} 📈\n${APP_URL}`,
+    text: `آمار معامله‌هام توی شبیه‌ساز چارتون: ${faNum(p.count)} معامله${p.winRate == null ? '' : `، ${fa(Math.round(p.winRate * 100))}٪ برد`} 📈\n${APP_URL}`,
   };
 }
 
@@ -154,7 +154,7 @@ export function profileCard(p: { name: string; xp: number; streak: number; leagu
     kicker: 'پیشرفت من',
     hero: faNum(p.xp),
     heroLabel: 'امتیاز',
-    title: `توی لیگ ${p.league} تریدینگو`,
+    title: `توی لیگ ${p.league} چارتون`,
     stats: [
       { label: 'روز پیاپی', value: fa(p.streak) },
       { label: 'درس', value: fa(p.lessons) },
@@ -162,7 +162,7 @@ export function profileCard(p: { name: string; xp: number; streak: number; leagu
     ],
     mood: 'happy',
     name: p.name,
-    text: `${faNum(p.xp)} امتیاز و ${fa(p.lessons)} درس توی تریدینگو 🚀\n${APP_URL}`,
+    text: `${faNum(p.xp)} امتیاز و ${fa(p.lessons)} درس توی چارتون 🚀\n${APP_URL}`,
   };
 }
 
@@ -181,7 +181,7 @@ export function duelCard(p: {
     kind: 'duel',
     accent: won ? colors.gold : p.outcome === 'tie' ? colors.sky : colors.bear,
     ink: won ? colors.goldInk : p.outcome === 'tie' ? colors.skyInk : colors.bearInk,
-    kicker: 'دوئل تریدینگو',
+    kicker: 'دوئل چارتون',
     hero: `${fa(p.mine)} - ${fa(p.theirs)}`,
     heroLtr: true,
     heroLabel: won ? 'بردم!' : p.outcome === 'tie' ? 'مساوی شد' : 'این بار باختم',
@@ -194,7 +194,7 @@ export function duelCard(p: {
     mood: won ? 'party' : p.outcome === 'tie' ? 'happy' : 'think',
     name: p.name,
     note: PLAY_MONEY,
-    text: `${won ? 'توی دوئل تریدینگو' : 'دوئل تریدینگو'} ${fa(p.mine)} به ${fa(p.theirs)} ${won ? `${p.opponent} رو بردم ⚔️` : `با ${p.opponent} بازی کردم ⚔️`} تو هم بیا!\n${APP_URL}`,
+    text: `${won ? 'توی دوئل چارتون' : 'دوئل چارتون'} ${fa(p.mine)} به ${fa(p.theirs)} ${won ? `${p.opponent} رو بردم ⚔️` : `با ${p.opponent} بازی کردم ⚔️`} تو هم بیا!\n${APP_URL}`,
   };
 }
 
@@ -329,9 +329,9 @@ export function cardSvg(card: ShareCard, fontCss = ''): string {
     `<circle cx="540" cy="470" r="360" fill="url(#glow)"/>`,
     `<rect x="24" y="24" width="${CARD_W - 48}" height="${CARD_H - 48}" rx="56" fill="none" stroke="${card.accent}" stroke-opacity="0.35" stroke-width="4"/>`,
     // Brand, with a small candle on each side.
-    text('تریدینگو', 540, 128, 64, 'Lalezar_400Regular', colors.text),
-    `<line x1="372" x2="372" y1="72" y2="140" stroke="${colors.bull}" stroke-width="5"/><rect x="360" y="86" width="24" height="40" rx="5" fill="${colors.bull}"/>`,
-    `<line x1="708" x2="708" y1="78" y2="136" stroke="${colors.bear}" stroke-width="5"/><rect x="696" y="92" width="24" height="30" rx="5" fill="${colors.bear}"/>`,
+    text('چارتون', 540, 128, 64, 'Lalezar_400Regular', colors.text),
+    `<line x1="428" x2="428" y1="72" y2="140" stroke="${colors.bull}" stroke-width="5"/><rect x="416" y="86" width="24" height="40" rx="5" fill="${colors.bull}"/>`,
+    `<line x1="652" x2="652" y1="78" y2="136" stroke="${colors.bear}" stroke-width="5"/><rect x="640" y="92" width="24" height="30" rx="5" fill="${colors.bear}"/>`,
     `<rect x="${540 - kickerW / 2}" y="170" width="${kickerW}" height="66" rx="33" fill="${card.accent}"/>`,
     text(card.kicker, 540, 216, 34, 'Vazirmatn_900Black', card.ink),
     `<g transform="translate(365 262) scale(2.5)">${mascotMarkup(card.mood)}</g>`,

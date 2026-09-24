@@ -105,13 +105,13 @@ export default function PracticeScreen() {
 
         <QuestsCard />
 
-        <Pressable onPress={() => router.push('/duel')} accessibilityRole="button" accessibilityLabel="دوئل تریدینگو" style={({ pressed }) => [styles.duel, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}>
+        <Pressable onPress={() => router.push('/duel')} accessibilityRole="button" accessibilityLabel="دوئل چارتون" style={({ pressed }) => [styles.duel, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}>
           <View style={styles.duelIcon}>
             <Icon name="swords" size={28} color={colors.goldInk} strokeWidth={2.4} />
           </View>
           <View style={{ flex: 1, gap: 3 }}>
             <Txt w={900} size={17}>
-              دوئل تریدینگو
+              دوئل چارتون
             </Txt>
             <Txt w={500} size={12.5} lh={1.6} color={colors.text2}>
               {duels?.played ? `${fa(duels.wins)} برد از ${fa(duels.played)} دوئل · با شمعک یا دوستت` : 'سه راند با شمعک یا دوستت: سؤال، نمودار و معامله'}

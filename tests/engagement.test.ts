@@ -104,7 +104,7 @@ describe('share cards', () => {
     assert.ok(svg.includes('۱۲'));
     assert.ok(svg.includes('رکورد جدید!'));
     assert.ok(svg.includes('مینا &lt;3'));
-    assert.ok(svg.includes('tradingo.vercel.app'));
+    assert.ok(svg.includes('chartoon.net'));
     assert.ok(!svg.includes('<3'));
   });
 

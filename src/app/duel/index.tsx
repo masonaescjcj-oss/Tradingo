@@ -46,7 +46,7 @@ export default function DuelHubScreen() {
 
   return (
     <Screen>
-      <BackHeader title="دوئل تریدینگو" caption="سه راند، سه مهارت" />
+      <BackHeader title="دوئل چارتون" caption="سه راند، سه مهارت" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.hero}>
           <View style={styles.heroHead}>

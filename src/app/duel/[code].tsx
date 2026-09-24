@@ -146,7 +146,7 @@ export default function DuelCodeScreen() {
 
   return (
     <Screen>
-      <BackHeader title="دوئل با دوست" caption={code ? `کد ${code}` : 'دوئل تریدینگو'} />
+      <BackHeader title="دوئل با دوست" caption={code ? `کد ${code}` : 'دوئل چارتون'} />
       {body}
     </Screen>
   );

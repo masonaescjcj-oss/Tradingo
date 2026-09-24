@@ -289,7 +289,7 @@ export default function ProfileScreen() {
         <Pressable onPress={() => router.push('/about')} accessibilityRole="button" style={styles.disclaimer}>
           <Icon name="info" size={20} color={colors.text3} />
           <Txt size={13} lh={1.8} color={colors.text3} style={{ flex: 1 }}>
-            تریدینگو فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.
+            چارتون فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.
           </Txt>
           <Icon name="chevronBack" size={18} color={colors.text3} />
         </Pressable>

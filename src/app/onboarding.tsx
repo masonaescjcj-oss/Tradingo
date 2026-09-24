@@ -50,7 +50,7 @@ const PROMPTS: Record<StepId, { text: string; mood: MascotMood }> = {
   reason: { text: 'چرا می‌خوای ترید یاد بگیری؟', mood: 'think' },
   level: { text: 'چقدر با ترید آشنایی؟', mood: 'think' },
   goal: { text: 'هدف روزانه‌ت چقدر باشه؟', mood: 'happy' },
-  source: { text: 'از کجا با تریدینگو آشنا شدی؟', mood: 'happy' },
+  source: { text: 'از کجا با چارتون آشنا شدی؟', mood: 'happy' },
   plan: { text: 'مسیرت آماده‌ست!', mood: 'party' },
   signup: { text: 'پروفایلت رو بساز تا پیشرفتت گم نشه.', mood: 'happy' },
 };

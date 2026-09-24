@@ -72,7 +72,7 @@ export default function CoachScreen() {
             شمعک
           </Txt>
           <Txt w={700} size={12} color={colors.bullText} numberOfLines={1}>
-            {thinking ? 'داره می‌نویسه…' : 'دستیار هوش مصنوعی تریدینگو'}
+            {thinking ? 'داره می‌نویسه…' : 'دستیار هوش مصنوعی چارتون'}
           </Txt>
         </View>
         {turns.length > 0 ? (

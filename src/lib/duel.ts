@@ -1,5 +1,5 @@
 /**
- * Tradingo duels: three short rounds that two players (or a player and Shamak, the bot)
+ * Chartoon duels: three short rounds that two players (or a player and Shamak, the bot)
  * play on exactly the same material, then compare.
  *
  * 1. Quiz: five questions from the lessons; right and fast scores more.

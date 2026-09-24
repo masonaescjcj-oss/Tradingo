@@ -137,7 +137,7 @@ export default function DuelPlayScreen() {
 
   return (
     <Screen>
-      <BackHeader title={title} caption="دوئل تریدینگو" />
+      <BackHeader title={title} caption="دوئل چارتون" />
       {body}
     </Screen>
   );
