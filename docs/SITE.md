@@ -27,6 +27,11 @@
 | `chartoon-site` | `site/` (بدون بیلد) | `chartoon.net`، و `www.chartoon.net` که با 308 به chartoon.net می‌ره |
 | `tradingo` | ریشه‌ی مخزن (`npm run build:web`) | `app.chartoon.net` و `tradingo.vercel.app` |
 
+**رله‌ی app.chartoon.net:** اپ برای قیمت بایننس و سرور Supabase اول سراغ `app.chartoon.net/proxy/binance` و `app.chartoon.net/proxy/supabase` می‌ره (rewriteهای `vercel.json`)
+و فقط اگه رله در دسترس نباشه مستقیم وصل می‌شه (`src/lib/proxy.ts`). دلیلش: بایننس از ایران (و بعضی کشورهای خروجی VPN) با خطای 451 جواب نمی‌ده؛ از ۸ سرور داخل ایران
+تست شد که `data-api.binance.vision` خطای 451 می‌ده ولی همون درخواست از طریق رله 200 می‌گیره و سرور Supabase هم از طریق رله در دسترسه. پس اپ با VPN و بدون VPN یکسان کار می‌کنه.
+اگه پروژه‌ی Supabase عوض بشه، آدرسش رو هم توی `vercel.json` و هم توی `PROXIED_SUPABASE` عوض کن (تست `tests/proxy.test.ts` یکی بودنشون رو چک می‌کنه).
+
 انتشار دوباره (فعلاً دستی؛ پروژه‌ها هنوز به گیت‌هاب وصل نیستن):
 
 ```bash
