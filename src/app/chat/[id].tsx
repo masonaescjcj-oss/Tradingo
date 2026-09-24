@@ -8,8 +8,9 @@ import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
 import { AnalysisChart, NameDot, TopicAvatar } from '@/components/chat/ChatBits';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
-import { chatErrorText, MAX_MESSAGE, mergeMessages, messageProblem, messageTime, type ChatMessage } from '@/lib/chat';
+import { chatErrorText, MAX_MESSAGE, mergeMessages, messageProblem, messageTime, mutedNotice, type ChatMessage } from '@/lib/chat';
 import { deleteMessage, fetchMessages, joinRoom, leaveRoom, loadRooms, reportMessage, sendMessage, useChat } from '@/lib/chatApi';
+import { actOnUser, adminErrorText } from '@/lib/adminApi';
 import { useCloud } from '@/lib/cloud';
 import { useGame } from '@/store/game';
 import { colors, fonts, MAX_WIDTH } from '@/theme';
@@ -26,6 +27,8 @@ export default function RoomScreen() {
   const { width } = useWindowDimensions();
   const room = useChat((s) => s.rooms.find((r) => r.id === id));
   const signedIn = useCloud((s) => s.userId != null);
+  const admin = useCloud((s) => s.admin);
+  const muted = useCloud((s) => s.muted);
   const user = useGame((s) => s.user);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -35,6 +38,7 @@ export default function RoomScreen() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [action, setAction] = useState<ChatMessage | null>(null);
+  const [confirmBan, setConfirmBan] = useState<ChatMessage | null>(null);
   const [menu, setMenu] = useState(false);
   const [composing, setComposing] = useState(false);
   const [composerH, setComposerH] = useState(70);
@@ -123,6 +127,20 @@ export default function RoomScreen() {
     else setError('گزارشت ثبت شد؛ ممنون. پیام‌هایی که چند نفر گزارش کنن پنهان می‌شن.');
   };
 
+  // Admins: close the author's chat or ban the account, from the message itself.
+  const moderate = async (m: ChatMessage, kind: 'mute_day' | 'mute' | 'ban') => {
+    setAction(null);
+    setConfirmBan(null);
+    if (!m.author_id) return;
+    const res = await actOnUser(m.author_id, kind === 'ban' ? 'ban' : 'mute', { hours: kind === 'mute_day' ? 24 : null, reason: m.body.slice(0, 120) });
+    if (!res.ok) {
+      setError(adminErrorText(res.error));
+      return;
+    }
+    if (kind === 'ban') setMessages((prev) => prev.filter((x) => x.author_id !== m.author_id));
+    setError(kind === 'ban' ? `حساب ${m.author_name} مسدود شد و پیام‌هاش پاک شد.` : `چت ${m.author_name} ${kind === 'mute_day' ? 'تا ۲۴ ساعت' : 'تا وقتی بازش کنی'} بسته شد.`);
+  };
+
   const joined = room?.joined ?? false;
 
   return (
@@ -198,7 +216,14 @@ export default function RoomScreen() {
             </Txt>
           </Pressable>
         ) : null}
-        {!signedIn ? (
+        {signedIn && muted ? (
+          <View style={styles.mutedBar}>
+            <Icon name="lock" size={18} color={colors.text3} />
+            <Txt w={700} size={13} lh={1.7} color={colors.text2} style={{ flex: 1 }}>
+              {mutedNotice(muted)}
+            </Txt>
+          </View>
+        ) : !signedIn ? (
           <Button3D label={user ? 'برای نوشتن، حسابت رو به سرور وصل کن' : 'برای نوشتن، وارد حسابت شو'} size={15} height={48} onPress={() => router.push(user ? '/account' : '/login')} />
         ) : !joined ? (
           <Button3D label="عضو گروه شو" size={16} height={48} onPress={join} />
@@ -243,8 +268,33 @@ export default function RoomScreen() {
               {action ? `${action.author_name}: ${action.body || 'تحلیل با نمودار'}` : ''}
             </Txt>
             {action && !action.mine ? <Button3D label="گزارش پیام" variant="danger" size={16} onPress={() => act('report')} style={{ alignSelf: 'stretch' }} /> : null}
-            {action && (action.mine || room?.owned) ? <Button3D label="حذف پیام" variant="danger" size={16} onPress={() => act('delete')} style={{ alignSelf: 'stretch' }} /> : null}
+            {action && (action.mine || room?.owned || admin) ? <Button3D label="حذف پیام" variant="danger" size={16} onPress={() => act('delete')} style={{ alignSelf: 'stretch' }} /> : null}
+            {action && admin && action.author_id && !action.mine ? (
+              <>
+                <Txt w={800} size={12} color={colors.text3} center>
+                  مدیریت
+                </Txt>
+                <Button3D label="بستن چت این کاربر (۲۴ ساعت)" variant="secondary" size={15} onPress={() => moderate(action, 'mute_day')} style={{ alignSelf: 'stretch' }} />
+                <Button3D label="بستن چت این کاربر (همیشه)" variant="secondary" size={15} onPress={() => moderate(action, 'mute')} style={{ alignSelf: 'stretch' }} />
+                <Button3D label="مسدود کردن حساب" variant="danger" size={15} onPress={() => { setConfirmBan(action); setAction(null); }} style={{ alignSelf: 'stretch' }} />
+              </>
+            ) : null}
             <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setAction(null)} style={{ alignSelf: 'stretch' }} />
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal visible={confirmBan != null} transparent animationType="fade" onRequestClose={() => setConfirmBan(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setConfirmBan(null)}>
+          <View style={styles.dialog}>
+            <Txt w={900} size={17} center>
+              {`حساب ${confirmBan?.author_name ?? ''} مسدود بشه؟`}
+            </Txt>
+            <Txt size={13} lh={1.8} color={colors.text2} center>
+              از همه‌ی دستگاه‌ها خارج می‌شه، دیگه نمی‌تونه وارد بشه، همه‌ی پیام‌هاش پاک می‌شه و از لیگ این هفته بیرون می‌ره. از پنل مدیریت می‌شه برش گردوند.
+            </Txt>
+            <Button3D label="مسدود کن" variant="danger" size={16} onPress={() => confirmBan && moderate(confirmBan, 'ban')} style={{ alignSelf: 'stretch' }} />
+            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setConfirmBan(null)} style={{ alignSelf: 'stretch' }} />
           </View>
         </Pressable>
       </Modal>
@@ -315,6 +365,16 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
 }
 
 const styles = StyleSheet.create({
+  mutedBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.bg,

@@ -6,9 +6,11 @@
 | --- | --- | --- |
 | `https://chartoon.net/` | `site/index.html` | فارسی (راست‌به‌چپ) |
 | `https://chartoon.net/en/` | `site/en/index.html` | انگلیسی |
+| `https://chartoon.net/privacy/` و `/terms/` | `site/privacy`، `site/terms` (ساخته‌شده با `scripts/build-legal.ts`) | فارسی |
+| `https://chartoon.net/delete-account/` | `site/delete-account` (همون اسکریپت؛ راهنمای حذف حساب برای گوگل‌پلی، با خلاصه‌ی انگلیسی) | فارسی و انگلیسی |
 | هر آدرس اشتباه | `site/404.html` | هر دو |
 
-خود اپ جدا روی **`app.chartoon.net`** می‌مونه (همین پروژه‌ی Expo) و همه‌ی دکمه‌های «شروع رایگان» به اون‌جا می‌رن. کارت‌های اشتراک داخل اپ `chartoon.net` رو نشون می‌دن و لینک دعوت دوئل همیشه آدرس خود اپ رو می‌سازه.
+خود اپ جدا روی **`app.chartoon.net`** می‌مونه (همین پروژه‌ی Expo) و همه‌ی دکمه‌های «شروع رایگان» به اون‌جا می‌رن. لینک‌های قدیمی دوئل روی `chartoon.net/duel/...` هم به همون آدرس توی اپ ریدایرکت می‌شن (`site/vercel.json`). کارت‌های اشتراک داخل اپ `chartoon.net` رو نشون می‌دن و لینک دعوت دوئل همیشه آدرس خود اپ رو می‌سازه.
 
 ## چی داخلشه
 

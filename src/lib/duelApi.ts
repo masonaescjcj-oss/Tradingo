@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 
 import { callRpc, serverVersion, sessionToken, type RpcResult } from './cloud';
 import { parseResult, parseRounds, type DuelResult, type DuelRounds } from './duel';
-import { APP_URL } from './shareCard';
+import { APP_ORIGIN } from './proxy';
 
 export type DuelRole = 'creator' | 'opponent' | null;
 export type DuelStatus = 'open' | 'done' | 'expired';
@@ -47,7 +47,8 @@ export function normalizeCode(input: string): string {
 }
 
 export function duelLink(code: string): string {
-  const origin = Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : `https://${APP_URL}`;
+  // The phone app links to the web app, which the Android app also opens (app.json intentFilters).
+  const origin = Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : APP_ORIGIN;
   return `${origin}/duel/${code}`;
 }
 

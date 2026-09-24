@@ -4,7 +4,10 @@
  * networks filter supabase.co, but chartoon.net opens from all of them, with or without a VPN.
  * So the app asks through the relay first and only then goes to the services directly.
  */
-export const PROXY_ORIGIN = 'https://app.chartoon.net/proxy';
+/** Where the app itself lives on the web; chartoon.net is the landing site. */
+export const APP_ORIGIN = 'https://app.chartoon.net';
+
+export const PROXY_ORIGIN = `${APP_ORIGIN}/proxy`;
 
 /** Binance market data (data-api.binance.vision), relayed. */
 export const BINANCE_PROXY = `${PROXY_ORIGIN}/binance`;

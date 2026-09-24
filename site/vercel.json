@@ -5,6 +5,9 @@
   "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": true,
+  "redirects": [
+    { "source": "/duel/:code", "destination": "https://app.chartoon.net/duel/:code", "permanent": false }
+  ],
   "headers": [
     {
       "source": "/assets/fonts/(.*)",

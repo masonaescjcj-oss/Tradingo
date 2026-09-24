@@ -69,6 +69,15 @@ describe('legal pages', () => {
     }
   });
 
+  it('include the account deletion guide Google Play links to', async () => {
+    const { deletionPage } = await import('../scripts/build-legal');
+    const file = join(SITE, 'delete-account', 'index.html');
+    assert.equal(read(file), deletionPage(), 'run npx tsx scripts/build-legal.ts');
+    assert.ok(read(file).includes('app.chartoon.net') && read(file).includes('lang="en"'));
+    for (const doc of ['privacy', 'terms']) assert.ok(read(join(SITE, doc, 'index.html')).includes('href="../delete-account/"'), doc);
+    assert.ok(read(join(SITE, 'sitemap.xml')).includes('https://chartoon.net/delete-account/'));
+  });
+
   it('are linked from both landing pages and listed in the sitemap', () => {
     assert.ok(read(PAGES.fa).includes('href="privacy/"') && read(PAGES.fa).includes('href="terms/"'));
     assert.ok(read(PAGES.en).includes('href="../privacy/"') && read(PAGES.en).includes('href="../terms/"'));

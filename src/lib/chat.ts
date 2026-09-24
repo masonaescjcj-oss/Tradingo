@@ -53,6 +53,8 @@ export type ChatMessage = {
   chart: ChatChart | null;
   created_at: string;
   mine: boolean;
+  /** The author's account; only admins get it, to act on it from the chat. */
+  author_id?: string;
 };
 
 export const MAX_MESSAGE = 1000;
@@ -77,6 +79,7 @@ export function messageProblem(body: string, hasChart = false): 'empty' | 'long'
 
 const ERRORS: Record<string, string> = {
   links: 'لینک، آیدی و شماره تماس توی گفتگوها مجاز نیست.',
+  muted: 'فعلاً امکان فرستادن پیام توی گفتگوها برات بسته شده.',
   rate: 'یه کم آروم‌تر! چند ثانیه صبر کن و دوباره بفرست.',
   long: `پیام حداکثر ${fa(MAX_MESSAGE)} حرف می‌تونه باشه.`,
   not_member: 'اول عضو گروه شو.',
@@ -139,6 +142,7 @@ export function parseMessage(raw: Record<string, unknown>): ChatMessage {
     chart: parseChart(raw.chart),
     created_at: String(raw.created_at ?? ''),
     mine: raw.mine === true,
+    ...(typeof raw.author_id === 'string' ? { author_id: raw.author_id } : {}),
   };
 }
 
@@ -170,6 +174,29 @@ export function messageTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   return fa(`${pad2(d.getHours())}:${pad2(d.getMinutes())}`);
+}
+
+/** When, for lists: just the time today, otherwise the day and the time. */
+export function whenText(iso: string, now = new Date()): string {
+  const day = roomTime(iso, now);
+  const time = messageTime(iso);
+  return day === time ? time : `${day} ${time}`;
+}
+
+/** How long something closed stays closed: «تا ۵ ساعت دیگه», «تا ۳ روز دیگه»; '' once it's over. */
+export function untilText(iso: string, now = Date.now()): string {
+  const left = new Date(iso).getTime() - now;
+  if (!Number.isFinite(left) || left <= 0) return '';
+  const hours = Math.ceil(left / 3_600_000);
+  if (hours <= 1) return 'تا کمتر از یه ساعت دیگه';
+  if (hours < 48) return `تا ${fa(hours)} ساعت دیگه`;
+  return `تا ${fa(Math.ceil(hours / 24))} روز دیگه`;
+}
+
+/** What someone whose chat an admin closed sees instead of the message box. */
+export function mutedNotice(muted: string, now = Date.now()): string {
+  const until = muted === 'forever' ? '' : untilText(muted, now);
+  return `امکان فرستادن پیام ${until ? `${until} ` : ''}برات بسته شده. هنوز می‌تونی پیام‌ها رو بخونی.`;
 }
 
 /** A short "when" for the room list: the time today, «دیروز», or the date. */

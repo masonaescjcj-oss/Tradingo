@@ -9,11 +9,12 @@ import { InstallRow } from '@/components/InstallApp';
 import { CourseBadge } from '@/components/CourseBadge';
 import { MarketPicker, marketLabel } from '@/components/MarketPicker';
 import { ProgressBar } from '@/components/ProgressBar';
+import { ReminderRow } from '@/components/Reminders';
 import { Screen } from '@/components/Screen';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
-import { cloudSetName } from '@/lib/cloud';
+import { cloudSetName, useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
 import { resetTo } from '@/lib/nav';
 import { profileCard, type ShareCard } from '@/lib/shareCard';
@@ -26,6 +27,7 @@ const GOALS = [10, 20, 30, 50];
 
 export default function ProfileScreen() {
   const game = useGame();
+  const admin = useCloud((s) => s.admin);
   const streak = currentStreak(game);
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(game.name);
@@ -126,9 +128,16 @@ export default function ProfileScreen() {
             <Txt w={800} size={14}>
               {game.user ? 'حساب کاربری' : 'ساخت حساب یا ورود'}
             </Txt>
-            <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>
-              {game.user ? formatMobile(game.user.mobile) : 'پیشرفتت رو به اسم خودت ذخیره کن؛ کد تأیید لازم نیست'}
-            </Txt>
+            {game.user ? (
+              // Mono text reads left to right, so the number's groups don't flip in the RTL row.
+              <Txt mono size={12} color={colors.text3} numberOfLines={1} style={{ alignSelf: 'flex-start' }}>
+                {formatMobile(game.user.mobile)}
+              </Txt>
+            ) : (
+              <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>
+                پیشرفتت رو به اسم خودت ذخیره کن؛ کد تأیید لازم نیست
+              </Txt>
+            )}
           </View>
           <Icon name="chevronBack" size={20} color={colors.text3} />
         </Pressable>
@@ -266,7 +275,24 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {admin ? (
+          <Pressable onPress={() => router.push('/admin')} accessibilityRole="button" style={styles.accountRow}>
+            <Icon name="shield" size={22} color={colors.sky} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Txt w={800} size={14}>
+                پنل مدیریت
+              </Txt>
+              <Txt w={500} size={12} color={colors.text3}>
+                گزارش‌ها، کاربران، پیام‌ها و کلید هوش مصنوعی
+              </Txt>
+            </View>
+            <Icon name="chevronBack" size={18} color={colors.text3} />
+          </Pressable>
+        ) : null}
+
         <InstallRow />
+
+        <ReminderRow />
 
         <Pressable
           onPress={() => game.setSound(!game.sound)}

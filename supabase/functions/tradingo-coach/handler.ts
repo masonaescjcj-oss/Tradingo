@@ -2,18 +2,22 @@
  * The Tradingo AI coach: checks the learner's session and daily limit, then asks the AI
  * with the learner's own progress and simulator data as context.
  *
- * Environment (Supabase → Edge Functions → Secrets):
- *   TRADINGO_AI_API_KEY      the AI provider's key (required)
+ * The AI settings come from the admin panel (saved in tradingo_settings, handed over by
+ * tradingo_ai_gate). When no key is saved there, these secrets are used instead
+ * (Supabase → Edge Functions → Secrets):
+ *   TRADINGO_AI_API_KEY      the AI provider's key
  *   TRADINGO_AI_PROVIDER     "anthropic" (default) or "openai" for any OpenAI-compatible API
  *   TRADINGO_AI_MODEL        model id; defaults to claude-sonnet-5 for Anthropic
  *   TRADINGO_AI_BASE_URL     base URL for the OpenAI-compatible API (e.g. https://api.example.com/v1)
- *   TRADINGO_AI_DAILY_LIMIT  coach messages per account per day (default 40)
+ *   TRADINGO_AI_DAILY_LIMIT  coach messages per account per day (default 40; the panel can override it)
  * SUPABASE_URL and the service key are provided by Supabase.
  */
 
 export type Env = Record<string, string | undefined>;
 type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
 type Turn = { role: 'user' | 'assistant'; content: string };
+type AiConfig = { key: string; provider: string; model?: string; baseUrl?: string };
+type Gate = { ok?: boolean; remaining?: number; name?: string; error?: string; config?: { api_key?: string | null; provider?: string | null; model?: string | null; base_url?: string | null } };
 
 const MAX_TURNS = 16;
 const MAX_TURN_CHARS = 2000;
@@ -68,26 +72,46 @@ export function cleanTurns(raw: unknown): Turn[] | null {
   return turns;
 }
 
-async function allow(env: Env, token: string, limit: number, fetchImpl: Fetch): Promise<{ ok?: boolean; remaining?: number; name?: string; error?: string }> {
+async function rpc(env: Env, fn: string, args: Record<string, unknown>, fetchImpl: Fetch): Promise<Response | null> {
   const key = serviceKey(env);
-  if (!env.SUPABASE_URL || !key) return { error: 'server' };
-  const res = await fetchImpl(`${env.SUPABASE_URL}/rest/v1/rpc/tradingo_ai_allow`, {
+  if (!env.SUPABASE_URL || !key) return null;
+  return fetchImpl(`${env.SUPABASE_URL}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_token: token, p_limit: limit }),
+    body: JSON.stringify(args),
   });
-  if (!res.ok) return { error: 'server' };
-  return (await res.json()) as { ok?: boolean; remaining?: number; name?: string; error?: string };
 }
 
-async function askAi(env: Env, system: string, turns: Turn[], fetchImpl: Fetch): Promise<string> {
-  const provider = env.TRADINGO_AI_PROVIDER ?? 'anthropic';
-  const key = env.TRADINGO_AI_API_KEY ?? '';
-  if (provider === 'openai') {
-    const res = await fetchImpl(`${(env.TRADINGO_AI_BASE_URL ?? '').replace(/\/$/, '')}/chat/completions`, {
+/** Checks the session and daily limit, and fetches the AI settings saved from the admin panel. */
+async function gate(env: Env, token: string, limit: number, fetchImpl: Fetch): Promise<Gate> {
+  const envKey = !!env.TRADINGO_AI_API_KEY;
+  const res = await rpc(env, 'tradingo_ai_gate', { p_token: token, p_env_key: envKey, p_default_limit: limit }, fetchImpl);
+  if (!res) return { error: 'server' };
+  // A server without the admin migration: the secrets are the only settings.
+  if (res.status === 404) {
+    if (!envKey) return { error: 'not_configured' };
+    const old = await rpc(env, 'tradingo_ai_allow', { p_token: token, p_limit: limit }, fetchImpl);
+    return old?.ok ? ((await old.json()) as Gate) : { error: 'server' };
+  }
+  if (!res.ok) return { error: 'server' };
+  return (await res.json()) as Gate;
+}
+
+/** A key saved in the panel brings its own provider and model; otherwise the secrets apply. */
+export function aiConfig(env: Env, saved: Gate['config']): AiConfig | null {
+  const config: AiConfig = saved?.api_key
+    ? { key: saved.api_key, provider: saved.provider ?? 'anthropic', model: saved.model ?? undefined, baseUrl: saved.base_url ?? undefined }
+    : { key: env.TRADINGO_AI_API_KEY ?? '', provider: env.TRADINGO_AI_PROVIDER ?? 'anthropic', model: env.TRADINGO_AI_MODEL, baseUrl: env.TRADINGO_AI_BASE_URL };
+  if (!config.key || (config.provider === 'openai' && (!config.baseUrl || !config.model))) return null;
+  return config;
+}
+
+async function askAi(config: AiConfig, system: string, turns: Turn[], fetchImpl: Fetch): Promise<string> {
+  if (config.provider === 'openai') {
+    const res = await fetchImpl(`${(config.baseUrl ?? '').replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: env.TRADINGO_AI_MODEL, max_tokens: 900, messages: [{ role: 'system', content: system }, ...turns] }),
+      headers: { Authorization: `Bearer ${config.key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: config.model, max_tokens: 900, messages: [{ role: 'system', content: system }, ...turns] }),
     });
     if (!res.ok) throw new Error(`ai ${res.status}`);
     const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
@@ -95,8 +119,8 @@ async function askAi(env: Env, system: string, turns: Turn[], fetchImpl: Fetch):
   }
   const res = await fetchImpl('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: env.TRADINGO_AI_MODEL ?? 'claude-sonnet-5', max_tokens: 900, system, messages: turns }),
+    headers: { 'x-api-key': config.key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: config.model ?? 'claude-sonnet-5', max_tokens: 900, system, messages: turns }),
   });
   if (!res.ok) throw new Error(`ai ${res.status}`);
   const data = (await res.json()) as { content?: { type: string; text?: string }[] };
@@ -119,20 +143,21 @@ export async function handle(req: Request, env: Env, fetchImpl: Fetch = fetch): 
   }
   const turns = cleanTurns(body.messages);
   if (typeof body.token !== 'string' || !body.token || !turns) return json({ error: 'invalid' }, 400);
-  if (!env.TRADINGO_AI_API_KEY || (env.TRADINGO_AI_PROVIDER === 'openai' && (!env.TRADINGO_AI_BASE_URL || !env.TRADINGO_AI_MODEL))) {
-    return json({ error: 'not_configured' }, 503);
-  }
-
   const limit = Math.max(1, Number(env.TRADINGO_AI_DAILY_LIMIT ?? 40) || 40);
-  const gate = await allow(env, body.token, limit, fetchImpl).catch(() => ({ error: 'server' }) as { error: string });
-  if ('error' in gate && gate.error) return json({ error: gate.error }, gate.error === 'session' ? 401 : gate.error === 'limit' ? 429 : 502);
+  const passed = await gate(env, body.token, limit, fetchImpl).catch((): Gate => ({ error: 'server' }));
+  if (passed.error) {
+    const status = { session: 401, limit: 429, not_configured: 503 }[passed.error] ?? 502;
+    return json({ error: passed.error }, status);
+  }
+  const config = aiConfig(env, passed.config);
+  if (!config) return json({ error: 'not_configured' }, 503);
 
   const context = typeof body.context === 'string' ? body.context.slice(0, MAX_CONTEXT_CHARS) : '';
   const system = `${SYSTEM_PROMPT}\n\nLearner data (JSON, from the app, virtual money):\n${context || '{}'}`;
   try {
-    const reply = (await askAi(env, system, turns, fetchImpl)).trim();
+    const reply = (await askAi(config, system, turns, fetchImpl)).trim();
     if (!reply) return json({ error: 'ai' }, 502);
-    return json({ reply, remaining: 'remaining' in gate ? gate.remaining : undefined });
+    return json({ reply, remaining: passed.remaining });
   } catch {
     return json({ error: 'ai' }, 502);
   }

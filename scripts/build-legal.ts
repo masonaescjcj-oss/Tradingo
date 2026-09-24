@@ -1,24 +1,39 @@
 /**
  * Writes the privacy policy and terms of use to the website (site/privacy, site/terms) from
- * the same text the app shows (src/content/legal.ts), so the two never drift apart.
+ * the same text the app shows (src/content/legal.ts), so the two never drift apart, plus the
+ * account deletion guide Google Play links to (site/delete-account).
  *
  *   npx tsx scripts/build-legal.ts
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-import { LEGAL, LEGAL_UPDATED, type LegalDoc } from '../src/content/legal';
+import { ACCOUNT_DELETION, LEGAL, LEGAL_UPDATED, type LegalDoc } from '../src/content/legal';
 
 const ROOT = resolve(__dirname, '..');
 
 const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+type SitePage = Pick<LegalDoc, 'title' | 'intro' | 'sections'> & { id: string; english?: string[] };
+
+const DELETION_LINK = { id: ACCOUNT_DELETION.id, title: ACCOUNT_DELETION.title };
+
 export function legalPage(doc: LegalDoc): string {
-  const other = LEGAL[doc.id === 'privacy' ? 'terms' : 'privacy'];
+  return sitePage(doc, [LEGAL[doc.id === 'privacy' ? 'terms' : 'privacy'], DELETION_LINK]);
+}
+
+export function deletionPage(): string {
+  return sitePage(ACCOUNT_DELETION, [LEGAL.privacy, LEGAL.terms]);
+}
+
+function sitePage(doc: SitePage, links: { id: string; title: string }[]): string {
   const url = `https://chartoon.net/${doc.id}/`;
-  const sections = doc.sections
-    .map((s) => `    <section>\n      <h2>${escape(s.title)}</h2>\n${s.body.map((p) => `      <p>${escape(p)}</p>`).join('\n')}\n    </section>`)
-    .join('\n');
+  const section = (title: string, body: string[], attrs = '') =>
+    `    <section${attrs}>\n      <h2>${escape(title)}</h2>\n${body.map((p) => `      <p>${escape(p)}</p>`).join('\n')}\n    </section>`;
+  const sections = [
+    ...doc.sections.map((s) => section(s.title, s.body)),
+    ...(doc.english ? [section('In English', doc.english, ' lang="en" dir="ltr"')] : []),
+  ].join('\n');
   return `<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -77,7 +92,7 @@ ${sections}
 <footer>
   <div class="wrap">
     <a href="../">صفحه‌ی اصلی</a>
-    <a href="../${other.id}/">${escape(other.title)}</a>
+${links.map((l) => `    <a href="../${l.id}/">${escape(l.title)}</a>`).join('\n')}
     <span>© ۱۴۰۵ چارتون</span>
   </div>
 </footer>
@@ -87,13 +102,14 @@ ${sections}
 }
 
 export function writeLegalPages(siteDir = join(ROOT, 'site')) {
-  for (const doc of Object.values(LEGAL)) {
-    mkdirSync(join(siteDir, doc.id), { recursive: true });
-    writeFileSync(join(siteDir, doc.id, 'index.html'), legalPage(doc));
+  const pages: [string, string][] = [...Object.values(LEGAL).map((doc): [string, string] => [doc.id, legalPage(doc)]), [ACCOUNT_DELETION.id, deletionPage()]];
+  for (const [id, html] of pages) {
+    mkdirSync(join(siteDir, id), { recursive: true });
+    writeFileSync(join(siteDir, id, 'index.html'), html);
   }
+  return pages.map(([id]) => `site/${id}/index.html`);
 }
 
 if (require.main === module) {
-  writeLegalPages();
-  console.log('wrote site/privacy/index.html and site/terms/index.html');
+  console.log(`wrote ${writeLegalPages().join(', ')}`);
 }

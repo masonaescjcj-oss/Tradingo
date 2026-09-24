@@ -7,7 +7,7 @@
 
 **سایت:** https://chartoon.net · **اپ (نسخه‌ی وب، قابل نصب):** https://app.chartoon.net
 
-برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md) · لندینگ‌پیج chartoon.net: [docs/SITE.md](docs/SITE.md)
+برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md) · لندینگ‌پیج chartoon.net: [docs/SITE.md](docs/SITE.md) · اپ اندروید و گوگل‌پلی: [docs/ANDROID.md](docs/ANDROID.md)
 
 ## اجرا
 

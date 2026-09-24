@@ -18,6 +18,10 @@ type CloudState = {
   userId: string | null;
   lastSyncedAt: number | null;
   error: string | null;
+  /** The account can open the admin panel. */
+  admin: boolean;
+  /** An admin closed chat for this account: until then (ISO time), or for good ('forever'). */
+  muted: string | null;
 };
 
 /** Server account and sync status, for the account and league screens. */
@@ -27,6 +31,8 @@ export const useCloud = create<CloudState>()(() => ({
   userId: null,
   lastSyncedAt: null,
   error: null,
+  admin: false,
+  muted: null,
 }));
 
 type Session = { token: string; mobile: string };
@@ -158,7 +164,9 @@ export async function callRpc<T>(fn: string, args: Record<string, unknown>): Pro
 async function setSession(next: Session | null) {
   session = next;
   useCloud.setState(
-    next ? { mobile: next.mobile, userId: next.mobile, error: null } : { status: cloudEnabled ? 'signedOut' : 'off', mobile: null, userId: null },
+    next
+      ? { mobile: next.mobile, userId: next.mobile, error: null }
+      : { status: cloudEnabled ? 'signedOut' : 'off', mobile: null, userId: null, admin: false, muted: null },
   );
   if (next) await safeStorage.setItem(SESSION_KEY, JSON.stringify(next));
   else await safeStorage.removeItem(SESSION_KEY);
@@ -214,9 +222,18 @@ export async function syncNow() {
     await pullAndMerge();
     await push();
     useCloud.setState({ status: 'synced', lastSyncedAt: Date.now() });
+    void refreshStatus();
   } catch (e) {
     await handleFailure(e);
   }
+}
+
+/** Whether the account is an admin and whether its chat is closed (servers with the admin panel, version 6). */
+export async function refreshStatus(): Promise<void> {
+  if (!session || (await serverVersion()) < 6) return;
+  const res = await callRpc<{ admin?: boolean; muted?: boolean; muted_until?: string | null }>('tradingo_account_status', { p_token: session.token });
+  if (!res.ok) return;
+  useCloud.setState({ admin: res.value.admin === true, muted: res.value.muted ? (res.value.muted_until ?? 'forever') : null });
 }
 
 let started = false;
@@ -259,6 +276,7 @@ const AUTH_ERRORS: Record<string, string> = {
   invalid_mobile: 'شماره موبایل درست نیست.',
   invalid_name: 'اسم باید بین ۱ تا ۲۰ حرف باشه.',
   rate_limited: 'الان ثبت‌نام‌ها زیاده؛ یه دقیقه‌ی دیگه امتحان کن.',
+  banned: 'این حساب به خاطر نقض قوانین چارتون مسدود شده.',
 };
 
 type AuthResult = { error: string | null; offline?: boolean; name?: string };

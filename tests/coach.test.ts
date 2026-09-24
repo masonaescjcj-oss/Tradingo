@@ -12,7 +12,7 @@ function fakeFetch(gate: unknown, reply = 'سلام! حد ضررت رو نزدی
   const calls: Call[] = [];
   const impl = async (url: string, init?: RequestInit) => {
     calls.push({ url, body: JSON.parse(String(init?.body ?? '{}')), headers: init?.headers as Record<string, string> });
-    if (url.includes('/rpc/tradingo_ai_allow')) return new Response(JSON.stringify(gate), { status: 200 });
+    if (url.includes('/rpc/tradingo_ai_gate')) return new Response(JSON.stringify(gate), { status: 200 });
     return new Response(JSON.stringify({ content: [{ type: 'text', text: reply }] }), { status: 200 });
   };
   return { impl, calls };
@@ -29,7 +29,8 @@ describe('AI coach function', () => {
     assert.deepEqual(await res.json(), { reply: 'سلام! حد ضررت رو نزدیک‌تر بذار.', remaining: 4 });
     const [gate, ai] = f.calls;
     assert.equal(gate.body.p_token, 't');
-    assert.equal(gate.body.p_limit, 5);
+    assert.equal(gate.body.p_default_limit, 5);
+    assert.equal(gate.body.p_env_key, true);
     assert.equal(gate.headers.apikey, 'service');
     assert.equal(ai.url, 'https://api.anthropic.com/v1/messages');
     assert.equal(ai.headers['x-api-key'], 'ai-key');
@@ -49,9 +50,34 @@ describe('AI coach function', () => {
   });
 
   it('says when the AI key is not set yet', async () => {
-    const res = await ask({ token: 't', messages: [{ role: 'user', content: 'hi' }] }, { ...ENV, TRADINGO_AI_API_KEY: undefined });
+    const f = fakeFetch({ error: 'not_configured' });
+    const res = await ask({ token: 't', messages: [{ role: 'user', content: 'hi' }] }, { ...ENV, TRADINGO_AI_API_KEY: undefined }, f);
     assert.equal(res.status, 503);
     assert.deepEqual(await res.json(), { error: 'not_configured' });
+    assert.equal(f.calls[0].body.p_env_key, false);
+    assert.equal(f.calls.length, 1);
+  });
+
+  it('uses the key and model saved in the admin panel over the secrets', async () => {
+    const f = fakeFetch({ ok: true, remaining: 9, config: { api_key: 'db-key', provider: 'anthropic', model: 'claude-opus-5-5', base_url: null } });
+    const res = await ask({ token: 't', messages: [{ role: 'user', content: 'hi' }] }, ENV, f);
+    assert.equal(res.status, 200);
+    const ai = f.calls[1];
+    assert.equal(ai.headers['x-api-key'], 'db-key');
+    assert.equal(ai.body.model, 'claude-opus-5-5');
+  });
+
+  it('falls back to the secrets on a server without the admin panel', async () => {
+    const calls: string[] = [];
+    const impl = async (url: string) => {
+      calls.push(url);
+      if (url.includes('/rpc/tradingo_ai_gate')) return new Response('{"message":"not found"}', { status: 404 });
+      if (url.includes('/rpc/tradingo_ai_allow')) return new Response(JSON.stringify({ ok: true, remaining: 3 }));
+      return new Response(JSON.stringify({ content: [{ type: 'text', text: 'باشه' }] }));
+    };
+    const res = await handle(new Request('https://fn.test', { method: 'POST', body: JSON.stringify({ token: 't', messages: [{ role: 'user', content: 'x' }] }) }), ENV, impl);
+    assert.deepEqual(await res.json(), { reply: 'باشه', remaining: 3 });
+    assert.deepEqual(calls.map((u) => u.split('/').pop()), ['tradingo_ai_gate', 'tradingo_ai_allow', 'messages']);
   });
 
   it('can use an OpenAI-compatible provider', async () => {

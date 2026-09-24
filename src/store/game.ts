@@ -10,6 +10,7 @@ import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRe
 import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
 import { extendBoost, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
 import { nextReview, type Review } from '@/lib/review';
+import { DEFAULT_REMINDER_HOUR } from '@/lib/reminderPlan';
 import { safeStorage } from '@/lib/storage';
 import { evaluateChallenge, findChallenge, type ChallengeRecord } from '@/lib/challenges';
 import { newReplaySession, replayFinished, replayPrice, stepReplay, type ReplaySession } from '@/lib/replay';
@@ -109,6 +110,8 @@ type Data = {
   practiceSessions: number;
   /** Sound effects and haptics on answers, chests and lesson ends. */
   sound: boolean;
+  /** The daily practice reminder on phones: on or off, its hour, and whether we've offered it yet. */
+  reminders: { enabled: boolean; hour: number; offered: boolean };
   /** Units whose mastery test was passed; they show a crown on the path. */
   mastered: string[];
   /** The learner's account on this device (mobile + password, no verification code yet). */
@@ -168,6 +171,7 @@ type Actions = {
   setName: (name: string) => void;
   setDailyGoal: (goal: number) => void;
   setSound: (on: boolean) => void;
+  setReminders: (patch: Partial<GameState['reminders']>) => void;
   masterUnit: (unitId: string, xp: number) => void;
   setAnswers: (answers: { reason?: string; source?: string }) => void;
   createAccount: (user: UserAccount) => void;
@@ -248,6 +252,7 @@ function initialData(): Data {
     reviews: {},
     practiceSessions: 0,
     sound: true,
+    reminders: { enabled: false, hour: DEFAULT_REMINDER_HOUR, offered: false },
     mastered: [],
     user: null,
     signedOut: false,
@@ -352,6 +357,7 @@ export const useGame = create<GameState>()(
       },
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setSound: (sound) => set({ sound }),
+      setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
 
       setAnswers: (answers) => set((s) => ({ answers: { ...s.answers, ...answers } })),
       createAccount: (user) => set({ user, name: user.name, signedOut: false }),

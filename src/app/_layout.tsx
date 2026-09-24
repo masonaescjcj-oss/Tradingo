@@ -10,15 +10,17 @@ import {
 import { useFonts } from 'expo-font';
 import { DarkTheme, Stack, ThemeProvider, router, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { UpdateBanner } from '@/components/InstallApp';
+import { Intro } from '@/components/Intro';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { startCloudSync } from '@/lib/cloud';
 import { startPwa } from '@/lib/pwa';
+import { startReminders } from '@/lib/reminders';
 import { flushReports } from '@/lib/reportApi';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
@@ -97,6 +99,10 @@ export default function RootLayout() {
     return () => clearTimeout(t);
   }, []);
 
+  const fontsReady = fontsLoaded || !!fontError || fontsTimedOut;
+  const [introDone, setIntroDone] = useState(false);
+  const endIntro = useCallback(() => setIntroDone(true), []);
+
   // Web only: offline support, the install prompt and update checks (a no-op on native).
   useEffect(() => startPwa(), []);
 
@@ -109,6 +115,8 @@ export default function RootLayout() {
     startCloudSync();
     // Problem reports made offline last time.
     void flushReports();
+    // Phones: the daily practice reminder follows progress (a no-op on the web).
+    return startReminders();
   }, [hydrated]);
 
   return (
@@ -116,7 +124,7 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <View style={styles.page} {...rtlProps}>
         <View style={styles.column}>
-          {(fontsLoaded || fontError || fontsTimedOut) && hydrated ? (
+          {fontsReady && hydrated ? (
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
               <Stack.Screen name="lesson/[id]" options={{ gestureEnabled: false, animation: 'slide_from_bottom' }} />
               <Stack.Screen name="chest/[id]" options={{ animation: 'fade' }} />
@@ -124,6 +132,7 @@ export default function RootLayout() {
           ) : null}
           <UpdateBanner />
         </View>
+        {introDone ? null : <Intro fontsReady={fontsReady} ready={fontsReady && hydrated} onDone={endIntro} />}
       </View>
     </ThemeProvider>
   );
