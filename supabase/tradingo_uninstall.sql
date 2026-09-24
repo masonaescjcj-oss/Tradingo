@@ -1,6 +1,14 @@
--- Removes everything Tradingo added to the project (its accounts, progress, leaderboard and chat).
+-- Removes everything Tradingo added to the project (its accounts, progress, leaderboard, chat and duels).
 -- Nothing belonging to other apps is touched. The tradingo-coach Edge Function is removed
 -- separately (Supabase → Edge Functions → tradingo-coach → Delete).
+drop function if exists
+  public.tradingo_duel_create(text, jsonb, jsonb),
+  public.tradingo_duel_get(text, text),
+  public.tradingo_duel_submit(text, text, jsonb),
+  public.tradingo_duel_list(text),
+  public.tradingo_duel_result_ok(jsonb),
+  public.tradingo_duel_rounds_ok(jsonb);
+drop table if exists public.tradingo_duels;
 drop function if exists public.tradingo_ai_allow(text, integer);
 drop table if exists public.tradingo_ai_usage;
 drop function if exists

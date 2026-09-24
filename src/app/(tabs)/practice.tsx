@@ -34,6 +34,7 @@ export default function PracticeScreen() {
   const xpToday = useGame((s) => todaysXp(s));
   const claimedToday = useGame((s) => s.dailyClaimedDay === dayKey());
   const claimDaily = useGame((s) => s.claimDaily);
+  const duels = useGame((s) => s.duels);
 
   const state = { activeCourse, completed, mistakes, reviews };
   const due = dueLessons(reviews).length;
@@ -103,6 +104,21 @@ export default function PracticeScreen() {
         </View>
 
         <QuestsCard />
+
+        <Pressable onPress={() => router.push('/duel')} accessibilityRole="button" accessibilityLabel="دوئل تریدینگو" style={({ pressed }) => [styles.duel, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}>
+          <View style={styles.duelIcon}>
+            <Icon name="swords" size={28} color={colors.goldInk} strokeWidth={2.4} />
+          </View>
+          <View style={{ flex: 1, gap: 3 }}>
+            <Txt w={900} size={17}>
+              دوئل تریدینگو
+            </Txt>
+            <Txt w={500} size={12.5} lh={1.6} color={colors.text2}>
+              {duels?.played ? `${fa(duels.wins)} برد از ${fa(duels.played)} دوئل · با شمعک یا دوستت` : 'سه راند با شمعک یا دوستت: سؤال، نمودار و معامله'}
+            </Txt>
+          </View>
+          <Icon name="chevronBack" size={22} color={colors.text3} />
+        </Pressable>
 
         <Txt w={900} size={16} color={colors.text2}>
           حالت‌های تمرین
@@ -241,6 +257,25 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  duel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderBottomWidth: 5,
+    borderColor: colors.gold,
+    backgroundColor: colors.goldCard,
+  },
+  duelIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.gold,
   },
   weak: {
     flexDirection: 'row',

@@ -6,7 +6,7 @@
 import { fa } from '@/utils/format';
 import { createRng, hashString } from '@/utils/random';
 
-export type QuestMetric = 'xp' | 'lessons' | 'perfect' | 'combo' | 'practice' | 'seconds' | 'trades' | 'stopTrades';
+export type QuestMetric = 'xp' | 'lessons' | 'perfect' | 'combo' | 'practice' | 'seconds' | 'trades' | 'stopTrades' | 'duels';
 
 export type Quest = { id: string; metric: QuestMetric; target: number; title: string; kind: 'xp' | 'learn' | 'trade' };
 
@@ -29,6 +29,7 @@ const LEARN: Template[] = [
 const TRADE: Template[] = [
   { metric: 'stopTrades', targets: [1, 2], title: (n) => (n === 1 ? 'یه معامله با حد ضرر توی شبیه‌ساز باز کن' : `${fa(n)} معامله با حد ضرر توی شبیه‌ساز باز کن`) },
   { metric: 'trades', targets: [2, 3], title: (n) => `${fa(n)} معامله توی شبیه‌ساز باز کن` },
+  { metric: 'duels', targets: [1, 2], title: (n) => (n === 1 ? 'یه دوئل بازی کن' : `${fa(n)} دوئل بازی کن`) },
 ];
 
 /** A bit more than the daily goal, rounded to tens. */

@@ -161,3 +161,16 @@ export async function saveCard(card: ShareCard): Promise<ShareOutcome> {
     return 'failed';
   }
 }
+
+/** Shares a message with a link, e.g. a duel invite; without a share menu it copies them. */
+export async function shareText(text: string, url: string): Promise<ShareOutcome> {
+  if (navigator.share) {
+    try {
+      await navigator.share({ text, url });
+      return 'shared';
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return 'cancelled';
+    }
+  }
+  return (await copyText(`${text}\n${url}`)) ? 'copied' : 'failed';
+}

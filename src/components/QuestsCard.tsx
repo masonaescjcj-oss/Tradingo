@@ -23,6 +23,7 @@ const METRIC_ICON: Record<QuestMetric, IconName | 'bolt' | 'star'> = {
   seconds: 'clock',
   trades: 'candles',
   stopTrades: 'shield',
+  duels: 'swords',
 };
 
 function QuestIcon({ metric, done }: { metric: QuestMetric; done: boolean }) {

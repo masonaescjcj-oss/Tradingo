@@ -5,6 +5,15 @@ import type { GameData, LessonRecord } from '@/store/game';
 
 const later = (a: string | null, b: string | null) => ((a ?? '') >= (b ?? '') ? a : b);
 
+/** The duel record with more duels, keeping every friend duel already counted on either side. */
+function mergeDuels(a: GameData['duels'] | undefined, b: GameData['duels'] | undefined): GameData['duels'] {
+  const empty = { played: 0, wins: 0, losses: 0, ties: 0, rewardDay: null, rewarded: 0, codes: [] };
+  const x = { ...empty, ...a };
+  const y = { ...empty, ...b };
+  const base = x.played >= y.played ? x : y;
+  return { ...base, codes: [...new Set([...y.codes, ...x.codes])].slice(-100) };
+}
+
 function mergeCompleted(a: Record<string, LessonRecord>, b: Record<string, LessonRecord>) {
   const out: Record<string, LessonRecord> = { ...b };
   for (const [id, rec] of Object.entries(a)) {
@@ -72,5 +81,6 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
     frozenDays: [...new Set([...(remote.frozenDays ?? []), ...(local.frozenDays ?? [])])].sort().slice(-30),
     boostUntil: Math.max(local.boostUntil ?? 0, remote.boostUntil ?? 0),
     lostStreak: localNewerDay ? (local.lostStreak ?? null) : (remote.lostStreak ?? null),
+    duels: mergeDuels(local.duels, remote.duels),
   };
 }

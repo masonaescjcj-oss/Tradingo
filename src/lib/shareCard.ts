@@ -16,7 +16,7 @@ export const APP_URL = 'tradingo.vercel.app';
 /** Fonts the card uses; the web export embeds them so the PNG looks like the preview. */
 export const CARD_FONTS = ['Lalezar_400Regular', 'Vazirmatn_900Black', 'Vazirmatn_700Bold'] as const;
 
-export type CardKind = 'streak' | 'unit' | 'course' | 'challenge' | 'trading' | 'profile';
+export type CardKind = 'streak' | 'unit' | 'course' | 'challenge' | 'trading' | 'profile' | 'duel';
 export type CardStat = { label: string; value: string; ltr?: boolean; color?: string };
 export type WeekDot = { label: string; state: 'on' | 'off' | 'frozen'; today?: boolean };
 
@@ -163,6 +163,38 @@ export function profileCard(p: { name: string; xp: number; streak: number; leagu
     mood: 'happy',
     name: p.name,
     text: `${faNum(p.xp)} امتیاز و ${fa(p.lessons)} درس توی تریدینگو 🚀\n${APP_URL}`,
+  };
+}
+
+export function duelCard(p: {
+  name: string;
+  opponent: string;
+  outcome: 'win' | 'loss' | 'tie';
+  mine: number;
+  theirs: number;
+  quiz: number;
+  chart: number;
+  pnl: number;
+}): ShareCard {
+  const won = p.outcome === 'win';
+  return {
+    kind: 'duel',
+    accent: won ? colors.gold : p.outcome === 'tie' ? colors.sky : colors.bear,
+    ink: won ? colors.goldInk : p.outcome === 'tie' ? colors.skyInk : colors.bearInk,
+    kicker: 'دوئل تریدینگو',
+    hero: `${fa(p.mine)} - ${fa(p.theirs)}`,
+    heroLtr: true,
+    heroLabel: won ? 'بردم!' : p.outcome === 'tie' ? 'مساوی شد' : 'این بار باختم',
+    title: `در برابر ${p.opponent}`,
+    stats: [
+      { label: 'سؤال سرعتی', value: fa(p.quiz) },
+      { label: 'پیش‌بینی نمودار', value: fa(p.chart) },
+      { label: 'معامله', value: usd(p.pnl, true), ltr: true, color: p.pnl >= 0 ? colors.bullText : colors.bearText },
+    ],
+    mood: won ? 'party' : p.outcome === 'tie' ? 'happy' : 'think',
+    name: p.name,
+    note: PLAY_MONEY,
+    text: `${won ? 'توی دوئل تریدینگو' : 'دوئل تریدینگو'} ${fa(p.mine)} به ${fa(p.theirs)} ${won ? `${p.opponent} رو بردم ⚔️` : `با ${p.opponent} بازی کردم ⚔️`} تو هم بیا!\n${APP_URL}`,
   };
 }
 

@@ -23,3 +23,13 @@ export async function shareCard(card: ShareCard): Promise<ShareOutcome> {
 export async function saveCard(_card: ShareCard): Promise<ShareOutcome> {
   return 'failed';
 }
+
+/** Shares a message with a link, e.g. a duel invite. */
+export async function shareText(text: string, url: string): Promise<ShareOutcome> {
+  try {
+    const r = await Share.share({ message: `${text}\n${url}` });
+    return r.action === Share.dismissedAction ? 'cancelled' : 'shared';
+  } catch {
+    return 'failed';
+  }
+}

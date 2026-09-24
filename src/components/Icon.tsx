@@ -49,7 +49,8 @@ export type IconName =
   | 'pin'
   | 'snow'
   | 'bag'
-  | 'share';
+  | 'share'
+  | 'swords';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -250,6 +251,13 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
         <>
           <Path {...p} d="M5 8h14l-1 12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" />
           <Path {...p} d="M9 11V6a3 3 0 0 1 6 0v5" />
+        </>
+      );
+    case 'swords':
+      return (
+        <>
+          <Path {...p} d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2" />
+          <Path {...p} d="M9.5 6.5 14 2h3v3l-4.5 4.5M5 14l4 4M7 17l-3 3M3 19l2 2" />
         </>
       );
     case 'share':

@@ -91,8 +91,9 @@ export function mergeFeed(feed: Feed, incoming: Kline[], max: number): Feed {
 
 type FetchLike = (url: string, init?: { signal?: AbortSignal }) => Promise<{ ok: boolean; status: number; json: () => Promise<unknown> }>;
 
-export function klinesUrl(host: string, symbol: string, limit: number, interval = LIVE_INTERVAL): string {
-  return `${host}/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}`;
+export function klinesUrl(host: string, symbol: string, limit: number, interval = LIVE_INTERVAL, endTime?: number): string {
+  const end = endTime != null ? `&endTime=${Math.floor(endTime)}` : '';
+  return `${host}/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${interval}&limit=${limit}${end}`;
 }
 
 /**
@@ -102,14 +103,20 @@ export function klinesUrl(host: string, symbol: string, limit: number, interval 
 export async function fetchKlines(
   symbol: string,
   limit: number,
-  { fetchImpl = fetch as unknown as FetchLike, timeoutMs = 6000, hosts = BINANCE_HOSTS }: { fetchImpl?: FetchLike; timeoutMs?: number; hosts?: string[] } = {},
+  {
+    fetchImpl = fetch as unknown as FetchLike,
+    timeoutMs = 6000,
+    hosts = BINANCE_HOSTS,
+    interval = LIVE_INTERVAL,
+    endTime,
+  }: { fetchImpl?: FetchLike; timeoutMs?: number; hosts?: string[]; interval?: string; endTime?: number } = {},
 ): Promise<{ klines: Kline[]; host: string }> {
   let lastError: unknown = new Error('klines: no host');
   for (const host of hosts) {
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = setTimeout(() => controller?.abort(), timeoutMs);
     try {
-      const res = await fetchImpl(klinesUrl(host, symbol, limit), controller ? { signal: controller.signal } : undefined);
+      const res = await fetchImpl(klinesUrl(host, symbol, limit, interval, endTime), controller ? { signal: controller.signal } : undefined);
       if (!res.ok) throw new Error(`klines: HTTP ${res.status}`);
       const klines = parseKlines(await res.json());
       if (klines.length === 0) throw new Error('klines: empty');

@@ -155,6 +155,7 @@ const STATE: GameData = {
   frozenDays: [],
   boostUntil: 0,
   lostStreak: null,
+  duels: { played: 0, wins: 0, losses: 0, ties: 0, rewardDay: null, rewarded: 0, codes: [] },
 };
 
 describe('cloud merge', () => {

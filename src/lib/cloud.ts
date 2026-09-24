@@ -109,6 +109,26 @@ export function sessionEnded(): Promise<void> {
   return handleFailure(new CloudError('session', 'invalid_session'));
 }
 
+export type RpcResult<T> = { ok: true; value: T } | { ok: false; error: string };
+
+/**
+ * Runs a server call for a feature screen: an `{ error }` answer or a failure becomes an
+ * error kind the screen can show ('session', 'network', 'server' or the function's own).
+ */
+export async function callRpc<T>(fn: string, args: Record<string, unknown>): Promise<RpcResult<T>> {
+  try {
+    const value = await rpc<T & { error?: string }>(fn, args);
+    if (value && typeof value === 'object' && 'error' in value && value.error) return { ok: false, error: String(value.error) };
+    return { ok: true, value };
+  } catch (e) {
+    if (e instanceof CloudError && e.kind === 'session') {
+      await sessionEnded();
+      return { ok: false, error: 'session' };
+    }
+    return { ok: false, error: e instanceof CloudError && e.kind === 'network' ? 'network' : 'server' };
+  }
+}
+
 async function setSession(next: Session | null) {
   session = next;
   useCloud.setState(

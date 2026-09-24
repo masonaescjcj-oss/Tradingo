@@ -5,28 +5,11 @@
 import { create } from 'zustand';
 
 import { parseMessage, type ChatChart, type ChatMessage, type ChatRoom, type ChatTopic } from './chat';
-import { CloudError, rpc, serverVersion, sessionEnded, sessionToken } from './cloud';
+import { callRpc as call, serverVersion, sessionToken, type RpcResult as Result } from './cloud';
 
 /** Whether the chat functions are installed on the server. */
 export async function chatAvailable(): Promise<boolean> {
   return (await serverVersion()) >= 2;
-}
-
-type Result<T> = { ok: true; value: T } | { ok: false; error: string };
-
-/** Runs a server call, turning failures into an error kind the screens can show. */
-async function call<T>(fn: string, args: Record<string, unknown>): Promise<Result<T>> {
-  try {
-    const value = await rpc<T & { error?: string }>(fn, args);
-    if (value && typeof value === 'object' && 'error' in value && value.error) return { ok: false, error: String(value.error) };
-    return { ok: true, value };
-  } catch (e) {
-    if (e instanceof CloudError && e.kind === 'session') {
-      await sessionEnded();
-      return { ok: false, error: 'session' };
-    }
-    return { ok: false, error: e instanceof CloudError && e.kind === 'network' ? 'network' : 'server' };
-  }
 }
 
 function signedIn(): string | null {

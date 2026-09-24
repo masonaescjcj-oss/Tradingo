@@ -133,6 +133,27 @@ type Data = {
   boostUntil: number;
   /** A streak that broke recently, which the shop can still repair. */
   lostStreak: LostStreak | null;
+  /** Duel record, and how many duels paid a reward today (rewards stop after a few a day). */
+  duels: DuelStats;
+};
+
+export type DuelStats = {
+  played: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  rewardDay: string | null;
+  rewarded: number;
+  /** Friend duels already counted (by code), so opening a result again pays nothing. */
+  codes: string[];
+};
+
+/** Duels a day that pay coins and XP. */
+export const DUEL_REWARDS_PER_DAY = 6;
+
+export const DUEL_REWARD = {
+  bot: { win: { coins: 15, xp: 10 }, other: { coins: 5, xp: 5 } },
+  friend: { win: { coins: 30, xp: 20 }, other: { coins: 10, xp: 10 } },
 };
 
 type Actions = {
@@ -166,6 +187,8 @@ type Actions = {
   /** Opens today's quest chest once all three quests are done. */
   claimQuestChest: (reward: ChestReward) => boolean;
   buy: (item: ShopItemId) => BuyResult;
+  /** Records a finished duel and pays its reward (while today's duel rewards last). */
+  finishDuel: (outcome: 'win' | 'loss' | 'tie', vsBot: boolean, code?: string) => { coins: number; xp: number };
   recordMistake: (key: string) => void;
   clearMistake: (key: string) => void;
   rolloverWeek: () => void;
@@ -236,6 +259,7 @@ function initialData(): Data {
     frozenDays: [],
     boostUntil: 0,
     lostStreak: null,
+    duels: { played: 0, wins: 0, losses: 0, ties: 0, rewardDay: null, rewarded: 0, codes: [] },
   };
 }
 
@@ -443,6 +467,31 @@ export const useGame = create<GameState>()(
         set({ quests: { ...log, chest: true }, coins: s.coins + reward.coins, ...hearts });
         if (reward.xp > 0) get().addXp(reward.xp);
         return true;
+      },
+
+      finishDuel: (outcome, vsBot, code) => {
+        const s = get();
+        const today = dayKey();
+        const d = { ...initialData().duels, ...s.duels };
+        if (code && d.codes.includes(code)) return { coins: 0, xp: 0 };
+        const rewarded = d.rewardDay === today ? d.rewarded : 0;
+        const table = vsBot ? DUEL_REWARD.bot : DUEL_REWARD.friend;
+        const reward = rewarded < DUEL_REWARDS_PER_DAY ? (outcome === 'win' ? table.win : table.other) : { coins: 0, xp: 0 };
+        set({
+          duels: {
+            played: d.played + 1,
+            wins: d.wins + (outcome === 'win' ? 1 : 0),
+            losses: d.losses + (outcome === 'loss' ? 1 : 0),
+            ties: d.ties + (outcome === 'tie' ? 1 : 0),
+            rewardDay: today,
+            rewarded: rewarded + (reward.coins > 0 ? 1 : 0),
+            codes: code ? [...d.codes, code].slice(-100) : d.codes,
+          },
+          coins: s.coins + reward.coins,
+          quests: addToLog(s.quests, today, { duels: 1 }),
+        });
+        if (reward.xp > 0) get().addXp(reward.xp);
+        return reward;
       },
 
       buy: (item) => {
