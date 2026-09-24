@@ -19,6 +19,7 @@ import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { startCloudSync } from '@/lib/cloud';
 import { startPwa } from '@/lib/pwa';
+import { flushReports } from '@/lib/reportApi';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 
@@ -106,6 +107,8 @@ export default function RootLayout() {
     syncHearts();
     // Only after local progress is loaded, so the first merge sees it.
     startCloudSync();
+    // Problem reports made offline last time.
+    void flushReports();
   }, [hydrated]);
 
   return (

@@ -51,6 +51,22 @@
 - هر حساب حداکثر ۳۰ دوئل در روز می‌سازه؛ دوئل‌های بالای ۹۰ روز پاک می‌شن
 - بازی با شمعک کاملاً روی گوشی اجرا می‌شه و به سرور نیازی نداره
 
+**گزارش مشکل درس‌ها نصب شده (۲۴ سپتامبر ۲۰۲۶، [`20260928000000_tradingo_reports.sql`](../supabase/migrations/20260928000000_tradingo_reports.sql)).**
+اثر انگشت بقیه‌ی پروژه قبل و بعد دقیقاً یکی بود (۱۹۹۴ شیء) و نسخه‌ی سرور ۴ شد. ثبت گزارش مهمون، رد شدن داده‌ی نامعتبر و بسته بودن
+خوندن جدول از API عمومی روی سرور تست شد و گزارش آزمایشی پاک شد. سقف روزانه‌ی هر حساب (۲۰) قبلش روی PostgreSQL محلی تست شده بود.
+
+کاربر با پرچم بالای صفحه‌ی درس، مرحله‌ی جلوی چشمش رو گزارش می‌ده (جواب اشتباه، غلط تایپی، نمودار، متن گنگ یا مشکل دیگه، با توضیح اختیاری).
+گزارش‌ها رو توی **SQL Editor** این‌طوری ببین:
+
+```sql
+select created_at, lesson_id, step_index, step_type, reason, message
+  from public.tradingo_reports where status = 'new' order by created_at desc;
+-- بعد از درست کردن: update public.tradingo_reports set status = 'fixed' where id = '…';
+```
+
+`lesson_id` و `step_index` دقیقاً همون درس و مرحله توی `src/content` هستن (شماره‌ی مرحله از صفر). هر حساب روزی ۲۰ گزارش و همه با هم
+(مهمون‌ها هم) روزی ۱۰۰۰ گزارش می‌تونن بفرستن. گزارشی که بدون اینترنت ثبت بشه روی گوشی می‌مونه و بعداً خودش فرستاده می‌شه.
+
 ### راه‌انداختن دستیار (یه بار)
 
 توی داشبورد Supabase برو به **Edge Functions → Secrets** و این‌ها رو اضافه کن (اسم‌ها با `TRADINGO_` شروع می‌شن تا با
@@ -82,7 +98,8 @@
 [`supabase/migrations/20260924000000_tradingo.sql`](../supabase/migrations/20260924000000_tradingo.sql)
 رو بچسبون و **Run** بزن؛ بعد همین کار رو با
 [`supabase/migrations/20260925000000_tradingo_chat.sql`](../supabase/migrations/20260925000000_tradingo_chat.sql) (گفتگو)، `20260926000000_tradingo_ai.sql` (دستیار) و
-[`supabase/migrations/20260927000000_tradingo_duels.sql`](../supabase/migrations/20260927000000_tradingo_duels.sql) (دوئل) بکن.
+[`supabase/migrations/20260927000000_tradingo_duels.sql`](../supabase/migrations/20260927000000_tradingo_duels.sql) (دوئل) و
+[`supabase/migrations/20260928000000_tradingo_reports.sql`](../supabase/migrations/20260928000000_tradingo_reports.sql) (گزارش مشکل) بکن.
 اجرای دوباره‌شون ضرری نداره.
 
 این فایل قبل از تحویل روی PostgreSQL 16 با نقش‌های مشابه Supabase و PostgREST تست شده: ثبت‌نام، شماره‌ی تکراری،
@@ -125,6 +142,8 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 | `supabase/migrations/20260927000000_tradingo_duels.sql` | دوئل با دوست: ساختن، باز کردن با کد، ثبت نتیجه و فهرست |
 | `src/lib/duel.ts`، `src/lib/duelData.ts`، `src/lib/duelApi.ts` | راندها، امتیازدهی، شمعک، نمودارهای بایننس و تماس با سرور |
 | `src/app/duel/`، `src/components/duel/` | صفحه‌ی دوئل‌ها، سه راند، نتیجه و دعوت |
+| `supabase/migrations/20260928000000_tradingo_reports.sql` | گزارش مشکل مرحله‌های درس، با سقف روزانه |
+| `src/lib/reports.ts`، `src/lib/reportApi.ts`، `src/components/lesson/ReportSheet.tsx` | دلیل‌ها، ارسال (و صف آفلاین) و فرم گزارش |
 
 ## قدم‌های بعدی (مرحله‌ی ۳ نقشه‌ی راه)
 

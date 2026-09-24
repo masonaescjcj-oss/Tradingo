@@ -11,15 +11,22 @@ type Props = {
   onClose: () => void;
   hearts?: number;
   secondsLeft?: number;
+  /** Opens the problem report for the step on screen. */
+  onReport?: () => void;
 };
 
-export function LessonHeader({ progress, onClose, hearts, secondsLeft }: Props) {
+export function LessonHeader({ progress, onClose, hearts, secondsLeft, onReport }: Props) {
   return (
     <View style={styles.row}>
       <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="خروج از درس" style={styles.close}>
         <Icon name="close" size={26} color={colors.text3} strokeWidth={2.8} />
       </Pressable>
       <ProgressBar value={progress} label="پیشرفت درس" />
+      {onReport ? (
+        <Pressable onPress={onReport} accessibilityRole="button" accessibilityLabel="گزارش مشکل این مرحله" hitSlop={6} style={styles.flag}>
+          <Icon name="flag" size={20} color={colors.text3} strokeWidth={2.4} />
+        </Pressable>
+      ) : null}
       {secondsLeft != null ? (
         <View style={styles.counter} accessible accessibilityLabel={`${fa(secondsLeft)} ثانیه مونده`}>
           <Icon name="clock" size={20} color={secondsLeft <= 10 ? colors.bear : colors.gold} strokeWidth={2.6} />
@@ -49,6 +56,12 @@ const styles = StyleSheet.create({
   },
   close: {
     width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flag: {
+    width: 32,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',

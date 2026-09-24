@@ -11,6 +11,7 @@ import { FillQuestion } from '@/components/lesson/FillQuestion';
 import { LearnCard } from '@/components/lesson/LearnCard';
 import { LessonComplete } from '@/components/lesson/LessonComplete';
 import { LessonHeader } from '@/components/lesson/LessonHeader';
+import { ReportSheet } from '@/components/lesson/ReportSheet';
 import { LineQuestion } from '@/components/lesson/LineQuestion';
 import { MatchQuestion } from '@/components/lesson/MatchQuestion';
 import { OrderQuestion } from '@/components/lesson/OrderQuestion';
@@ -81,6 +82,7 @@ function LessonPlayer({ session }: { session: Session }) {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [lives, setLives] = useState(session.kind === 'test' ? session.lives : 0);
   const [shake] = useState(() => new Animated.Value(0));
+  const [reporting, setReporting] = useState(false);
 
   const firstTry = useRef(new Map<number, boolean>());
   const correctCount = useRef(0);
@@ -286,6 +288,7 @@ function LessonPlayer({ session }: { session: Session }) {
         onClose={() => setConfirmExit(true)}
         hearts={isLesson ? hearts : isTest ? lives : undefined}
         secondsLeft={timeLimit ? Math.max(0, secondsLeft ?? 0) : undefined}
+        onReport={() => setReporting(true)}
       />
       <ScrollView contentContainerStyle={[styles.content, revealed && { paddingBottom: 320 }]} showsVerticalScrollIndicator={false}>
         <Animated.View key={pos} style={{ transform: [{ translateX: shake }] }}>
@@ -312,6 +315,8 @@ function LessonPlayer({ session }: { session: Session }) {
           onContinue={next}
         />
       )}
+
+      <ReportSheet stepRef={current.ref} stepType={step.type} visible={reporting} onClose={() => setReporting(false)} />
 
       <Modal visible={confirmExit} transparent animationType="fade" onRequestClose={() => setConfirmExit(false)}>
         <View style={styles.backdrop}>
