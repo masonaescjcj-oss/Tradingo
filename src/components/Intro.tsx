@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Mascot } from '@/components/Mascot';
+import { LogoMark } from '@/components/LogoMark';
 import { Txt } from '@/components/Txt';
 import { colors } from '@/theme';
 
@@ -14,10 +14,13 @@ const native = Platform.OS !== 'web';
 if (native) SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
- * Width of Shamak on the phone's splash: splash-icon.png is shown 180dp wide (imageWidth in
- * app.json) and the mascot's 140-unit box fills 700 of its 1024 pixels, centred.
+ * The splash (app.json: expo-splash-screen) shows splash-icon.png, the whole 240-unit square of
+ * the logo (assets/brand/logo-mark.svg), 180dp wide (imageWidth) and centred on the screen.
  */
-const SPLASH_MASCOT = (180 * 700) / 1024;
+const SPLASH_BOX = 180;
+
+/** How much of the logo's square shows above the floor when Shamak peeks: wick tip to just under the smile. */
+const PEEK = 0.66;
 
 /** The rising candles above the wordmark, left to right: [colour, body height, how high it sits]. */
 const CANDLES: [string, number, number][] = [
@@ -40,12 +43,11 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
   const { width: W, height: H } = useWindowDimensions();
   // Shamak peeks over the phone's navigation bar, not from under it.
   const floor = H - useSafeAreaInsets().bottom;
-  const size = Math.min(W * 0.42, 200);
-  const tall = (size * 170) / 140;
-  // Resting place: 70% of Shamak shows above the navigation bar (or the bottom edge). The start pose, the splash's
-  // centred mascot, is expressed as a move and a scale from there.
-  const startY = H / 2 - (floor - 0.7 * tall + tall / 2);
-  const startScale = SPLASH_MASCOT / size;
+  // The logo's square at rest (Shamak himself is 40% of its width); the start pose, the splash's
+  // centred logo, is expressed as a move and a scale from there.
+  const box = Math.min(W * 0.95, 380);
+  const startY = H / 2 - (floor - PEEK * box + box / 2);
+  const startScale = SPLASH_BOX / box;
   const wordSize = Math.round(Math.min(W * 0.2, 84));
 
   const [t] = useState(() => ({
@@ -117,7 +119,7 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
     t.fall.interpolate({ inputRange: [0, 1], outputRange: [startY, 0] }),
     Animated.add(
       t.bob.interpolate({ inputRange: [0, 1], outputRange: [0, -16] }),
-      t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, tall + H - floor] }),
+      t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, box + H - floor] }),
     ),
   );
   const mascotStyle = {
@@ -169,8 +171,8 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
           </Txt>
         </Animated.View>
       ) : null}
-      <Animated.View style={[styles.mascot, { width: size, height: tall, left: (W - size) / 2, top: floor - 0.7 * tall }, mascotStyle]}>
-        <Mascot size={size} />
+      <Animated.View style={[styles.mascot, { width: box, height: box, left: (W - box) / 2, top: floor - PEEK * box }, mascotStyle]}>
+        <LogoMark size={box} />
       </Animated.View>
     </Animated.View>
   );

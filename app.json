@@ -15,7 +15,7 @@
       "package": "net.chartoon.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#FFC53D",
+        "backgroundColor": "#0E1320",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
