@@ -9,8 +9,8 @@
  * - Pages: the network first, so an online visit always gets the latest release. When the
  *   network is down or slower than NETWORK_WAIT_MS, the saved app shell opens instead.
  * - App files (hashed bundles, fonts, sounds, icons): from the cache, saved at install.
- * - Other servers (Supabase, Binance): never touched here, so account data, chat and prices
- *   are always live and never served stale.
+ * - Other servers (Supabase, Binance) and the relay to them (/proxy/): never touched here, so
+ *   account data, chat and prices are always live and never served stale.
  */
 const VERSION = '__VERSION__';
 const PRECACHE = __PRECACHE__;
@@ -63,7 +63,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(page(event));
     return;
   }
-  if (url.pathname === '/sw.js') return;
+  // The relay to Binance and Supabase (vercel.json) is always live, like the other servers.
+  if (url.pathname === '/sw.js' || url.pathname.startsWith('/proxy/')) return;
   event.respondWith(file(request));
 });
 

@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+import { supabaseRelay } from './proxy';
+
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -12,11 +14,13 @@ const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
  * tradingo_* database functions (see supabase/migrations). The tradingo_ prefix is the app's old
  * name; it stays so the installed server objects and saved sessions keep working.
  */
-export const supabase: SupabaseClient | null =
-  url && key
-    ? createClient(url, key, {
-        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-      })
-    : null;
+const make = (base: string) => createClient(base, key!, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+const relay = supabaseRelay(url);
+
+/** Asks through app.chartoon.net's relay when it serves this project (src/lib/proxy.ts), else the project itself. */
+export const supabase: SupabaseClient | null = url && key ? make(relay ?? url) : null;
+
+/** The project's own address, for when the relay can't be reached (null when there's no relay to fall back from). */
+export const supabaseDirect: SupabaseClient | null = url && key && relay ? make(url) : null;
 
 export const cloudEnabled = supabase != null;

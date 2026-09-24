@@ -1,10 +1,12 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
 import { pickData, useGame, type GameData } from '@/store/game';
 
 import { mergeProgress } from './merge';
 import { safeStorage } from './storage';
-import { cloudEnabled, supabase } from './supabase';
+
+import { cloudEnabled, supabase, supabaseDirect } from './supabase';
 
 type Status = 'off' | 'signedOut' | 'syncing' | 'synced' | 'error';
 
@@ -44,19 +46,43 @@ export class CloudError extends Error {
 /** Server calls give up after this long, so a slow or filtered connection never leaves the app waiting. */
 const RPC_TIMEOUT_MS = 10_000;
 
-export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
-  if (!supabase) throw new CloudError('missing', 'not configured');
+/** After the relay fails to connect, calls go straight to the project until that fails too. */
+let viaDirect = false;
+
+type Attempt = { result?: Awaited<ReturnType<SupabaseClient['rpc']>>; unreachable?: boolean; error?: unknown };
+
+async function attempt(client: SupabaseClient, fn: string, args: Record<string, unknown>): Promise<Attempt> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), RPC_TIMEOUT_MS);
-  let result;
   try {
-    result = await supabase.rpc(fn, args).abortSignal(controller.signal);
+    const result = await client.rpc(fn, args).abortSignal(controller.signal);
+    // A request that never got an answer (no connection) is safe to send another way; a timeout
+    // might have reached the server, so it isn't retried (it could create a duel twice).
+    const failedToConnect = !!result.error && !result.error.code && !controller.signal.aborted;
+    return failedToConnect ? { unreachable: true, error: result.error } : { result };
   } catch (e) {
-    throw new CloudError('network', e instanceof Error ? e.message : String(e));
+    return { unreachable: !controller.signal.aborted, error: e };
   } finally {
     clearTimeout(timer);
   }
-  const { data, error } = result;
+}
+
+export async function rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
+  if (!supabase) throw new CloudError('missing', 'not configured');
+  const routes = supabaseDirect ? (viaDirect ? [supabaseDirect, supabase] : [supabase, supabaseDirect]) : [supabase];
+  let got: Attempt = {};
+  for (const client of routes) {
+    got = await attempt(client, fn, args);
+    if (!got.unreachable) {
+      viaDirect = client === supabaseDirect;
+      break;
+    }
+  }
+  if (!got.result) {
+    const e = got.error;
+    throw new CloudError('network', e instanceof Error ? e.message : typeof e === 'object' && e && 'message' in e ? String(e.message) : String(e));
+  }
+  const { data, error } = got.result;
   if (error) {
     if (error.code === 'PGRST202' || error.code === 'PGRST205' || error.code === '42883') throw new CloudError('missing', error.message);
     if (error.message?.includes('invalid_session')) throw new CloudError('session', error.message);

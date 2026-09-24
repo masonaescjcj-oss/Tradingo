@@ -2,12 +2,11 @@
 import { Platform } from 'react-native';
 
 import { buildRounds, CHART_AHEAD, CHART_SHOWN, duelPlan, fallbackCandles, roundCandles, TRADE_HISTORY, TRADE_REPLAY, type DuelChart, type DuelRounds, type WindowPlan } from './duel';
-import { BINANCE_HOSTS, fetchKlines } from './marketData';
+import { BINANCE_HOSTS, BROWSER_HOSTS, fetchKlines } from './marketData';
 import { findSymbol } from './simulator';
 
 async function realWindow(p: WindowPlan): Promise<DuelChart> {
-  // api.binance.com doesn't allow browser requests, so on the web only the market-data host is worth trying.
-  const hosts = Platform.OS === 'web' ? BINANCE_HOSTS.slice(0, 1) : BINANCE_HOSTS;
+  const hosts = Platform.OS === 'web' ? BROWSER_HOSTS : BINANCE_HOSTS;
   const { klines } = await fetchKlines(p.binance, p.limit, { interval: p.interval, endTime: p.endTime, timeoutMs: 7000, hosts });
   if (klines.length !== p.limit) throw new Error('duel: short history');
   return { symbol: p.symbol, label: p.label, decimals: p.decimals, candles: roundCandles(klines.map((k) => k.candle), p.decimals) };

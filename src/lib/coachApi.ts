@@ -7,6 +7,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { historyFor, type CoachTurn } from './coach';
 import { sessionEnded, sessionToken } from './cloud';
+import { supabaseRelay } from './proxy';
 import { safeStorage } from './storage';
 
 /** Turns kept on the device. */
@@ -37,13 +38,23 @@ export async function askCoach(earlier: CoachTurn[], question: string, context: 
   if (!token) return { error: 'session' };
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(`${url}/functions/v1/tradingo-coach`, {
+  const ask = (base: string) =>
+    fetch(`${base}/functions/v1/tradingo-coach`, {
       method: 'POST',
       headers: { apikey: key, 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, messages: historyFor(earlier, question), context }),
       signal: controller.signal,
     });
+  try {
+    // Through app.chartoon.net's relay first; straight to the project if the relay can't be reached.
+    const relay = supabaseRelay(url);
+    let res: Response;
+    try {
+      res = await ask(relay ?? url);
+    } catch (e) {
+      if (!relay || controller.signal.aborted) throw e;
+      res = await ask(url);
+    }
     // No function yet on this project.
     if (res.status === 404) return { error: 'not_configured' };
     const data = (await res.json().catch(() => ({}))) as { reply?: string; remaining?: number; error?: string };

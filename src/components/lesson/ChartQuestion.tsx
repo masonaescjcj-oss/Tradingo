@@ -23,6 +23,7 @@ export function ChartCard({
   onCandlePress,
   marks,
   dragLine,
+  bleed = false,
 }: {
   chart: ChartSpec;
   symbol: string;
@@ -31,10 +32,12 @@ export function ChartCard({
   onCandlePress?: (index: number) => void;
   marks?: Record<number, CandleMark>;
   dragLine?: DragLine;
+  /** Nearly edge to edge: the card reaches 6px from the screen sides instead of 16px. */
+  bleed?: boolean;
 }) {
-  const width = useColumnWidth() - 32 - 28;
+  const width = useColumnWidth() - (bleed ? 12 : 32) - 28;
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, bleed && styles.bleed]}>
       <View style={styles.cardHead}>
         <Txt mono w={800} size={13} color={colors.text2}>
           {symbol}
@@ -117,6 +120,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surfaceDeep,
+  },
+  bleed: {
+    marginHorizontal: -10,
   },
   cardHead: {
     flexDirection: 'row',

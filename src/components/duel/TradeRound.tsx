@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { ProChart, type ProLine } from '@/components/sim/ProChart';
@@ -35,6 +35,8 @@ function specOf(chart: DuelChart): SymbolSpec {
 
 /** Round 3: the chart replays one candle every 1.5 seconds; buy, sell or close with $1,000 at 10× leverage. */
 export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: number; onDone: (r: DuelResult['trade']) => void }) {
+  // Half the screen for the chart, so the candles are easy to read while they run.
+  const chartHeight = Math.round(Math.min(500, Math.max(320, useWindowDimensions().height * 0.5)));
   const [running, setRunning] = useState(false);
   const [s, setS] = useState(tradeStart);
   const over = tradeFinished(trade, s);
@@ -73,7 +75,7 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
       </View>
 
       <View style={styles.chart}>
-        <ProChart spec={spec} candles={candles} price={price} lines={lines} tools={TOOLS} width={width} height={260} title={`${trade.label} · M15`} interactive={false} initialCount={52} />
+        <ProChart spec={spec} candles={candles} price={price} lines={lines} tools={TOOLS} width={width} height={chartHeight} title={`${trade.label} · M15`} interactive={false} initialCount={52} />
       </View>
 
       {!running ? (

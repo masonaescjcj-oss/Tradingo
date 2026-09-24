@@ -10,6 +10,8 @@
  */
 import type { Candle } from '@/content/types';
 
+import { BINANCE_PROXY } from './proxy';
+
 /** The Binance pair behind each simulator symbol that has live prices. */
 export const LIVE_SOURCES: Record<string, string> = {
   BTCUSDT: 'BTCUSDT',
@@ -19,7 +21,10 @@ export const LIVE_SOURCES: Record<string, string> = {
 };
 
 export const LIVE_SYMBOLS = Object.keys(LIVE_SOURCES);
-export const BINANCE_HOSTS = ['https://data-api.binance.vision', 'https://api.binance.com'];
+/** app.chartoon.net's relay first (Binance refuses some regions, Iran among them), then Binance itself. */
+export const BINANCE_HOSTS = [BINANCE_PROXY, 'https://data-api.binance.vision', 'https://api.binance.com'];
+/** api.binance.com doesn't allow browser requests, so the web tries only the others. */
+export const BROWSER_HOSTS = BINANCE_HOSTS.filter((h) => h !== 'https://api.binance.com');
 export const LIVE_INTERVAL = '1m';
 export const LIVE_POLL_MS = 2500;
 

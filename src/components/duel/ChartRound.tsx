@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
@@ -18,6 +18,8 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
   const unit = atr(shown);
   const [guess, setGuess] = useState(last);
   const [revealed, setRevealed] = useState(false);
+  // A tall chart: most of the screen, leaving room for the question, the guess and the button.
+  const chartHeight = Math.round(Math.min(480, Math.max(300, useWindowDimensions().height * 0.46)));
 
   const lows = Math.min(...shown.map((c) => c[2]));
   const highs = Math.max(...shown.map((c) => c[1]));
@@ -48,7 +50,8 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
       <ChartCard
         chart={spec}
         symbol={`${chart.label} · H1`}
-        height={250}
+        height={chartHeight}
+        bleed
         dragLine={{
           price: guess,
           label: 'حدس تو',

@@ -6,6 +6,8 @@
   "cleanUrls": true,
   "framework": null,
   "rewrites": [
+    { "source": "/proxy/binance/:path*", "destination": "https://data-api.binance.vision/:path*" },
+    { "source": "/proxy/supabase/:path*", "destination": "https://jasgepmskcsyvqoesocc.supabase.co/:path*" },
     {
       "source": "/:path*",
       "destination": "/"
