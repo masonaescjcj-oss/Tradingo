@@ -4,10 +4,11 @@ import { Txt } from '@/components/Txt';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
-type Tab = 'reports' | 'users' | 'messages' | 'ai' | 'log';
+type Tab = 'reports' | 'rooms' | 'users' | 'messages' | 'ai' | 'log';
 
 const TABS: [Tab, string][] = [
   ['reports', 'گزارش‌ها'],
+  ['rooms', 'گروه‌ها'],
   ['users', 'کاربران'],
   ['messages', 'پیام‌ها'],
   ['ai', 'هوش مصنوعی'],

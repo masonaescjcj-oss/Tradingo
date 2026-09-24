@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
@@ -12,8 +13,11 @@ import {
   logText,
   moderateMessage,
   saveAiSettings,
+  deleteRoom,
+  fetchRooms,
   type AdminLogEntry,
   type AdminMessage,
+  type AdminRoom,
   type AdminUser,
   type AiStatus,
   type UserAction,
@@ -25,7 +29,7 @@ import { latinDigits } from '@/lib/phone';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
-import { ActionSheet, adminStyles, Card, MessageCard, Segments, SmallButton, UserCard, type SheetOption } from './AdminBits';
+import { ActionSheet, adminStyles, Badge, Card, MessageCard, Segments, SmallButton, UserCard, type SheetOption } from './AdminBits';
 
 type Sheet = { title: string; body?: string; options: SheetOption[]; withReason?: boolean } | null;
 type Notify = (text: string) => void;
@@ -89,18 +93,30 @@ function Empty({ text }: { text: string }) {
 }
 
 /** Reported messages waiting for a decision, most reported first; or the latest messages. */
-export function MessagesTab({ reported, account, notify, onChanged }: { reported: boolean; account?: AdminUser | null; notify: Notify; onChanged: () => void }) {
+export function MessagesTab({
+  reported,
+  account,
+  room,
+  notify,
+  onChanged,
+}: {
+  reported: boolean;
+  account?: AdminUser | null;
+  room?: AdminRoom | null;
+  notify: Notify;
+  onChanged: () => void;
+}) {
   const [items, setItems] = useState<AdminMessage[] | null>(null);
   const [more, setMore] = useState(true);
   const load = async (before?: number) => {
-    const res = await fetchAdminMessages({ reported, account: account?.id, before });
+    const res = await fetchAdminMessages({ reported, account: account?.id, room: room?.id, before });
     if (!res.ok) return notify(adminErrorText(res.error));
     setMore(res.value.length === 50 && !reported);
     setItems((prev) => (before && prev ? [...prev, ...res.value] : res.value));
   };
   useEffect(() => {
     let live = true;
-    fetchAdminMessages({ reported, account: account?.id }).then((res) => {
+    fetchAdminMessages({ reported, account: account?.id, room: room?.id }).then((res) => {
       if (!live) return;
       if (!res.ok) return notify(adminErrorText(res.error));
       setMore(res.value.length === 50 && !reported);
@@ -109,7 +125,7 @@ export function MessagesTab({ reported, account, notify, onChanged }: { reported
     return () => {
       live = false;
     };
-  }, [reported, account?.id, notify]);
+  }, [reported, account?.id, room?.id, notify]);
 
   const patchAuthor = (u: AdminUser) =>
     setItems((prev) => prev?.map((m) => (m.author_id === u.id ? { ...m, author_muted: u.muted, author_banned: u.banned, hidden: u.banned || m.hidden } : m)) ?? null);
@@ -129,6 +145,12 @@ export function MessagesTab({ reported, account, notify, onChanged }: { reported
   return (
     <View style={styles.list}>
       {account ? <Txt w={800} size={13} color={colors.text2}>{`پیام‌های ${account.name}`}</Txt> : null}
+      {room ? (
+        <View style={styles.roomHead}>
+          <Txt w={800} size={13} color={colors.text2} style={{ flex: 1 }}>{`پیام‌های گروه «${room.title}»، پنهان‌شده‌ها هم هستن`}</Txt>
+          <SmallButton label="رفتن به گروه" onPress={() => router.push(`/chat/${room.id}`)} />
+        </View>
+      ) : null}
       {items.length === 0 ? <Empty text={reported ? 'گزارشی نمونده 🎉' : 'پیامی نیست.'} /> : null}
       {items.map((m) => (
         <MessageCard
@@ -219,6 +241,81 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
         />
       ))}
       {element}
+    </View>
+  );
+}
+
+/**
+ * Every group, official ones first: its numbers, its messages (hidden ones too, via the
+ * messages tab), the group itself, and deleting a group learners made.
+ */
+export function RoomsTab({ notify, onChanged, onShowMessages }: { notify: Notify; onChanged: () => void; onShowMessages: (r: AdminRoom) => void }) {
+  const [items, setItems] = useState<AdminRoom[] | null>(null);
+  const [sheet, setSheet] = useState<Sheet>(null);
+  useEffect(() => {
+    let live = true;
+    fetchRooms().then((res) => {
+      if (!live) return;
+      if (!res.ok) return notify(adminErrorText(res.error));
+      setItems(res.value);
+    });
+    return () => {
+      live = false;
+    };
+  }, [notify]);
+
+  const remove = (r: AdminRoom) =>
+    setSheet({
+      title: `گروه «${r.title}» حذف بشه؟`,
+      body: 'گروه با همه‌ی پیام‌هاش برای همیشه پاک می‌شه و اعضاش ازش بیرون می‌رن.',
+      options: [
+        {
+          label: 'حذف گروه',
+          variant: 'danger',
+          run: async () => {
+            setSheet(null);
+            const res = await deleteRoom(r.id);
+            if (!res.ok) return notify(adminErrorText(res.error));
+            setItems((prev) => prev?.filter((x) => x.id !== r.id) ?? null);
+            notify(`گروه «${r.title}» حذف شد.`);
+            onChanged();
+          },
+        },
+      ],
+    });
+
+  if (!items) return <ActivityIndicator color={colors.bull} style={{ marginTop: 32 }} />;
+  return (
+    <View style={styles.list}>
+      {items.length === 0 ? <Empty text="گروهی نیست." /> : null}
+      {items.map((r) => (
+        <Card key={r.id}>
+          <View style={styles.roomHead}>
+            <Txt w={900} size={15} style={{ flex: 1 }} numberOfLines={1}>
+              {r.title}
+            </Txt>
+            {r.official ? <Badge label="رسمی" color={colors.skySoft} ink={colors.skyText} /> : null}
+            {r.open_reports > 0 ? <Badge label={`${fa(r.open_reports)} گزارش`} color={colors.bearSoft} ink={colors.bearText} /> : null}
+          </View>
+          <Txt size={12} lh={1.7} color={colors.text3}>
+            {[
+              r.official ? null : `سازنده: ${r.owner_name ?? 'حساب حذف‌شده'}`,
+              `${fa(r.member_count)} عضو`,
+              `${fa(r.messages)} پیام`,
+              r.hidden ? `${fa(r.hidden)} پنهان` : null,
+              r.messages ? `آخرین پیام: ${whenText(r.last_message_at)}` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Txt>
+          <View style={styles.actionsRow}>
+            <SmallButton label="پیام‌ها" onPress={() => onShowMessages(r)} />
+            <SmallButton label="رفتن به گروه" onPress={() => router.push(`/chat/${r.id}`)} />
+            {!r.official ? <SmallButton label="حذف گروه" tone="danger" onPress={() => remove(r)} /> : null}
+          </View>
+        </Card>
+      ))}
+      {sheet ? <ActionSheet {...sheet} onClose={() => setSheet(null)} /> : null}
     </View>
   );
 }
@@ -373,6 +470,17 @@ export function Stat({ label, value, tone }: { label: string; value: number; ton
 }
 
 const styles = StyleSheet.create({
+  roomHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
   list: {
     gap: 10,
   },

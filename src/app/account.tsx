@@ -11,7 +11,8 @@ import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { deleteAccount, logout, uploadAccount } from '@/lib/auth';
 import { resetTo } from '@/lib/nav';
-import { syncNow, useCloud } from '@/lib/cloud';
+import { adminErrorText, claimAdmin, roomsAvailable } from '@/lib/adminApi';
+import { refreshStatus, syncNow, useCloud } from '@/lib/cloud';
 import { formatMobile } from '@/lib/phone';
 import { cloudEnabled } from '@/lib/supabase';
 import { useGame } from '@/store/game';
@@ -102,6 +103,7 @@ function SignedIn() {
       {user.cloud && (
         <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
       )}
+      {cloud.userId && !cloud.admin && <AdminCode />}
       <Button3D
         label="خروج از حساب"
         variant="secondary"
@@ -116,6 +118,70 @@ function SignedIn() {
       </Txt>
       <DeleteAccount />
     </View>
+  );
+}
+
+/** Becoming an admin with the one-time setup code made on the server (no phone number needed). */
+function AdminCode() {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [available, setAvailable] = useState(false);
+  useEffect(() => {
+    let live = true;
+    roomsAvailable().then((ok) => live && setAvailable(ok));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!available) return null;
+  const close = () => {
+    setOpen(false);
+    setCode('');
+    setError(null);
+  };
+  return (
+    <>
+      <Txt size={13} w={800} color={colors.skyText} center onPress={() => setOpen(true)} accessibilityRole="button" style={{ paddingVertical: 6 }}>
+        کد راه‌اندازی مدیریت دارم
+      </Txt>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
+        <View style={styles.backdrop}>
+          <View style={styles.dialog}>
+            <Icon name="shield" size={40} color={colors.sky} />
+            <Txt w={900} size={18} center>
+              مدیر چارتون شو
+            </Txt>
+            <Txt size={13.5} lh={1.9} color={colors.text2} center>
+              کدی که از سرور گرفتی رو وارد کن تا همین حساب مدیر بشه. هر کد فقط یه بار کار می‌کنه.
+            </Txt>
+            <View style={{ alignSelf: 'stretch' }}>
+              <AuthField label="کد راه‌اندازی" icon="lock" ltr value={code} onChangeText={setCode} placeholder="XXXX-XXXX-XXXX-XXXX" autoCapitalize="characters" autoCorrect={false} error={error} />
+            </View>
+            <Button3D
+              label={busy ? 'در حال بررسی…' : 'تأیید'}
+              size={16}
+              disabled={busy || !code.trim()}
+              onPress={async () => {
+                setBusy(true);
+                const res = await claimAdmin(code);
+                if (res.ok) await refreshStatus();
+                setBusy(false);
+                if (!res.ok) {
+                  setError(adminErrorText(res.error));
+                  return;
+                }
+                close();
+                router.push('/admin');
+              }}
+              style={{ alignSelf: 'stretch' }}
+            />
+            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={close} style={{ alignSelf: 'stretch' }} />
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 

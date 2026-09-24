@@ -3,16 +3,16 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AdminTabsHeader } from '@/components/admin/AdminHeader';
-import { AiTab, LogTab, MessagesTab, Stat, UsersTab } from '@/components/admin/AdminTabs';
+import { AiTab, LogTab, MessagesTab, RoomsTab, Stat, UsersTab } from '@/components/admin/AdminTabs';
 import { BackHeader } from '@/components/BackHeader';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { adminAvailable, adminErrorText, fetchOverview, type AdminOverview, type AdminUser } from '@/lib/adminApi';
+import { adminAvailable, adminErrorText, fetchOverview, type AdminOverview, type AdminRoom, type AdminUser } from '@/lib/adminApi';
 import { useCloud } from '@/lib/cloud';
 import { colors } from '@/theme';
 
-type AdminTab = 'reports' | 'users' | 'messages' | 'ai' | 'log';
+type AdminTab = 'reports' | 'rooms' | 'users' | 'messages' | 'ai' | 'log';
 
 /** The admin panel: reports, accounts, messages, the AI key and a log of admin actions. */
 export default function AdminScreen() {
@@ -21,6 +21,7 @@ export default function AdminScreen() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [account, setAccount] = useState<AdminUser | null>(null);
+  const [room, setRoom] = useState<AdminRoom | null>(null);
   const [missing, setMissing] = useState(false);
 
   const notify = useCallback((text: string) => setNotice(text), []);
@@ -71,7 +72,10 @@ export default function AdminScreen() {
           reports={overview?.open_reports ?? 0}
           onChange={(t) => {
             setTab(t);
-            if (t !== 'messages') setAccount(null);
+            if (t !== 'messages') {
+              setAccount(null);
+              setRoom(null);
+            }
           }}
         />
 
@@ -84,12 +88,24 @@ export default function AdminScreen() {
         ) : null}
 
         {tab === 'reports' ? <MessagesTab reported notify={notify} onChanged={refresh} /> : null}
-        {tab === 'messages' ? <MessagesTab reported={false} account={account} notify={notify} onChanged={refresh} /> : null}
+        {tab === 'messages' ? <MessagesTab reported={false} account={account} room={room} notify={notify} onChanged={refresh} /> : null}
+        {tab === 'rooms' ? (
+          <RoomsTab
+            notify={notify}
+            onChanged={refresh}
+            onShowMessages={(r) => {
+              setAccount(null);
+              setRoom(r);
+              setTab('messages');
+            }}
+          />
+        ) : null}
         {tab === 'users' ? (
           <UsersTab
             notify={notify}
             onChanged={refresh}
             onShowMessages={(u) => {
+              setRoom(null);
               setAccount(u);
               setTab('messages');
             }}

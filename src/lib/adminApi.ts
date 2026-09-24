@@ -81,6 +81,44 @@ function call<T>(fn: string, args: Record<string, unknown>): Promise<RpcResult<T
 
 export const fetchOverview = () => call<AdminOverview>('tradingo_admin_overview', {});
 
+export type AdminRoom = {
+  id: string;
+  title: string;
+  about: string;
+  topic: string;
+  official: boolean;
+  member_count: number;
+  created_at: string;
+  last_message_at: string;
+  owner_id: string | null;
+  owner_name: string | null;
+  messages: number;
+  hidden: number;
+  open_reports: number;
+};
+
+/** Whether the server has the groups tab and setup codes (version 7). */
+export async function roomsAvailable(): Promise<boolean> {
+  return (await serverVersion()) >= 7;
+}
+
+export async function fetchRooms(): Promise<RpcResult<AdminRoom[]>> {
+  const res = await call<AdminRoom[]>('tradingo_admin_rooms', {});
+  return res.ok ? { ok: true, value: Array.isArray(res.value) ? res.value : [] } : res;
+}
+
+/** Deletes a group learners made, with its messages; official groups can't be deleted. */
+export const deleteRoom = (id: string) => call<{ ok: boolean }>('tradingo_admin_room_delete', { p_room: id });
+
+/** A setup code as typed: any case, with or without dashes and spaces → XXXX-XXXX-XXXX-XXXX. */
+export function normalizeSetupCode(code: string): string {
+  const raw = latinDigits(code).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return raw.length === 16 ? (raw.match(/.{4}/g) ?? []).join('-') : code.trim().toUpperCase();
+}
+
+/** Makes the signed-in account an admin with the one-time setup code from the server. */
+export const claimAdmin = (code: string) => call<{ ok: boolean }>('tradingo_admin_claim', { p_code: normalizeSetupCode(code) });
+
 export async function fetchAdminMessages(opts: { reported?: boolean; room?: string; account?: string; before?: number } = {}): Promise<RpcResult<AdminMessage[]>> {
   const res = await call<AdminMessage[]>('tradingo_admin_messages', {
     p_filter: opts.reported ? 'reported' : 'latest',
@@ -133,6 +171,8 @@ const ERRORS: Record<string, string> = {
   openai_needs_model_and_url: 'برای سرویس سازگار با OpenAI، اسم مدل و آدرس API لازمه.',
   invalid_limit: 'سقف روزانه باید بین ۱ تا ۱۰۰۰ باشه.',
   invalid_provider: 'سرویس انتخاب‌شده درست نیست.',
+  invalid_code: 'این کد درست نیست، قبلاً استفاده شده یا منقضی شده.',
+  official_room: 'گروه‌های رسمی حذف نمی‌شن؛ پیام‌هاشون رو مدیریت کن.',
   session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
   network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
 };
@@ -155,6 +195,8 @@ export function logText(action: string, target: string | null): string {
     delete_message: `یه پیام از ${t} رو حذف کرد`,
     keep_message: `گزارش پیام ${t} رو رد کرد`,
     ai_settings: 'تنظیمات هوش مصنوعی رو عوض کرد',
+    claim_admin: 'با کد راه‌اندازی مدیر شد',
+    delete_room: `یه گروه از ${t} رو حذف کرد`,
   };
   return lines[action] ?? action;
 }

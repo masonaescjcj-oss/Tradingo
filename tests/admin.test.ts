@@ -51,4 +51,20 @@ describe('admin panel', () => {
     assert.match(status, /right\(value, 4\)/);
     assert.doesNotMatch(status, /'api_key'/);
   });
+
+  it('lets the owner become the first admin with a one-time code, and lists every group', async () => {
+    const sql = readFileSync(join(__dirname, '..', 'supabase/migrations/20261001000000_tradingo_admin_rooms.sql'), 'utf8');
+    assert.match(sql, /as \$\$ select 7 \$\$/);
+    // Only a hash of the code is kept, it expires, and it's used up.
+    assert.match(sql, /extensions\.digest\(btrim\(coalesce\(p_code, ''\)\), 'sha256'\)/);
+    assert.match(sql, /interval '7 days'/);
+    assert.match(sql, /delete from public\.tradingo_settings where key = 'admin_claim_hash'/);
+    assert.match(sql, /if v_room\.official then/);
+    const { logText } = await import('../src/lib/adminApi');
+    assert.equal(logText('delete_room', 'رضا'), 'یه گروه از رضا رو حذف کرد');
+    assert.equal(logText('claim_admin', 'اسحاق'), 'با کد راه‌اندازی مدیر شد');
+    const { normalizeSetupCode } = await import('../src/lib/adminApi');
+    assert.equal(normalizeSetupCode(' udld wz6x-6lwz em2w '), 'UDLD-WZ6X-6LWZ-EM2W');
+    assert.equal(normalizeSetupCode('UDLDWZ6X6LWZEM2W'), 'UDLD-WZ6X-6LWZ-EM2W');
+  });
 });
