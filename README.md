@@ -5,7 +5,7 @@
 
 > محتوای اپ آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
 
-**نسخه‌ی وب:** https://tradingo.vercel.app
+**سایت:** https://chartoon.net · **اپ (نسخه‌ی وب، قابل نصب):** https://app.chartoon.net
 
 برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md) · لندینگ‌پیج chartoon.net: [docs/SITE.md](docs/SITE.md)
 
@@ -18,7 +18,7 @@ npm run build:web    # خروجی استاتیک وب در پوشه‌ی dist، 
 npm run lint
 npm run typecheck
 npm run validate:content   # بررسی ساختار همه‌ی دوره‌ها و درس‌ها
-npx vercel@latest deploy --prod   # انتشار نسخه‌ی وب روی Vercel (تنظیمات در vercel.json)
+npx vercel@latest deploy --prod   # انتشار اپ روی Vercel (پروژه‌ی tradingo، تنظیمات در vercel.json؛ سایت: docs/SITE.md)
 ```
 
 برای حساب ابری، همگام‌سازی و لیگ واقعی، آدرس و کلید Publishable پروژه‌ی Supabase توی `.env.local` قرار می‌گیره (نمونه: `.env.example`) و SQL نصب یه بار روی پروژه اجرا می‌شه. چارتون توی پروژه‌ی مشترک فقط جدول‌ها و توابع `tradingo_*` رو داره و به اپ‌های دیگه دست نمی‌زنه (جزئیات در [docs/SUPABASE.md](docs/SUPABASE.md)). بدون این‌ها اپ کامل و آفلاین کار می‌کنه.

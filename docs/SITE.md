@@ -20,14 +20,23 @@
 
 ## انتشار روی Vercel
 
-سایت یه پروژه‌ی دوم توی Vercel از همین مخزنه:
+سایت و اپ دو پروژه‌ی جدا توی Vercel هستن و هر دو بالان. DNS دامنه روی Vercel هست (`ns1/ns2.vercel-dns.com`)، پس زیردامنه‌ها بدون رکورد دستی کار می‌کنن.
 
-1. توی Vercel: **Add New → Project** و همین مخزن گیت‌هاب رو انتخاب کن.
-2. **Root Directory** رو `site` بذار. Framework Preset: **Other**. Build Command خالی بمونه (تنظیمات توی `site/vercel.json` هست).
-3. Deploy.
-4. توی **Settings → Domains** پروژه‌ی سایت، `chartoon.net` و `www.chartoon.net` رو اضافه کن (www رو روی chartoon.net ریدایرکت کن).
-5. توی پروژه‌ی اپ (همون قبلی)، دامنه‌ی `app.chartoon.net` رو اضافه کن.
-6. رکوردهای DNS رو همون‌طور که Vercel نشون می‌ده توی پنل ثبت‌کننده‌ی دامنه وارد کن (معمولاً یه رکورد A برای خود دامنه و CNAME برای `www` و `app`).
+| پروژه‌ی Vercel | پوشه | دامنه‌ها |
+| --- | --- | --- |
+| `chartoon-site` | `site/` (بدون بیلد) | `chartoon.net`، و `www.chartoon.net` که با 308 به chartoon.net می‌ره |
+| `tradingo` | ریشه‌ی مخزن (`npm run build:web`) | `app.chartoon.net` و `tradingo.vercel.app` |
+
+انتشار دوباره (فعلاً دستی؛ پروژه‌ها هنوز به گیت‌هاب وصل نیستن):
+
+```bash
+# سایت: از داخل پوشه‌ی site
+cd site && npx vercel@latest link --project chartoon-site && npx vercel@latest deploy --prod
+# اپ: از ریشه‌ی مخزن
+npx vercel@latest deploy --prod
+```
+
+`tradingo.vercel.app` عمداً ریدایرکت نشده: پیشرفت مهمون‌ها (بدون حساب) توی مرورگر و برای همون آدرس ذخیره می‌شه و با ریدایرکت از دست می‌رفت. کسی که حساب داره، روی app.chartoon.net وارد می‌شه و پیشرفتش همگام می‌شه.
 
 بعد از بالا اومدن سایت:
 
