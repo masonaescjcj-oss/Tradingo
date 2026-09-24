@@ -11,9 +11,10 @@ import { useGame, type SimBook } from '@/store/game';
 import { colors } from '@/theme';
 import { fa, faNum, usd } from '@/utils/format';
 
+import { CoachCard } from './CoachCard';
 import { EquityCurve } from './EquityCurve';
 import { faDec, faPct, ltr, rText } from './text';
-import { Card, Hint, pnlColor, Segment } from './ui';
+import { Card, pnlColor, Segment } from './ui';
 
 type Tile = { label: string; value: string; mono?: boolean; color?: string; hint: string };
 
@@ -44,20 +45,6 @@ function tiles(s: TradeStats): Tile[] {
     },
     { label: 'سود خالص', value: usd(s.net, true), mono: true, color: pnlColor(s.net), hint: 'جمع نتیجه‌ی معامله‌های بسته‌شده' },
   ];
-}
-
-/** A few coach-style observations from the journal. */
-function insights(s: TradeStats): string[] {
-  const out: string[] = [];
-  if (s.count === 0) return ['هنوز معامله‌ای نبستی. چند تا معامله بزن تا آمارت ساخته بشه.'];
-  const noStops = s.count - s.withStops;
-  if (noStops > 0) out.push(`${fa(noStops)} معامله بدون حد ضرر داشتی. بدون حد ضرر، R و ریسکت معلوم نیست.`);
-  if (s.liquidations > 0) out.push(`${fa(s.liquidations)} بار لیکوئید شدی. اهرم کمتر یا حد ضرر نزدیک‌تر جلوش رو می‌گیره.`);
-  if (s.avgWin != null && s.avgLoss != null && s.avgWin < s.avgLoss && (s.winRate ?? 0) < 0.6)
-    out.push('میانگین ضررت از میانگین سودت بزرگ‌تره. حد سود دورتر یا حد ضرر نزدیک‌تر رو امتحان کن.');
-  if (s.maxDrawdown > 0.1) out.push(`افت سرمایه‌ت به ${faPct(s.maxDrawdown, 0)} رسیده. ریسک هر معامله رو به ۱ تا ۲ درصد محدود کن.`);
-  if (out.length === 0) out.push('آفرین! نظم معامله‌هات خوبه. همین‌طور ژورنال بنویس و قانون‌هات رو نگه دار.');
-  return out.slice(0, 3);
 }
 
 /** Performance numbers for the live or replay account. */
@@ -105,11 +92,7 @@ export function StatsView({ width }: { width: number }) {
         <EquityCurve curve={stats.curve} width={width - 32} />
       </Card>
 
-      <View style={{ gap: 8 }}>
-        {insights(stats).map((text) => (
-          <Hint key={text}>{text}</Hint>
-        ))}
-      </View>
+      <CoachCard history={account.history} balance={account.balance} />
 
       {stats.count > 0 ? (
         <Button3D
