@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Mascot } from '@/components/Mascot';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { summarize, type Account, type ClosedTrade } from '@/lib/trading';
 import { START_BALANCE, useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -25,12 +26,12 @@ export function TradesView({ mids, onNotice, onInfo }: { mids: Record<string, nu
   const lastTrade = sim.history[0];
   const idle = sim.positions.length === 0 && orders.length === 0;
 
-  const onClosed = (t: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade: t }));
+  const onClosed = (trade: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade }));
 
   return (
     <>
-      <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب آزمایشی" onInfo={onInfo} />
-      {idle ? <Hint>معامله یا سفارش بازی نداری. از تب «نمودار» با دکمه‌های خرید و فروش یا فرم سفارش، یه معامله باز کن.</Hint> : null}
+      <AccountBar summary={summary} startBalance={START_BALANCE} title={t('ارزش حساب آزمایشی')} onInfo={onInfo} />
+      {idle ? <Hint>{t('معامله یا سفارش بازی نداری. از تب «نمودار» با دکمه‌های خرید و فروش یا فرم سفارش، یه معامله باز کن.')}</Hint> : null}
       <PositionsList book="live" account={account} mids={mids} onClosed={onClosed} />
       {/* The coach talks about the last trade or the margin, so it waits for the first trade. */}
       {lastTrade || !idle ? (
@@ -43,17 +44,17 @@ export function TradesView({ mids, onNotice, onInfo }: { mids: Record<string, nu
           </SpeechBubble>
         </View>
       ) : null}
-      <HistoryList book="live" history={sim.history} limit={20} title="تاریخچه" />
+      <HistoryList book="live" history={sim.history} limit={20} title={t('تاریخچه')} />
     </>
   );
 }
 
 function coachMessage(last: ClosedTrade | undefined, marginLevel: number | null): string {
-  if (marginLevel != null && marginLevel < 200) return 'سطح مارجینت پایینه! یعنی ضرر معامله‌های بازت داره به مارجینشون نزدیک می‌شه. اهرم و حجمت رو چک کن.';
-  if (last?.reason === 'liquidation') return 'لیکوئید شدی! اهرم بالا یعنی فاصله‌ی کم تا لیکوئید. با حد ضرر و اهرم کمتر، این اتفاق نمی‌افته.';
-  if (last?.reason === 'sl') return 'ضرر کنترل‌شده بخشی از تریده. حد ضررت کارش رو کرد و جلوی ضرر بزرگ‌تر رو گرفت.';
-  if (last?.reason === 'tp') return 'آفرین! حد سودت فعال شد. به برنامه‌ت پایبند موندی.';
-  return 'اول نوع سفارش، اهرم، حجم و حد ضرر و سود رو تنظیم کن، بعد خرید یا فروش بزن. این پول واقعی نیست؛ با خیال راحت تمرین کن.';
+  if (marginLevel != null && marginLevel < 200) return t('سطح مارجینت پایینه! یعنی ضرر معامله‌های بازت داره به مارجینشون نزدیک می‌شه. اهرم و حجمت رو چک کن.');
+  if (last?.reason === 'liquidation') return t('لیکوئید شدی! اهرم بالا یعنی فاصله‌ی کم تا لیکوئید. با حد ضرر و اهرم کمتر، این اتفاق نمی‌افته.');
+  if (last?.reason === 'sl') return t('ضرر کنترل‌شده بخشی از تریده. حد ضررت کارش رو کرد و جلوی ضرر بزرگ‌تر رو گرفت.');
+  if (last?.reason === 'tp') return t('آفرین! حد سودت فعال شد. به برنامه‌ت پایبند موندی.');
+  return t('اول نوع سفارش، اهرم، حجم و حد ضرر و سود رو تنظیم کن، بعد خرید یا فروش بزن. این پول واقعی نیست؛ با خیال راحت تمرین کن.');
 }
 
 const styles = StyleSheet.create({

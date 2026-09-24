@@ -11,12 +11,12 @@ export function ltr(text: string): string {
   return `\u2066${text}\u2069`;
 }
 
-/** An R multiple such as «+۱٫۵R» (+1.5R in English), kept left-to-right. */
+/** An R multiple such as +1.5R (Persian digits in Persian), kept left-to-right. */
 export function rText(r: number, maxDecimals = 1): string {
   return ltr(`${r >= 0 ? '+' : '−'}${faDec(Math.abs(r), maxDecimals)}R`);
 }
 
-/** A number in the app's digits and decimal separator, e.g. «۲٫۵» (2.5 in English). */
+/** A number in the app's digits and decimal separator: 2.5 in English, Persian digits and separator in Persian. */
 export function faDec(value: number, maxDecimals = 1): string {
   return fa(String(Number(value.toFixed(maxDecimals)))).replace('.', byLang('٫', '.')); // i18n-ignore: Persian decimal separator
 }
@@ -31,7 +31,7 @@ export function distanceLabel(spec: SymbolSpec, d: number): string {
   return t('{n} دلار', { n: faDec(d, spec.decimals > 1 ? 2 : 1) });
 }
 
-/** A trade's entry, as a label. Not through t(): on its own «ورود» means "sign in" in the dictionary. */
+/** A trade's entry, as a label. Not through t(): on its own the Persian word is "sign in" in the dictionary. */
 export const entryText = () => byLang('ورود', 'Entry'); // i18n-ignore: see above
 
 export const sideText = (side: Side) => (side === 'buy' ? t('خرید') : t('فروش'));

@@ -6,8 +6,9 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import { bollinger, rsi as rsiValues, sma } from '@/content/indicators';
 import type { Candle } from '@/content/types';
+import { t } from '@/i18n';
 import { chartWindow, clockLabel, dateLabel, nextZoom, priceTicks, spreadLabels, timeTicks, zoomFor, ZOOMS } from '@/lib/chartMath';
-import { indexTime, timeIndex, type Drawing, type ToolId } from '@/lib/drawings';
+import { indexTime, timeIndex, toolName, type Drawing, type ToolId } from '@/lib/drawings';
 import { formatPrice, simVolume, type SymbolSpec } from '@/lib/simulator';
 import { colors } from '@/theme';
 
@@ -494,7 +495,7 @@ export function ProChart({
           onResponderRelease={() => end(true)}
           onResponderTerminate={() => end(false)}
           onResponderTerminationRequest={() => !crossMode && !drag.current?.panning && !editor.holding()}
-          accessibilityLabel={editor.placing ? `رسم ${editor.placing.name}: ${editor.hint}` : 'نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش'}
+          accessibilityLabel={editor.placing ? t('رسم {tool}: {hint}', { tool: toolName(editor.placing), hint: editor.hint ?? '' }) : t('نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش')}
         />
       ) : null}
 
@@ -503,7 +504,7 @@ export function ProChart({
           <Pressable
             onPress={onTitlePress}
             accessibilityRole="button"
-            accessibilityLabel={`نماد ${title}؛ برای عوض کردن نماد بزن`}
+            accessibilityLabel={t('نماد {symbol}؛ برای عوض کردن نماد بزن', { symbol: title })}
             hitSlop={6}
             style={({ pressed }) => [styles.titleButton, pressed && { opacity: 0.7 }]}
           >
@@ -538,7 +539,7 @@ export function ProChart({
       {onOpenTools && canDraw ? (
         <ChartButton
           icon="pencil"
-          label="ابزارهای رسم (خط روند، فیبوناچی، اشکال و…)"
+          label={t('ابزارهای رسم (خط روند، فیبوناچی، اشکال و…)')}
           on={!!editor.placing}
           onPress={() => {
             editor.reset();
@@ -552,7 +553,7 @@ export function ProChart({
           {editor.text ? (
             <TextPrompt initial={editor.text.drawing.text ?? ''} onSubmit={editor.submitText} onCancel={editor.cancelText} />
           ) : editor.placing ? (
-            <PlaceBar name={editor.placing.name} hint={editor.hint ?? ''} onCancel={editor.cancel} onDone={editor.canFinish ? editor.done : undefined} />
+            <PlaceBar name={toolName(editor.placing)} hint={editor.hint ?? ''} onCancel={editor.cancel} onDone={editor.canFinish ? editor.done : undefined} />
           ) : editor.selected ? (
             <SelectedBar
               color={editor.selected.color}
@@ -573,15 +574,15 @@ export function ProChart({
       ) : null}
       {interactive ? (
         <View style={[styles.controls, { top: mainH - 42 }]} pointerEvents="box-none">
-          <ChartButton icon="crosshair" label="خط‌کش قیمت (کراس‌هیر)" on={crossMode} onPress={toggleCross} />
-          <ChartButton icon="minus" label="کوچک‌نمایی" onPress={() => zoom(-1)} disabled={count >= ZOOMS[ZOOMS.length - 1]} />
-          <ChartButton icon="plus" label="بزرگ‌نمایی" onPress={() => zoom(1)} disabled={count <= ZOOMS[0]} />
+          <ChartButton icon="crosshair" label={t('خط‌کش قیمت (کراس‌هیر)')} on={crossMode} onPress={toggleCross} />
+          <ChartButton icon="minus" label={t('کوچک‌نمایی')} onPress={() => zoom(-1)} disabled={count >= ZOOMS[ZOOMS.length - 1]} />
+          <ChartButton icon="plus" label={t('بزرگ‌نمایی')} onPress={() => zoom(1)} disabled={count <= ZOOMS[0]} />
         </View>
       ) : null}
       {interactive && offset >= 1 ? (
         <ChartButton
           icon="skipEnd"
-          label="برگشت به آخرین کندل"
+          label={t('برگشت به آخرین کندل')}
           onPress={() => setOffset(0)}
           style={{ position: 'absolute', left: plotW - 40, top: mainH - 42 }}
         />

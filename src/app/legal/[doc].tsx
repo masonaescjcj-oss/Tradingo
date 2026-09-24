@@ -5,22 +5,23 @@ import { BackHeader } from '@/components/BackHeader';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { LEGAL, LEGAL_UPDATED, type LegalId } from '@/content/legal';
+import { legalDocs, legalUpdated, type LegalId } from '@/content/legal';
 import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 /** The privacy policy or the terms of use. */
 export default function LegalScreen() {
   const { doc } = useLocalSearchParams<{ doc: string }>();
-  const page = LEGAL[doc as LegalId] ?? LEGAL.terms;
-  const other = LEGAL[page.id === 'privacy' ? 'terms' : 'privacy'];
+  const docs = legalDocs();
+  const page = docs[doc as LegalId] ?? docs.terms;
+  const other = docs[page.id === 'privacy' ? 'terms' : 'privacy'];
 
   return (
     <Screen>
       <BackHeader caption={t('چارتون')} title={page.title} />
       <ScrollView contentContainerStyle={styles.content}>
         <Txt w={700} size={12} color={colors.text3}>
-          {t('آخرین به‌روزرسانی: {date}', { date: LEGAL_UPDATED })}
+          {t('آخرین به‌روزرسانی: {date}', { date: legalUpdated() })}
         </Txt>
         <Txt size={15} lh={1.95} color={colors.text}>
           {page.intro}

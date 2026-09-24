@@ -8,7 +8,7 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { allCourses } from '@/content';
-import { LEGAL } from '@/content/legal';
+import { legalDocs } from '@/content/legal';
 import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -76,7 +76,7 @@ export default function AboutScreen() {
             </Txt>
           </View>
         ))}
-        {Object.values(LEGAL).map((doc) => (
+        {Object.values(legalDocs()).map((doc) => (
           <Pressable key={doc.id} onPress={() => router.push(`/legal/${doc.id}`)} accessibilityRole="link" style={styles.link}>
             <Icon name="book" size={20} color={colors.skyText} />
             <View style={{ flex: 1, gap: 2 }}>

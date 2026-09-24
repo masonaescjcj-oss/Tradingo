@@ -58,6 +58,7 @@ import u_multi_timeframe_u2 from './units/multi-timeframe-u2.json';
 import u_multi_timeframe_u3 from './units/multi-timeframe-u3.json';
 import u_onchain_u1 from './units/onchain-u1.json';
 import u_onchain_u2 from './units/onchain-u2.json';
+import u_onchain_u3 from './units/onchain-u3.json';
 import u_orders_u1 from './units/orders-u1.json';
 import u_orders_u2 from './units/orders-u2.json';
 import u_orders_u3 from './units/orders-u3.json';
@@ -154,6 +155,7 @@ export const EN_UNITS: Record<string, Overlay> = {
   'multi-timeframe-u3': u_multi_timeframe_u3,
   'onchain-u1': u_onchain_u1,
   'onchain-u2': u_onchain_u2,
+  'onchain-u3': u_onchain_u3,
   'orders-u1': u_orders_u1,
   'orders-u2': u_orders_u2,
   'orders-u3': u_orders_u3,

@@ -6,6 +6,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { findUnit } from '@/content';
+import { t } from '@/i18n';
 import { coachInsights, type CoachTone } from '@/lib/journalCoach';
 import type { ClosedTrade } from '@/lib/trading';
 import { colors } from '@/theme';
@@ -33,19 +34,19 @@ export function CoachCard({ history, balance }: { history: ClosedTrade[]; balanc
         <Mascot mood={history.length === 0 ? 'happy' : worried ? 'think' : 'party'} size={46} />
         <View style={{ flex: 1, gap: 1 }}>
           <Txt w={900} size={16}>
-            مربی ژورنال
+            {t('مربی ژورنال')}
           </Txt>
           <Txt w={500} size={12} lh={1.6} color={colors.text3}>
             {history.length === 0
-              ? 'چند تا معامله بزن و ببند؛ شمعک ژورنالت رو می‌خونه و می‌گه کجا پول از دست می‌دی.'
-              : `از ${fa(history.length)} معامله‌ی بسته‌شده${needMore ? `؛ با ${fa(needMore)} معامله‌ی دیگه تحلیل کامل‌تر می‌شه` : ''}`}
+              ? t('چند تا معامله بزن و ببند؛ شمعک ژورنالت رو می‌خونه و می‌گه کجا پول از دست می‌دی.')
+              : `${t('از {n} معامله‌ی بسته‌شده', { n: fa(history.length), count: history.length })}${needMore ? t('؛ با {n} معامله‌ی دیگه تحلیل کامل‌تر می‌شه', { n: fa(needMore), count: needMore }) : ''}`}
           </Txt>
         </View>
       </View>
 
       {history.length > 0 && insights.length === 0 ? (
         <Txt w={700} size={13} lh={1.8} color={colors.text2}>
-          فعلاً الگوی نگران‌کننده‌ای ندیدم. با حد ضرر معامله کن و برای هر معامله یادداشت بنویس تا تحلیل دقیق‌تر بشه.
+          {t('فعلاً الگوی نگران‌کننده‌ای ندیدم. با حد ضرر معامله کن و برای هر معامله یادداشت بنویس تا تحلیل دقیق‌تر بشه.')}
         </Txt>
       ) : null}
 
@@ -64,10 +65,10 @@ export function CoachCard({ history, balance }: { history: ClosedTrade[]; balanc
               {i.body}
             </Txt>
             {unit ? (
-              <Pressable onPress={() => router.push(`/guide/${unit.id}`)} accessibilityRole="link" accessibilityLabel={`خوندن راهنمای ${unit.title}`} style={styles.lesson}>
+              <Pressable onPress={() => router.push(`/guide/${unit.id}`)} accessibilityRole="link" accessibilityLabel={t('خوندن راهنمای {title}', { title: unit.title })} style={styles.lesson}>
                 <Icon name="book" size={15} color={colors.skyText} strokeWidth={2.4} />
                 <Txt w={800} size={12.5} color={colors.skyText}>
-                  {`بخون: ${unit.title}`}
+                  {t('بخون: {title}', { title: unit.title })}
                 </Txt>
                 <Icon name="chevronBack" size={14} color={colors.skyText} />
               </Pressable>
@@ -79,7 +80,7 @@ export function CoachCard({ history, balance }: { history: ClosedTrade[]; balanc
       {insights.length > SHOWN ? (
         <Pressable onPress={() => setAll(!all)} accessibilityRole="button" style={styles.more}>
           <Txt w={800} size={13} color={colors.text2}>
-            {all ? 'کمتر' : `${fa(insights.length - SHOWN)} نکته‌ی دیگه`}
+            {all ? t('کمتر') : t('{n} نکته‌ی دیگه', { n: fa(insights.length - SHOWN), count: insights.length - SHOWN })}
           </Txt>
           <Icon name="chevronDown" size={14} color={colors.text2} strokeWidth={3} />
         </Pressable>

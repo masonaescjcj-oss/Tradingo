@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
+import { t } from '@/i18n';
 import { playSfx } from '@/lib/sfx';
 import { CARD_H, CARD_W, cardSvg, type ShareCard } from '@/lib/shareCard';
 import { canMakeImage, cardImageUrl, saveCard, shareCard, type ShareOutcome } from '@/lib/shareImage';
@@ -12,10 +13,10 @@ import { Icon } from './Icon';
 import { Txt } from './Txt';
 
 const OUTCOME_TEXT: Partial<Record<ShareOutcome, string>> = {
-  shared: 'فرستاده شد!',
-  saved: 'عکس ذخیره شد و متنش هم کپی شد.',
-  copied: 'متنش کپی شد؛ هر جا خواستی بفرستش.',
-  failed: 'نشد؛ یه بار دیگه امتحان کن.',
+  shared: 'فرستاده شد!', // i18n-ignore: translated where shown
+  saved: 'عکس ذخیره شد و متنش هم کپی شد.', // i18n-ignore: translated where shown
+  copied: 'متنش کپی شد؛ هر جا خواستی بفرستش.', // i18n-ignore: translated where shown
+  failed: 'نشد؛ یه بار دیگه امتحان کن.', // i18n-ignore: translated where shown
 };
 
 /** Shows an achievement card and shares it (as a picture on the web, as text on phones for now). */
@@ -63,13 +64,13 @@ function ShareBody({ card, onClose }: { card: ShareCard; onClose: () => void }) 
 
   return (
     <View style={styles.backdrop}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="بستن" />
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('بستن')} />
       <View style={styles.sheet}>
         <View style={styles.head}>
           <Txt w={900} size={17} style={{ flex: 1 }}>
-            به دوستات نشون بده
+            {t('به دوستات نشون بده')}
           </Txt>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={8} style={styles.close}>
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={8} style={styles.close}>
             <Icon name="close" size={18} color={colors.text2} strokeWidth={2.6} />
           </Pressable>
         </View>
@@ -84,13 +85,13 @@ function ShareBody({ card, onClose }: { card: ShareCard; onClose: () => void }) 
             <SvgXml xml={cardSvg(card)} width={w} height={h} />
           )}
         </View>
-        <Button3D label={busy ? 'یه لحظه…' : 'اشتراک‌گذاری'} onPress={() => run(shareCard)} height={50} radius={14} size={16} style={{ alignSelf: 'stretch' }} />
+        <Button3D label={busy ? t('یه لحظه…') : t('اشتراک‌گذاری')} onPress={() => run(shareCard)} height={50} radius={14} size={16} style={{ alignSelf: 'stretch' }} />
         {canMakeImage ? (
-          <Button3D variant="secondary" label="ذخیره‌ی عکس" onPress={() => run(saveCard)} height={44} radius={14} edge={3} size={14} style={{ alignSelf: 'stretch' }} />
+          <Button3D variant="secondary" label={t('ذخیره‌ی عکس')} onPress={() => run(saveCard)} height={44} radius={14} edge={3} size={14} style={{ alignSelf: 'stretch' }} />
         ) : null}
         {outcome && OUTCOME_TEXT[outcome] ? (
           <Txt w={800} size={13} color={outcome === 'failed' ? colors.bearText : colors.bullText} center>
-            {OUTCOME_TEXT[outcome]}
+            {t(OUTCOME_TEXT[outcome])}
           </Txt>
         ) : null}
       </View>

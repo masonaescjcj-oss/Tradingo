@@ -493,11 +493,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.line,
-    borderBottomRightRadius: 6,
+    borderBottomStartRadius: 6,
   },
   bubbleMine: {
     backgroundColor: '#1D5A3C',
-    borderBottomLeftRadius: 6,
+    borderBottomEndRadius: 6,
   },
   author: {
     flexDirection: 'row',

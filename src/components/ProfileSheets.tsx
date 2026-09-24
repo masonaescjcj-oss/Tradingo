@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar, AVATARS } from '@/components/Avatar';
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { useCloud } from '@/lib/cloud';
 import { useKeyboardOverlap } from '@/lib/keyboard';
 import { normalizeUsername, profileErrorText, saveProfile, usernameProblem } from '@/lib/profileApi';
@@ -46,15 +47,15 @@ export function AvatarSheet({ visible, onClose }: { visible: boolean; onClose: (
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={[styles.sheet, { paddingBottom: 20 + insets.bottom }]} onPress={() => {}}>
           <Txt w={900} size={19}>
-            عکس پروفایل
+            {t('عکس پروفایل')}
           </Txt>
           <Txt size={13} lh={1.8} color={colors.text2}>
-            {signedIn ? 'توی گروه‌ها و پروفایلت برای بقیه دیده می‌شه.' : 'وقتی حساب بسازی، توی گروه‌ها هم دیده می‌شه.'}
+            {signedIn ? t('توی گروه‌ها و پروفایلت برای بقیه دیده می‌شه.') : t('وقتی حساب بسازی، توی گروه‌ها هم دیده می‌شه.')}
           </Txt>
           <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={styles.grid}>
             {options.map((id) => {
               const on = id === avatar;
-              const label = id === 0 ? 'حرف اول اسم' : (AVATARS[id - 1]?.label ?? '');
+              const label = id === 0 ? t('حرف اول اسم') : t(AVATARS[id - 1]?.label ?? '');
               return (
                 <Pressable
                   key={id}
@@ -105,13 +106,13 @@ export function UsernameSheet({ visible, onClose }: { visible: boolean; onClose:
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onShow={() => setDraft(current)}>
       <View style={[styles.backdrop, { paddingBottom: keyboard.overlap }]} onLayout={keyboard.onLayout}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="بستن" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('بستن')} />
         <View style={[styles.sheet, { paddingBottom: 20 + (keyboard.overlap ? 0 : insets.bottom) }]}>
           <Txt w={900} size={19}>
-            آیدی
+            {t('آیدی')}
           </Txt>
           <Txt size={13} lh={1.8} color={colors.text2}>
-            با آیدی، بقیه تو رو از هم‌اسم‌هات تشخیص می‌دن. ۳ تا ۲۰ حرف انگلیسی، عدد یا _، که با حرف شروع بشه.
+            {t('با آیدی، بقیه تو رو از هم‌اسم‌هات تشخیص می‌دن. ۳ تا ۲۰ حرف انگلیسی، عدد یا _، که با حرف شروع بشه.')}
           </Txt>
           <View style={[styles.field, error && { borderColor: colors.bear }]}>
             <Txt mono w={800} size={17} color={colors.text3}>
@@ -130,7 +131,7 @@ export function UsernameSheet({ visible, onClose }: { visible: boolean; onClose:
               maxLength={21}
               placeholder="trader_ali"
               placeholderTextColor={colors.faint}
-              accessibilityLabel="آیدی"
+              accessibilityLabel={t('آیدی')}
               style={styles.input}
             />
           </View>
@@ -139,8 +140,8 @@ export function UsernameSheet({ visible, onClose }: { visible: boolean; onClose:
               {error}
             </Txt>
           ) : null}
-          <Button3D label={busy ? 'چند لحظه…' : 'ذخیره'} disabled={busy} onPress={save} />
-          <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={onClose} />
+          <Button3D label={busy ? t('چند لحظه…') : t('ذخیره')} disabled={busy} onPress={save} />
+          <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={onClose} />
         </View>
       </View>
     </Modal>
