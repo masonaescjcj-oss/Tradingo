@@ -1,6 +1,6 @@
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Hexagon } from '@/components/Hexagon';
 import { Icon } from '@/components/Icon';
@@ -41,7 +41,7 @@ export default function LeagueScreen() {
     };
   }, [userId, weekKey, league, boardKey]);
 
-  // Refresh the board (and start a new week if needed) whenever the tab is opened.
+  // Refresh the board (and start a new week if needed) whenever the page is opened.
   useFocusEffect(
     useCallback(() => {
       useGame.getState().rolloverWeek();
@@ -58,9 +58,14 @@ export default function LeagueScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Txt display size={32} style={{ lineHeight: 44 }}>
-          لیگ
-        </Txt>
+        <View style={styles.titleRow}>
+          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.back}>
+            <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
+          </Pressable>
+          <Txt display size={32} style={{ lineHeight: 44 }}>
+            لیگ
+          </Txt>
+        </View>
         <View style={styles.timer}>
           <Icon name="clock" size={16} color={colors.gold} strokeWidth={2.6} />
           <Txt w={800} size={13} color={colors.gold}>
@@ -176,6 +181,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  back: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timer: {
     flexDirection: 'row',

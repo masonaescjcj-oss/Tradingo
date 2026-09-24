@@ -129,6 +129,24 @@ export default function ProfileScreen() {
           <Icon name="chevronBack" size={20} color={colors.text3} />
         </Pressable>
 
+        <Pressable onPress={() => router.push('/league')} accessibilityRole="button" accessibilityLabel={`لیگ هفتگی: لیگ ${LEAGUES[game.league].name}`} style={styles.leagueCard}>
+          <Hexagon size={46} color={LEAGUES[game.league].color}>
+            <Txt display size={22} color={LEAGUES[game.league].ink}>
+              {fa(game.league + 1)}
+            </Txt>
+          </Hexagon>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt w={900} size={16}>
+              {`لیگ ${LEAGUES[game.league].name}`}
+            </Txt>
+            <Txt w={700} size={12.5} color={colors.text2}>
+              {`${faNum(game.weeklyXp)} امتیاز این هفته · جدول رتبه‌ها`}
+            </Txt>
+          </View>
+          <Icon name="trophy" size={24} color={colors.gold} />
+          <Icon name="chevronBack" size={20} color={colors.text3} />
+        </Pressable>
+
         <View style={styles.stats}>
           <StatCard icon={<FlameIcon size={28} />} value={fa(streak)} label="روز پیاپی" />
           <StatCard icon={<BoltIcon size={28} />} value={faNum(game.xp)} label="کل امتیاز" />
@@ -303,6 +321,16 @@ function StatCard({ icon, value, label }: { icon: ReactNode; value: string; labe
 }
 
 const styles = StyleSheet.create({
+  leagueCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.goldCardLine,
+    backgroundColor: colors.goldCard,
+  },
   header: {
     paddingHorizontal: 16,
     paddingBottom: 8,

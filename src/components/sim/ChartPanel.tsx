@@ -23,8 +23,8 @@ const QUICK_H = 74;
 const CONTENT_TOP = 4;
 const EDGE_BORDERS = 2;
 const GAP = 12;
-/** A little breathing room above the tab bar. */
-const TAB_CLEARANCE = 6;
+/** Room at the bottom for the tab bar's raised middle button. */
+const TAB_CLEARANCE = 26;
 
 type Indicator = { key: keyof Omit<SimTools, 'levels'>; label: string; color: string; mono?: boolean };
 
