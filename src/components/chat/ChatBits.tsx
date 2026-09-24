@@ -1,10 +1,11 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { CandleChart } from '@/components/CandleChart';
 import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
-import type { ChartLevel } from '@/content/types';
+import { ProChart, type ProLine } from '@/components/sim/ProChart';
+import { CHART_SHIFT } from '@/lib/chartMath';
 import { roomTime, type ChatChart, type ChatRoom, type ChatTopic } from '@/lib/chat';
+import { findSymbol, type SymbolSpec } from '@/lib/simulator';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -90,29 +91,45 @@ export function RoomRow({ room, onPress, onJoin }: { room: ChatRoom; onPress: ()
   );
 }
 
-/** The chart of a shared analysis, with its entry, stop, target and levels. */
-export function AnalysisChart({ chart, width, height = 150 }: { chart: ChatChart; width: number; height?: number }) {
-  const fmt = (p: number) => p.toFixed(chart.decimals);
-  const lines: ChartLevel[] = [];
-  for (const p of chart.levels ?? []) lines.push({ price: p, value: fmt(p), color: colors.gold, ink: colors.goldInk });
-  if (chart.tp != null) lines.push({ price: chart.tp, label: 'هدف', value: fmt(chart.tp), color: colors.bull, ink: colors.bullInk });
-  if (chart.entry != null) lines.push({ price: chart.entry, label: 'ورود', value: fmt(chart.entry), color: colors.text2, ink: colors.bg });
-  if (chart.sl != null) lines.push({ price: chart.sl, label: 'ضرر', value: fmt(chart.sl), color: colors.bear, ink: colors.bearInk });
+/** A symbol spec for a shared chart whose symbol this app version doesn't know. */
+function specFor(chart: ChatChart): SymbolSpec {
+  const known = findSymbol(chart.symbol);
+  if (known) return known;
+  const last = chart.candles[chart.candles.length - 1][3];
+  return { id: chart.symbol, label: chart.label || chart.symbol, market: 'crypto', base: last, decimals: chart.decimals, vol: 1, spread: 0, contract: 1, sizes: [1], sizeUnit: '', step: 1, defaultStop: 1 };
+}
+
+const STILL_TOOLS = { ma: true, ma2: false, bands: false, rsi: false, volume: false };
+
+/** A shared analysis drawn with the simulator's own chart: direction, entry, stop, target and levels. */
+export function AnalysisChart({ chart, width, height = 190 }: { chart: ChatChart; width: number; height?: number }) {
+  const lines: ProLine[] = (chart.levels ?? []).map((p) => ({ price: p, label: 'سطح', color: colors.gold, ink: colors.goldInk }));
+  if (chart.tp != null) lines.push({ price: chart.tp, label: 'حد سود', color: colors.bull, ink: colors.bullInk });
+  if (chart.entry != null) lines.push({ price: chart.entry, label: 'ورود', color: colors.text2, ink: colors.bg, solid: true });
+  if (chart.sl != null) lines.push({ price: chart.sl, label: 'حد ضرر', color: colors.bear, ink: colors.bearInk });
+  const badge = chart.side ? (
+    <View style={[styles.side, { backgroundColor: chart.side === 'buy' ? colors.bull : colors.bear }]}>
+      <Txt w={900} size={11.5} color={chart.side === 'buy' ? colors.bullInk : colors.bearInk}>
+        {chart.side === 'buy' ? 'خرید' : 'فروش'}
+      </Txt>
+    </View>
+  ) : null;
   return (
-    <View style={{ gap: 6 }}>
-      <View style={styles.titleLine}>
-        <Txt mono w={800} size={13}>
-          {chart.label || chart.symbol}
-        </Txt>
-        {chart.side ? (
-          <View style={[styles.side, { backgroundColor: chart.side === 'buy' ? colors.bull : colors.bear }]}>
-            <Txt w={900} size={11.5} color={chart.side === 'buy' ? colors.bullInk : colors.bearInk}>
-              {chart.side === 'buy' ? 'خرید' : 'فروش'}
-            </Txt>
-          </View>
-        ) : null}
-      </View>
-      <CandleChart candles={chart.candles} lines={lines} width={width} height={height} gutter={lines.length ? 96 : 8} />
+    <View style={styles.still}>
+      <ProChart
+        spec={specFor(chart)}
+        candles={chart.candles}
+        price={chart.candles[chart.candles.length - 1][3]}
+        lines={lines}
+        tools={STILL_TOOLS}
+        width={width}
+        height={height}
+        title={chart.label || chart.symbol}
+        badge={badge}
+        interactive={false}
+        initialCount={chart.candles.length + CHART_SHIFT}
+        hidePrice={chart.entry != null}
+      />
     </View>
   );
 }
@@ -154,6 +171,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.bullSheetLine,
     backgroundColor: colors.bullSheet,
+  },
+  still: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   side: {
     paddingHorizontal: 8,

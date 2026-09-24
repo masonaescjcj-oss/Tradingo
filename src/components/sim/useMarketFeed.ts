@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useState } from 'react';
+import { create } from 'zustand';
 
 import type { Candle } from '@/content/types';
 import { BINANCE_HOSTS, feedFromKlines, fetchKlines, LIVE_POLL_MS, LIVE_SYMBOLS, mergeFeed, type Kline } from '@/lib/marketData';
@@ -43,6 +44,12 @@ function initialSeries(): Record<string, Series> {
   return out;
 }
 
+/** The simulator's latest prices, for screens outside it (posting an analysis from a chat group). */
+export const useFeedSnapshot = create<{ series: Record<string, Series> | null }>()(() => ({ series: null }));
+
+/** Starting prices when the simulator hasn't run yet: a fresh simulated history per symbol. */
+export const seedSeries = initialSeries;
+
 export const midsOf = (series: Record<string, Series>) => Object.fromEntries(Object.entries(series).map(([id, s]) => [id, s.price]));
 
 /** Live symbols go back to the simulated walk, continuing from their last real price. */
@@ -64,6 +71,10 @@ export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, numbe
   const [series, setSeries] = useState(initialSeries);
   const [live, setLive] = useState(false);
   const [status, setStatus] = useState<LiveStatus>('off');
+
+  useEffect(() => {
+    useFeedSnapshot.setState({ series });
+  }, [series]);
 
   const tick = useEffectEvent(() => {
     const next = { ...series };

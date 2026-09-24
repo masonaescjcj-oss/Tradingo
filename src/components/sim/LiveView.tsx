@@ -119,6 +119,7 @@ export function LiveView({
       viewport={viewport}
       symbols={symbols}
       onSymbol={setSymbolId}
+      shareable
       below={<OrderTicket book="live" spec={spec} mid={current.price} mids={mids} summary={summary} onInfo={onInfo} onResult={onResult} />}
     />
   );

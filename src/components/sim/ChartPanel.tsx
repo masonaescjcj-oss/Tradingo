@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ShareAnalysis } from '@/components/chat/ShareAnalysis';
+import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { Candle } from '@/content/types';
@@ -112,6 +112,7 @@ export function ChartPanel({
   viewport,
   symbols,
   onSymbol,
+  shareable,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -138,6 +139,8 @@ export function ChartPanel({
   /** Symbols the chart title can switch to. */
   symbols?: SymbolOption[];
   onSymbol?: (id: string) => void;
+  /** Offers "share analysis" (live prices only; the replay's history isn't the market's). */
+  shareable?: boolean;
 }) {
   const tools = useGame((s) => s.simTools) ?? DEFAULT_SIM_TOOLS;
   const setTools = useGame((s) => s.setSimTools);
@@ -267,9 +270,11 @@ export function ChartPanel({
               accessibilityLabel={`انتخاب سطح ${formatPrice(spec, p)}`}
             />
           ))}
-          <Chip onPress={() => setShare(true)} label="اشتراک تحلیل" accessibilityLabel="اشتراک این نمودار و تحلیل در گفتگو">
-            <Icon name="chat" size={14} color={colors.skyText} strokeWidth={2.6} />
-          </Chip>
+          {shareable ? (
+            <Chip onPress={() => setShare(true)} label="اشتراک تحلیل" accessibilityLabel="اشتراک این نمودار و تحلیل در گفتگو">
+              <Icon name="chat" size={14} color={colors.skyText} strokeWidth={2.6} />
+            </Chip>
+          ) : null}
           {sel != null ? (
             <View style={styles.levelActions}>
               <Chip onPress={() => nudge(1)} accessibilityLabel="بالا بردن سطح">
@@ -294,14 +299,15 @@ export function ChartPanel({
         {footer}
       </View>
 
-      <ShareAnalysis
-        visible={share}
-        onClose={() => setShare(false)}
-        spec={spec}
-        candles={candles}
-        levels={levels}
-        position={account.positions.filter((p) => p.symbol === spec.id).at(-1)}
-      />
+      {shareable ? (
+        <AnalysisComposer
+          visible={share}
+          onClose={() => setShare(false)}
+          initialSymbol={spec.id}
+          levels={tools.levels ?? {}}
+          position={account.positions.filter((p) => p.symbol === spec.id).at(-1)}
+        />
+      ) : null}
 
       <Modal
         visible={full}

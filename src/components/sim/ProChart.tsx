@@ -62,6 +62,9 @@ export function ProChart({
   countdown,
   corner,
   onTitlePress,
+  interactive = true,
+  initialCount,
+  hidePrice = false,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -81,12 +84,18 @@ export function ProChart({
   corner?: { icon: IconName; label: string; onPress: () => void };
   /** Makes the title a button, e.g. to pick another symbol. */
   onTitlePress?: () => void;
+  /** False draws a still picture: no scrolling, zoom or crosshair (e.g. an analysis in chat). */
+  interactive?: boolean;
+  /** Candle slots in view at first; defaults to about 7px per candle. */
+  initialCount?: number;
+  /** Leaves out the current-price line and tag (e.g. when an entry line already marks it). */
+  hidePrice?: boolean;
 }) {
   const fmt = (p: number) => formatPrice(spec, p);
   const axisW = Math.ceil(Math.max(fmt(price).length, 6) * CHAR_W + 14);
   const plotW = width - axisW;
 
-  const [count, setCount] = useState(() => zoomFor(plotW));
+  const [count, setCount] = useState(() => initialCount ?? zoomFor(plotW));
   const [offset, setOffset] = useState(0);
   const [crossMode, setCrossMode] = useState(false);
   const [cross, setCross] = useState<{ x: number; y: number } | null>(null);
@@ -176,9 +185,7 @@ export function ProChart({
   }
 
   const series = (values: (number | null)[], toY: (v: number) => number) =>
-    visible
-      .flatMap((i) => (values[i] == null ? [] : [`${fixed(cx(i))},${fixed(toY(values[i] as number))}`]))
-      .join(' ');
+    visible.flatMap((i) => (values[i] == null ? [] : [`${fixed(cx(i))},${fixed(toY(values[i] as number))}`])).join(' ');
   const ma1 = tools.ma ? series(sma(candles, 9), y) : '';
   const ma2 = tools.ma2 ? series(sma(candles, 21), y) : '';
   const bandLine = (key: 'upper' | 'mid' | 'lower') =>
@@ -293,7 +300,7 @@ export function ProChart({
         {ma1 ? <Polyline points={ma1} fill="none" stroke={colors.gold} strokeWidth={1.6} strokeLinejoin="round" /> : null}
         {ma2 ? <Polyline points={ma2} fill="none" stroke={colors.sky} strokeWidth={1.6} strokeLinejoin="round" /> : null}
 
-        {inRange(price) ? (
+        {!hidePrice && inRange(price) ? (
           <Line x1={0} x2={plotW} y1={y(price)} y2={y(price)} stroke={nowColor} strokeWidth={1} strokeDasharray="2 3" />
         ) : null}
 
@@ -378,29 +385,27 @@ export function ProChart({
 
       {/* Axis tags; lines out of view get an arrow at the edge. */}
       {lines.map((l, i) => (
-        <View
-          key={`a${i}`}
-          pointerEvents="none"
-          style={[styles.tag, { left: plotW + 1, width: axisW - 2, top: tagTops[i], backgroundColor: l.color }]}
-        >
+        <View key={`a${i}`} pointerEvents="none" style={[styles.tag, { left: plotW + 1, width: axisW - 2, top: tagTops[i], backgroundColor: l.color }]}>
           <Txt mono w={800} size={10.5} color={l.ink}>
             {inRange(l.price) ? fmt(l.price) : `${l.price > hi ? '▲' : '▼'}${fmt(l.price)}`}
           </Txt>
         </View>
       ))}
-      <View
-        pointerEvents="none"
-        style={[styles.tag, styles.nowTag, { left: plotW + 1, width: axisW - 2, top: tagTops[lines.length], height: nowH, backgroundColor: nowColor }]}
-      >
-        <Txt mono w={800} size={11} color={nowInk}>
-          {fmt(price)}
-        </Txt>
-        {countdown ? (
-          <Txt mono w={700} size={10} color={nowInk} style={{ opacity: 0.8 }}>
-            {countdown}
+      {hidePrice ? null : (
+        <View
+          pointerEvents="none"
+          style={[styles.tag, styles.nowTag, { left: plotW + 1, width: axisW - 2, top: tagTops[lines.length], height: nowH, backgroundColor: nowColor }]}
+        >
+          <Txt mono w={800} size={11} color={nowInk}>
+            {fmt(price)}
           </Txt>
-        ) : null}
-      </View>
+          {countdown ? (
+            <Txt mono w={700} size={10} color={nowInk} style={{ opacity: 0.8 }}>
+              {countdown}
+            </Txt>
+          ) : null}
+        </View>
+      )}
 
       {cross && crossCandle ? (
         <>
@@ -410,7 +415,10 @@ export function ProChart({
             </Txt>
           </View>
           {hasTimes && crossIndex != null ? (
-            <View pointerEvents="none" style={[styles.tag, styles.crossTag, styles.crossTime, { top: bodyH + 1, left: Math.min(plotW - 70, Math.max(0, cx(crossIndex) - 35)) }]}>
+            <View
+              pointerEvents="none"
+              style={[styles.tag, styles.crossTag, styles.crossTime, { top: bodyH + 1, left: Math.min(plotW - 70, Math.max(0, cx(crossIndex) - 35)) }]}
+            >
               <Txt mono w={800} size={10} color={colors.bg}>
                 {clockLabel(times![crossIndex], secondsLabels)}
               </Txt>
@@ -420,17 +428,19 @@ export function ProChart({
       ) : null}
 
       {/* The touch surface: drag to scroll, or move the crosshair when it is on. */}
-      <View
-        style={[styles.touch, { width: plotW, height: bodyH }, webTouch(crossMode)]}
-        onStartShouldSetResponder={() => true}
-        onMoveShouldSetResponder={() => true}
-        onResponderGrant={grant}
-        onResponderMove={move}
-        onResponderRelease={end}
-        onResponderTerminate={end}
-        onResponderTerminationRequest={() => !crossMode && !drag.current?.panning}
-        accessibilityLabel="نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش"
-      />
+      {interactive ? (
+        <View
+          style={[styles.touch, { width: plotW, height: bodyH }, webTouch(crossMode)]}
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onResponderGrant={grant}
+          onResponderMove={move}
+          onResponderRelease={end}
+          onResponderTerminate={end}
+          onResponderTerminationRequest={() => !crossMode && !drag.current?.panning}
+          accessibilityLabel="نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش"
+        />
+      ) : null}
 
       <View pointerEvents="box-none" style={[styles.titleRow, { maxWidth: plotW - (corner ? 48 : 8) }]}>
         {onTitlePress ? (
@@ -466,14 +476,22 @@ export function ProChart({
         </View>
       ) : null}
 
-      {corner ? <ChartButton icon={corner.icon} label={corner.label} onPress={corner.onPress} style={{ position: 'absolute', left: plotW - 40, top: 4 }} /> : null}
-      <View style={[styles.controls, { top: mainH - 42 }]} pointerEvents="box-none">
-        <ChartButton icon="crosshair" label="خط‌کش قیمت (کراس‌هیر)" on={crossMode} onPress={toggleCross} />
-        <ChartButton icon="minus" label="کوچک‌نمایی" onPress={() => zoom(-1)} disabled={count >= ZOOMS[ZOOMS.length - 1]} />
-        <ChartButton icon="plus" label="بزرگ‌نمایی" onPress={() => zoom(1)} disabled={count <= ZOOMS[0]} />
-      </View>
-      {offset >= 1 ? (
-        <ChartButton icon="skipEnd" label="برگشت به آخرین کندل" onPress={() => setOffset(0)} style={{ position: 'absolute', left: plotW - 40, top: mainH - 42 }}
+      {corner ? (
+        <ChartButton icon={corner.icon} label={corner.label} onPress={corner.onPress} style={{ position: 'absolute', left: plotW - 40, top: 4 }} />
+      ) : null}
+      {interactive ? (
+        <View style={[styles.controls, { top: mainH - 42 }]} pointerEvents="box-none">
+          <ChartButton icon="crosshair" label="خط‌کش قیمت (کراس‌هیر)" on={crossMode} onPress={toggleCross} />
+          <ChartButton icon="minus" label="کوچک‌نمایی" onPress={() => zoom(-1)} disabled={count >= ZOOMS[ZOOMS.length - 1]} />
+          <ChartButton icon="plus" label="بزرگ‌نمایی" onPress={() => zoom(1)} disabled={count <= ZOOMS[0]} />
+        </View>
+      ) : null}
+      {interactive && offset >= 1 ? (
+        <ChartButton
+          icon="skipEnd"
+          label="برگشت به آخرین کندل"
+          onPress={() => setOffset(0)}
+          style={{ position: 'absolute', left: plotW - 40, top: mainH - 42 }}
         />
       ) : null}
     </View>

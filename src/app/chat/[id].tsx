@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
+import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
 import { AnalysisChart, NameDot, TopicAvatar } from '@/components/chat/ChatBits';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
@@ -35,7 +36,8 @@ export default function RoomScreen() {
   const [error, setError] = useState<string | null>(null);
   const [action, setAction] = useState<ChatMessage | null>(null);
   const [menu, setMenu] = useState(false);
-  const [chartTip, setChartTip] = useState(false);
+  const [composing, setComposing] = useState(false);
+  const [composerH, setComposerH] = useState(70);
   const scroll = useRef<ScrollView>(null);
   const nearBottom = useRef(true);
 
@@ -147,7 +149,7 @@ export default function RoomScreen() {
 
       <ScrollView
         ref={scroll}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: composerH + 12 }]}
         onScroll={(e) => {
           const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
           nearBottom.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 120;
@@ -183,10 +185,15 @@ export default function RoomScreen() {
         })}
       </ScrollView>
 
-      <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      {/* Floats over the messages: no panel behind the input, like a messenger. */}
+      <View
+        style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 10) }]}
+        onLayout={(e) => setComposerH(e.nativeEvent.layout.height)}
+        pointerEvents="box-none"
+      >
         {error ? (
-          <Pressable onPress={() => setError(null)}>
-            <Txt w={700} size={12.5} color={colors.gold} style={{ paddingHorizontal: 4 }}>
+          <Pressable onPress={() => setError(null)} style={styles.errorPill}>
+            <Txt w={700} size={12.5} color={colors.gold}>
               {error}
             </Txt>
           </Pressable>
@@ -197,8 +204,8 @@ export default function RoomScreen() {
           <Button3D label="عضو گروه شو" size={16} height={48} onPress={join} />
         ) : (
           <View style={styles.inputRow}>
-            <Pressable onPress={() => setChartTip(true)} accessibilityRole="button" accessibilityLabel="فرستادن نمودار" hitSlop={6} style={styles.attach}>
-              <Icon name="candles" size={20} color={colors.text2} strokeWidth={2.4} />
+            <Pressable onPress={() => setComposing(true)} accessibilityRole="button" accessibilityLabel="تحلیل با نمودار" hitSlop={4} style={styles.attach}>
+              <Icon name="candles" size={21} color={colors.bull} strokeWidth={2.4} />
             </Pressable>
             <TextInput
               value={text}
@@ -208,8 +215,10 @@ export default function RoomScreen() {
               }}
               placeholder="پیام…"
               placeholderTextColor={colors.faint}
-              multiline
               maxLength={MAX_MESSAGE}
+              returnKeyType="send"
+              submitBehavior="submit"
+              onSubmitEditing={send}
               style={styles.input}
             />
             <Pressable
@@ -217,7 +226,7 @@ export default function RoomScreen() {
               disabled={sending || !text.trim()}
               accessibilityRole="button"
               accessibilityLabel="ارسال"
-              style={[styles.send, (!text.trim() || sending) && { opacity: 0.5 }]}
+              style={[styles.send, (!text.trim() || sending) && styles.sendIdle]}
             >
               <View style={{ transform: [{ scaleX: -1 }] }}>
                 <Icon name="send" size={20} color={colors.bullInk} strokeWidth={2.6} />
@@ -252,26 +261,15 @@ export default function RoomScreen() {
         </Pressable>
       </Modal>
 
-      <Modal visible={chartTip} transparent animationType="fade" onRequestClose={() => setChartTip(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setChartTip(false)}>
-          <View style={styles.dialog}>
-            <Icon name="candles" size={34} color={colors.bull} strokeWidth={2.4} />
-            <Txt w={800} size={15} lh={1.8} center>
-              برای گذاشتن نمودار و تحلیل، توی شبیه‌ساز زیر نمودار روی «اشتراک تحلیل» بزن؛ نمودار با سطح‌ها و ورود، حد ضرر و حد سودت فرستاده می‌شه.
-            </Txt>
-            <Button3D
-              label="برو به شبیه‌ساز"
-              size={16}
-              onPress={() => {
-                setChartTip(false);
-                router.navigate('/(tabs)/simulator');
-              }}
-              style={{ alignSelf: 'stretch' }}
-            />
-            <Button3D label="باشه" variant="secondary" size={16} onPress={() => setChartTip(false)} style={{ alignSelf: 'stretch' }} />
-          </View>
-        </Pressable>
-      </Modal>
+      <AnalysisComposer
+        visible={composing}
+        onClose={() => setComposing(false)}
+        room={id}
+        onSent={(m) => {
+          nearBottom.current = true;
+          setMessages((prev) => mergeMessages(prev, [m]));
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -298,9 +296,19 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
             {m.body}
           </Txt>
         ) : null}
-        <Txt w={500} size={10.5} color={m.mine ? 'rgba(241,244,249,0.6)' : colors.text3} style={{ alignSelf: 'flex-end' }}>
-          {messageTime(m.created_at)}
-        </Txt>
+        <View style={styles.meta}>
+          <Txt w={500} size={10.5} color={m.mine ? 'rgba(241,244,249,0.65)' : colors.text3}>
+            {messageTime(m.created_at)}
+          </Txt>
+          {m.mine ? (
+            <View style={styles.ticks} accessibilityLabel="فرستاده شد">
+              <Icon name="check" size={12} color="rgba(241,244,249,0.7)" strokeWidth={3} />
+              <View style={{ marginLeft: -7 }}>
+                <Icon name="check" size={12} color="rgba(241,244,249,0.7)" strokeWidth={3} />
+              </View>
+            </View>
+          ) : null}
+        </View>
       </Pressable>
     </View>
   );
@@ -378,37 +386,47 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 6,
   },
   composer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     gap: 6,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+  },
+  errorPill: {
+    alignSelf: 'center',
     paddingHorizontal: 12,
-    paddingTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: colors.lineSoft,
-    backgroundColor: colors.bg,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: colors.goldCard,
+    borderWidth: 1,
+    borderColor: colors.goldCardLine,
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: 8,
     width: '100%',
     maxWidth: MAX_WIDTH,
     alignSelf: 'center',
   },
   attach: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.line,
   },
   input: {
     flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 22,
-    borderWidth: 2,
+    height: 46,
+    paddingHorizontal: 18,
+    borderRadius: 23,
+    borderWidth: 1.5,
     borderColor: colors.line,
     backgroundColor: colors.surface,
     color: colors.text,
@@ -418,12 +436,25 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
   },
   send: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bull,
+  },
+  sendIdle: {
+    opacity: 0.45,
+  },
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-end',
+  },
+  ticks: {
+    flexDirection: 'row',
+    direction: 'ltr',
   },
   backdrop: {
     flex: 1,
