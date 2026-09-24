@@ -27,6 +27,28 @@ describe('email sign-in', () => {
     assert.equal(normalizeLogin('email', '09123456789'), null);
   });
 
+  it('takes numbers from other countries in the international form, and keeps Iranian ones as 09', async () => {
+    const { normalizePhone, loginCountry } = await import('../src/lib/login');
+    assert.equal(normalizePhone('GB', '07911 123456'), '+447911123456');
+    assert.equal(normalizePhone('GB', '+44 7911 123456'), '+447911123456');
+    assert.equal(normalizePhone('DE', '0049 151 2345 6789'), '+4915123456789');
+    assert.equal(normalizePhone('AE', '۰۵۰ ۱۲۳ ۴۵۶۷'), '+971501234567');
+    assert.equal(normalizePhone('US', '(415) 555-0123'), '+14155550123');
+    assert.equal(normalizePhone('IR', '09123456789'), '09123456789');
+    assert.equal(normalizePhone('TR', '+989123456789'), '09123456789');
+    assert.equal(normalizePhone('GB', '123'), null);
+    assert.equal(loginCountry('+447911123456'), 'GB');
+    assert.equal(loginCountry('+971501234567'), 'AE');
+    assert.equal(loginCountry('09123456789'), 'IR');
+    const { COUNTRIES, flagOf } = await import('../src/lib/countries');
+    assert.equal(COUNTRIES[0].iso, 'IR');
+    assert.equal(new Set(COUNTRIES.map((c) => c.iso)).size, COUNTRIES.length);
+    assert.equal(flagOf('IR'), '🇮🇷');
+    const sql = readFileSync(join(__dirname, '..', 'supabase/migrations/20261005000000_tradingo_world_phones.sql'), 'utf8');
+    assert.match(sql, /as \$\$ select 11 \$\$/);
+    assert.match(sql, /when v ~ '\^\\\+989\[0-9\]\{9\}\$' then '0' \|\| substr\(v, 4\)/);
+  });
+
   it('tells a stored email from a number and shows each well', () => {
     assert.equal(loginMethod('a@b.co'), 'email');
     assert.equal(loginMethod('09123456789'), 'mobile');

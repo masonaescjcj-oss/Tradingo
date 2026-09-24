@@ -4,25 +4,26 @@ import { StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
 import { login } from '@/lib/auth';
-import { loginMethod, normalizeLogin, type LoginMethod } from '@/lib/login';
+import { loginCountry, loginMethod, normalizeLogin, type LoginMethod } from '@/lib/login';
 import { colors } from '@/theme';
 
 import { AuthField } from './AuthField';
-import { LOGIN_INVALID, LoginField, MethodTabs } from './LoginField';
+import { LoginField, loginInvalid, MethodTabs } from './LoginField';
 
 /** Email (the default) or mobile number, and the password. `initialLogin` picks its tab. */
 export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string; onDone: () => void }) {
   const first: LoginMethod = initialLogin ? loginMethod(initialLogin) : 'email';
   const [method, setMethod] = useState<LoginMethod>(first);
   const [typed, setTyped] = useState<Record<LoginMethod, string>>({ email: '', mobile: '', [first]: initialLogin });
+  const [country, setCountry] = useState(() => loginCountry(initialLogin));
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const normalized = normalizeLogin(method, typed[method]);
+  const normalized = normalizeLogin(method, typed[method], country);
 
   const submit = async () => {
     if (!normalized) {
-      setError(LOGIN_INVALID[method]);
+      setError(loginInvalid(method, country));
       return;
     }
     if (!password) {
@@ -46,7 +47,16 @@ export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string
           setError(null);
         }}
       />
-      <LoginField method={method} value={typed[method]} onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))} />
+      <LoginField
+        method={method}
+        value={typed[method]}
+        onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))}
+        country={country}
+        onCountry={(iso) => {
+          setCountry(iso);
+          setError(null);
+        }}
+      />
       <AuthField
         label="رمز عبور"
         icon="lock"

@@ -1,10 +1,15 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { COUNTRIES, DEFAULT_COUNTRY, findCountry, flagOf, type Country } from '@/lib/countries';
+import { useKeyboardOverlap } from '@/lib/keyboard';
 import type { LoginMethod } from '@/lib/login';
-import { colors } from '@/theme';
+import { latinDigits } from '@/lib/phone';
+import { colors, fonts } from '@/theme';
 
 import { AuthField } from './AuthField';
 
@@ -13,11 +18,11 @@ const METHODS: [LoginMethod, string, IconName][] = [
   ['mobile', 'شماره موبایل', 'phone'],
 ];
 
-/** What the forms say when the login typed isn't valid. */
-export const LOGIN_INVALID: Record<LoginMethod, string> = {
-  email: 'یه ایمیل درست بنویس؛ مثلاً name@gmail.com',
-  mobile: 'یه شماره موبایل ایران بنویس؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹',
-};
+/** What the forms say when the login typed isn't valid (numbers: for the picked country). */
+export function loginInvalid(method: LoginMethod, iso: string = DEFAULT_COUNTRY): string {
+  if (method === 'email') return 'یه ایمیل درست بنویس؛ مثلاً name@gmail.com';
+  return iso === 'IR' ? 'یه شماره موبایل ایران بنویس؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹' : 'شماره موبایل درست نیست؛ کشور رو درست انتخاب کن و شماره رو بدون کد کشور بنویس.';
+}
 
 /** Email (the default) or mobile number, as two tabs at the top of the sign-in and sign-up forms. */
 export function MethodTabs({ method, onChange }: { method: LoginMethod; onChange: (m: LoginMethod) => void }) {
@@ -42,13 +47,17 @@ type FieldProps = {
   method: LoginMethod;
   value: string;
   onChangeText: (text: string) => void;
+  /** The picked country for numbers (ISO code); Iran by default. */
+  country?: string;
+  onCountry?: (iso: string) => void;
   error?: string | null;
   hint?: string;
   onSubmitEditing?: () => void;
 };
 
-/** The email field, or the mobile field with Iran's code in front (the only country for now). */
-export function LoginField({ method, hint, ...field }: FieldProps) {
+/** The email field, or the mobile field with the country's flag and code in front (Iran by default). */
+export function LoginField({ method, hint, country = DEFAULT_COUNTRY, onCountry, ...field }: FieldProps) {
+  const [picking, setPicking] = useState(false);
   if (method === 'email') {
     return (
       <AuthField
@@ -69,40 +78,123 @@ export function LoginField({ method, hint, ...field }: FieldProps) {
       />
     );
   }
+  const c = findCountry(country);
   return (
-    <AuthField
-      key="mobile"
-      label="شماره موبایل"
-      icon="phone"
-      ltr
-      prefix={<IranCode />}
-      placeholder="912 345 6789"
-      keyboardType="phone-pad"
-      autoComplete="tel"
-      textContentType="telephoneNumber"
-      maxLength={16}
-      returnKeyType="next"
-      hint={hint ?? 'فعلاً فقط شماره‌های ایران'}
-      {...field}
-    />
+    <>
+      <AuthField
+        key="mobile"
+        label="شماره موبایل"
+        icon="phone"
+        ltr
+        prefix={<CountryCode country={c} onPress={onCountry ? () => setPicking(true) : undefined} />}
+        placeholder={c.iso === 'IR' ? '912 345 6789' : 'شماره بدون کد کشور'}
+        keyboardType="phone-pad"
+        autoComplete="tel"
+        textContentType="telephoneNumber"
+        maxLength={18}
+        returnKeyType="next"
+        hint={hint ?? 'برای شماره‌ی کشورهای دیگه، روی پرچم بزن.'}
+        {...field}
+      />
+      {onCountry ? (
+        <CountrySheet
+          visible={picking}
+          current={c.iso}
+          onClose={() => setPicking(false)}
+          onPick={(iso) => {
+            setPicking(false);
+            onCountry(iso);
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 
-/** 🇮🇷 +98, drawn so it looks the same on every phone and browser. */
-function IranCode() {
-  return (
-    <View style={styles.code} accessible accessibilityLabel="ایران، ۹۸+">
-      {/* In the right-to-left row the first child sits on the right: +98, then the flag to its left. */}
-      <Txt mono w={700} size={14} color={colors.text2}>
-        {'‎+98'}
+/** A country's flag: Iran's drawn (so it looks the same everywhere), the rest as emoji. */
+function Flag({ iso }: { iso: string }) {
+  if (iso !== 'IR') {
+    return (
+      <Txt size={18} style={{ lineHeight: 22 }}>
+        {flagOf(iso)}
       </Txt>
-      <Svg width={24} height={16} viewBox="0 0 24 16">
-        <Rect x={0} y={0} width={24} height={5.4} fill="#239F40" />
-        <Rect x={0} y={5.3} width={24} height={5.4} fill="#FFFFFF" />
-        <Rect x={0} y={10.6} width={24} height={5.4} fill="#DA0000" />
-        <Path d="M12 5.9c-.95.6-1.4 1.4-1.4 2.15 0 .75.55 1.35 1.4 1.55.85-.2 1.4-.8 1.4-1.55 0-.75-.45-1.55-1.4-2.15z" fill="#DA0000" />
-      </Svg>
-    </View>
+    );
+  }
+  return (
+    <Svg width={24} height={16} viewBox="0 0 24 16">
+      <Rect x={0} y={0} width={24} height={5.4} fill="#239F40" />
+      <Rect x={0} y={5.3} width={24} height={5.4} fill="#FFFFFF" />
+      <Rect x={0} y={10.6} width={24} height={5.4} fill="#DA0000" />
+      <Path d="M12 5.9c-.95.6-1.4 1.4-1.4 2.15 0 .75.55 1.35 1.4 1.55.85-.2 1.4-.8 1.4-1.55 0-.75-.45-1.55-1.4-2.15z" fill="#DA0000" />
+    </Svg>
+  );
+}
+
+/** 🇮🇷 +98 in front of the number; tapping it picks another country. */
+function CountryCode({ country, onPress }: { country: Country; onPress?: () => void }) {
+  return (
+    <Pressable onPress={onPress} disabled={!onPress} hitSlop={6} accessibilityRole="button" accessibilityLabel={`کشور: ${country.fa}، ${country.dial}+. برای تغییر بزن`} style={styles.code}>
+      {/* In the right-to-left row the first child sits on the right: the arrow, +98, then the flag to its left. */}
+      {onPress ? <Icon name="chevronDown" size={14} color={colors.text3} strokeWidth={2.6} /> : null}
+      <Txt mono w={700} size={14} color={colors.text2}>
+        {`\u200E+${country.dial}`}
+      </Txt>
+      <Flag iso={country.iso} />
+    </Pressable>
+  );
+}
+
+/** Picking a country for the number: Iran first, then the rest; searchable by name or code. */
+function CountrySheet({ visible, current, onPick, onClose }: { visible: boolean; current: string; onPick: (iso: string) => void; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardOverlap();
+  const [query, setQuery] = useState('');
+  const q = latinDigits(query).trim().toLowerCase().replace(/^\+/, '');
+  const list = q ? COUNTRIES.filter((c) => c.fa.includes(query.trim()) || c.en.toLowerCase().includes(q) || c.dial.startsWith(q)) : COUNTRIES;
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} onShow={() => setQuery('')}>
+      <View style={[styles.sheetBackdrop, { paddingBottom: keyboard.overlap }]} onLayout={keyboard.onLayout}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="بستن" />
+        <View style={[styles.sheet, { paddingBottom: 12 + (keyboard.overlap ? 0 : insets.bottom) }]}>
+          <Txt w={900} size={18}>
+            کشور شماره
+          </Txt>
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="جستجوی اسم کشور یا کد"
+            placeholderTextColor={colors.faint}
+            autoCorrect={false}
+            style={styles.search}
+          />
+          <FlatList
+            data={list}
+            keyExtractor={(c) => c.iso}
+            keyboardShouldPersistTaps="handled"
+            style={{ maxHeight: 420 }}
+            renderItem={({ item: c }) => {
+              const on = c.iso === current;
+              return (
+                <Pressable onPress={() => onPick(c.iso)} accessibilityRole="radio" accessibilityState={{ checked: on }} style={[styles.country, on && styles.countryOn]}>
+                  <Flag iso={c.iso} />
+                  <View style={{ flex: 1 }}>
+                    <Txt w={800} size={14.5}>
+                      {c.fa}
+                    </Txt>
+                    <Txt size={11.5} color={colors.text3}>
+                      {c.en}
+                    </Txt>
+                  </View>
+                  <Txt mono w={700} size={13} color={colors.text2}>
+                    {`\u200E+${c.dial}`}
+                  </Txt>
+                </Pressable>
+              );
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -134,6 +226,44 @@ const styles = StyleSheet.create({
   code: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 6,
+  },
+  sheetBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(5,8,15,0.7)',
+  },
+  sheet: {
+    gap: 10,
+    padding: 18,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    borderWidth: 2,
+    borderBottomWidth: 0,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  search: {
+    height: 48,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.bg,
+    color: colors.text,
+    fontFamily: fonts.medium,
+    fontSize: 15,
+    textAlign: 'right',
+  },
+  country: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 52,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  countryOn: {
+    backgroundColor: colors.skySoft,
   },
 });

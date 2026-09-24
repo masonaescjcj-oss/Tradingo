@@ -5,13 +5,14 @@ import { StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
 import { MIN_PASSWORD, register } from '@/lib/auth';
+import { DEFAULT_COUNTRY } from '@/lib/countries';
 import { normalizeLogin, type LoginMethod } from '@/lib/login';
 import { cloudEnabled } from '@/lib/supabase';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
 import { AuthField } from './AuthField';
-import { LOGIN_INVALID, LoginField, MethodTabs } from './LoginField';
+import { LoginField, loginInvalid, MethodTabs } from './LoginField';
 
 type Props = {
   initialName?: string;
@@ -25,15 +26,16 @@ type Props = {
 export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
   const [method, setMethod] = useState<LoginMethod>('email');
   const [typed, setTyped] = useState<Record<LoginMethod, string>>({ email: '', mobile: '' });
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [name, setName] = useState(initialName);
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const normalized = normalizeLogin(method, typed[method]);
+  const normalized = normalizeLogin(method, typed[method], country);
   const nameError = touched && !name.trim() ? 'اسمت رو بنویس.' : null;
-  const loginError = touched && !normalized ? LOGIN_INVALID[method] : null;
+  const loginError = touched && !normalized ? loginInvalid(method, country) : null;
   const passwordError = touched && password.length < MIN_PASSWORD ? `رمز باید حداقل ${fa(MIN_PASSWORD)} کاراکتر باشه.` : null;
 
   const submit = async () => {
@@ -71,8 +73,10 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
         method={method}
         value={typed[method]}
         onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))}
+        country={country}
+        onCountry={setCountry}
         error={loginError}
-        hint={method === 'email' ? 'به هیچ کاربری نشون داده نمی‌شه؛ کد تأیید هم لازم نیست.' : 'فعلاً فقط شماره‌های ایران؛ کد تأیید لازم نیست.'}
+        hint={method === 'email' ? 'به هیچ کاربری نشون داده نمی‌شه؛ کد تأیید هم لازم نیست.' : 'کد تأیید لازم نیست؛ برای شماره‌ی کشورهای دیگه روی پرچم بزن.'}
       />
       <AuthField
         label="رمز عبور"
