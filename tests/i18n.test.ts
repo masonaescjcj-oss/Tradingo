@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 
 import { ALL_COURSES } from '../src/content/courses';
 import { applyOverlay, courseCardStrings, localizeCourse, persianStrings, translationIssues } from '../src/content/i18n';
+import { validateCourses } from '../src/content/validate';
 import { setLang, t } from '../src/i18n';
 import { fa, faNum } from '../src/utils/format';
 
@@ -62,7 +63,11 @@ describe('English', () => {
     if (blank) assert.ok(issues.some((i) => i.key === blank && /blanks/.test(i.problem)));
   });
 
-  it('keeps every English lesson overlay that exists consistent with the Persian', () => {
-    assert.deepEqual(translationIssues(ALL_COURSES, { only: 'translated' }), []);
+  it('has every lesson in English, consistent with the Persian', () => {
+    assert.deepEqual(translationIssues(ALL_COURSES), []);
+  });
+
+  it('keeps the English lessons as valid as the Persian ones (label lengths, answers…)', () => {
+    assert.deepEqual(validateCourses(ALL_COURSES.map((c) => localizeCourse(c))), []);
   });
 });
