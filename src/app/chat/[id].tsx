@@ -1,6 +1,6 @@
 import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
@@ -12,6 +12,7 @@ import { chatErrorText, MAX_MESSAGE, mergeMessages, messageProblem, messageTime,
 import { deleteMessage, fetchMessages, joinRoom, leaveRoom, loadRooms, reportMessage, sendMessage, useChat } from '@/lib/chatApi';
 import { actOnUser, adminErrorText } from '@/lib/adminApi';
 import { useCloud } from '@/lib/cloud';
+import { useKeyboardOverlap } from '@/lib/keyboard';
 import { useGame } from '@/store/game';
 import { colors, fonts, MAX_WIDTH } from '@/theme';
 import { fa } from '@/utils/format';
@@ -44,6 +45,12 @@ export default function RoomScreen() {
   const [composerH, setComposerH] = useState(70);
   const scroll = useRef<ScrollView>(null);
   const nearBottom = useRef(true);
+  const keyboard = useKeyboardOverlap();
+
+  // Keep the latest messages in sight when the keyboard opens under the composer.
+  useEffect(() => {
+    if (keyboard.overlap > 0 && nearBottom.current) requestAnimationFrame(() => scroll.current?.scrollToEnd({ animated: true }));
+  }, [keyboard.overlap]);
 
   const colW = Math.min(width, MAX_WIDTH);
   const bubbleW = Math.min(colW * 0.82, 400);
@@ -144,7 +151,7 @@ export default function RoomScreen() {
   const joined = room?.joined ?? false;
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.screen} onLayout={keyboard.onLayout}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
         <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.headerBtn}>
           <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
@@ -167,7 +174,7 @@ export default function RoomScreen() {
 
       <ScrollView
         ref={scroll}
-        contentContainerStyle={[styles.list, { paddingBottom: composerH + 12 }]}
+        contentContainerStyle={[styles.list, { paddingBottom: composerH + 12 + keyboard.overlap }]}
         onScroll={(e) => {
           const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
           nearBottom.current = contentSize.height - contentOffset.y - layoutMeasurement.height < 120;
@@ -205,7 +212,7 @@ export default function RoomScreen() {
 
       {/* Floats over the messages: no panel behind the input, like a messenger. */}
       <View
-        style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 10) }]}
+        style={[styles.composer, { bottom: keyboard.overlap, paddingBottom: keyboard.overlap ? 10 : Math.max(insets.bottom, 10) }]}
         onLayout={(e) => setComposerH(e.nativeEvent.layout.height)}
         pointerEvents="box-none"
       >
@@ -320,7 +327,7 @@ export default function RoomScreen() {
           setMessages((prev) => mergeMessages(prev, [m]));
         }}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

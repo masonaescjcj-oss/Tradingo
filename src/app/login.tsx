@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { LoginForm } from '@/components/auth/LoginForm';
 import { BackHeader } from '@/components/BackHeader';
+import { KeyboardScroll } from '@/components/KeyboardScroll';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
@@ -17,7 +18,7 @@ export default function LoginScreen() {
   return (
     <Screen>
       <BackHeader caption="حساب کاربری" title="ورود" />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content}>
         <View style={styles.mascotRow}>
           <Mascot mood="happy" size={84} />
           <SpeechBubble style={{ flex: 1 }}>
@@ -36,7 +37,7 @@ export default function LoginScreen() {
             ثبت‌نام کن
           </Txt>
         </Txt>
-      </ScrollView>
+      </KeyboardScroll>
     </Screen>
   );
 }

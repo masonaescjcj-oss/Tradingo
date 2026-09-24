@@ -15,6 +15,7 @@ import { chatAvailable, createRoom, joinRoom, loadRooms, useChat } from '@/lib/c
 import { useCoach } from '@/lib/coachApi';
 import { useCloud } from '@/lib/cloud';
 import { cloudEnabled } from '@/lib/supabase';
+import { useKeyboardOverlap } from '@/lib/keyboard';
 import { useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
 
@@ -200,6 +201,7 @@ export default function ChatScreen() {
 
 function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; onClose: () => void; onCreated: (id: string) => void }) {
   const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardOverlap();
   const [title, setTitle] = useState('');
   const [about, setAbout] = useState('');
   const [topic, setTopic] = useState<ChatTopic>('general');
@@ -231,9 +233,9 @@ function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; on
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.sheetBackdrop}>
-        {/* Modals draw under the navigation bar too; the sheet's buttons stay above it. */}
-        <View style={[styles.sheet, { paddingBottom: 28 + insets.bottom }]}>
+      <View style={[styles.sheetBackdrop, { paddingBottom: keyboard.overlap }]} onLayout={keyboard.onLayout}>
+        {/* Modals draw under the navigation bar too; the sheet's buttons stay above it (and above the keyboard). */}
+        <View style={[styles.sheet, { paddingBottom: 28 + (keyboard.overlap ? 0 : insets.bottom) }]}>
           <Txt w={900} size={19}>
             گروه جدید
           </Txt>

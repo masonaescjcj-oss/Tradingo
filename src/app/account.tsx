@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
 import { AuthField } from '@/components/auth/AuthField';
 import { BackHeader } from '@/components/BackHeader';
 import { Button3D } from '@/components/Button3D';
 import { Icon, type IconName } from '@/components/Icon';
+import { KeyboardScroll } from '@/components/KeyboardScroll';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
@@ -24,7 +25,7 @@ export default function AccountScreen() {
   return (
     <Screen>
       <BackHeader caption="پروفایل" title="حساب کاربری" />
-      <ScrollView contentContainerStyle={styles.content}>{user ? <SignedIn /> : <Guest />}</ScrollView>
+      <KeyboardScroll contentContainerStyle={styles.content}>{user ? <SignedIn /> : <Guest />}</KeyboardScroll>
     </Screen>
   );
 }

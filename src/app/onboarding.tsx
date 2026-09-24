@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { SignupForm } from '@/components/auth/SignupForm';
 import { Button3D } from '@/components/Button3D';
 import { CourseBadge } from '@/components/CourseBadge';
 import { Icon, type IconName } from '@/components/Icon';
+import { KeyboardScroll } from '@/components/KeyboardScroll';
 import { MARKETS, MarketCard } from '@/components/MarketPicker';
 import { Mascot, type MascotMood } from '@/components/Mascot';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -95,7 +96,7 @@ export default function Onboarding() {
         <ProgressBar value={index / (STEPS.length - 1)} label={`مرحله‌ی ${fa(index + 1)} از ${fa(STEPS.length)}`} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {step === 'hello' ? (
           <View style={styles.hello}>
             <SpeechBubble tail="bottomEnd" background={colors.text} border="#D5DBE6" style={styles.helloBubble}>
@@ -206,7 +207,7 @@ export default function Onboarding() {
             <SignupForm onDone={finish} onSkip={finish} />
           </View>
         )}
-      </ScrollView>
+      </KeyboardScroll>
 
       {step !== 'signup' && (
         <Button3D

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
@@ -13,6 +13,7 @@ import { cleanReply, COACH_SUGGESTIONS, coachContext, coachErrorText, type Coach
 import { addTurn, askCoach, clearCoach, useCoach } from '@/lib/coachApi';
 import { messageTime } from '@/lib/chat';
 import { useCloud } from '@/lib/cloud';
+import { useKeyboardOverlap } from '@/lib/keyboard';
 import { pickData, useGame } from '@/store/game';
 import { colors, fonts, MAX_WIDTH } from '@/theme';
 import { fa } from '@/utils/format';
@@ -33,12 +34,13 @@ export default function CoachScreen() {
   const [menu, setMenu] = useState(false);
   const [composerH, setComposerH] = useState(70);
   const scroll = useRef<ScrollView>(null);
+  const keyboard = useKeyboardOverlap();
 
   const bubbleW = Math.min(Math.min(width, MAX_WIDTH) * 0.84, 420);
 
   useEffect(() => {
     requestAnimationFrame(() => scroll.current?.scrollToEnd({ animated: true }));
-  }, [turns.length, thinking]);
+  }, [turns.length, thinking, keyboard.overlap]);
 
   const ask = async (question: string) => {
     const q = question.trim().slice(0, MAX_QUESTION);
@@ -61,7 +63,7 @@ export default function CoachScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={styles.screen} onLayout={keyboard.onLayout}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
         <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.headerBtn}>
           <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
@@ -82,7 +84,7 @@ export default function CoachScreen() {
         ) : null}
       </View>
 
-      <ScrollView ref={scroll} contentContainerStyle={[styles.list, { paddingBottom: composerH + 12 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scroll} contentContainerStyle={[styles.list, { paddingBottom: composerH + 12 + keyboard.overlap }]} keyboardShouldPersistTaps="handled">
         <View style={styles.intro}>
           <Icon name="bulb" size={16} color={colors.gold} strokeWidth={2.4} />
           <Txt w={700} size={12} lh={1.7} color={colors.text2} style={{ flex: 1 }}>
@@ -117,7 +119,7 @@ export default function CoachScreen() {
         {thinking ? <Typing /> : null}
       </ScrollView>
 
-      <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 10) }]} onLayout={(e) => setComposerH(e.nativeEvent.layout.height)} pointerEvents="box-none">
+      <View style={[styles.composer, { bottom: keyboard.overlap, paddingBottom: keyboard.overlap ? 10 : Math.max(insets.bottom, 10) }]} onLayout={(e) => setComposerH(e.nativeEvent.layout.height)} pointerEvents="box-none">
         {error || remaining != null ? (
           <Pressable onPress={() => setError(null)} style={styles.notePill}>
             <Txt w={700} size={12.5} color={error ? colors.gold : colors.text3}>
@@ -179,7 +181,7 @@ export default function CoachScreen() {
           </View>
         </Pressable>
       </Modal>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

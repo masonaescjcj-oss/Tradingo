@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { MAX_REPORT_MESSAGE, parseStepRef, REPORT_REASONS, sendReport, type ReportReason } from '@/lib/reportApi';
+import { useKeyboardOverlap } from '@/lib/keyboard';
 import { colors, fonts } from '@/theme';
 
 type Phase = { at: 'form' } | { at: 'sending' } | { at: 'done'; queued: boolean } | { at: 'refused' };
 
 /** Flags the lesson step on screen: pick what's wrong, add a note if you like, send. */
 export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: string; stepType: string; visible: boolean; onClose: () => void }) {
+  const keyboard = useKeyboardOverlap();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [message, setMessage] = useState('');
   const [phase, setPhase] = useState<Phase>({ at: 'form' });
@@ -33,7 +35,7 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.backdrop}>
+      <View style={[styles.backdrop, { paddingBottom: 20 + keyboard.overlap }]} onLayout={keyboard.onLayout}>
         <View style={styles.dialog} accessibilityViewIsModal>
           {phase.at === 'done' || phase.at === 'refused' ? (
             <>
@@ -98,7 +100,7 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
             </>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

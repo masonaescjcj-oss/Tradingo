@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { SignupForm } from '@/components/auth/SignupForm';
 import { BackHeader } from '@/components/BackHeader';
+import { KeyboardScroll } from '@/components/KeyboardScroll';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
@@ -15,7 +16,7 @@ export default function SignupScreen() {
   return (
     <Screen>
       <BackHeader caption="حساب کاربری" title="ثبت‌نام" />
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardScroll contentContainerStyle={styles.content}>
         <View style={styles.mascotRow}>
           <Mascot mood="happy" size={84} />
           <SpeechBubble style={{ flex: 1 }}>
@@ -25,7 +26,7 @@ export default function SignupScreen() {
           </SpeechBubble>
         </View>
         <SignupForm initialName={name === 'تریدر' ? '' : name} onDone={() => router.replace('/(tabs)/profile')} />
-      </ScrollView>
+      </KeyboardScroll>
     </Screen>
   );
 }
