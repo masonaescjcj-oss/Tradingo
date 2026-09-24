@@ -15,6 +15,7 @@ export type IconName =
   | 'gift'
   | 'book'
   | 'chevronBack'
+  | 'chevronNext'
   | 'chevronDown'
   | 'arrowUpRight'
   | 'arrowDownRight'
@@ -139,6 +140,9 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       );
     case 'chevronBack':
       // Points right: "back" in a right-to-left layout.
+      return <Path {...p} d="M9 6l6 6-6 6" />;
+    case 'chevronNext':
+      // The chevron at the end of a row that opens something; points right in both languages.
       return <Path {...p} d="M9 6l6 6-6 6" />;
     case 'chevronDown':
       return <Path {...p} d="M6 9l6 6 6-6" />;

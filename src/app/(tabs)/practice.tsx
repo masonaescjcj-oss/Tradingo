@@ -148,7 +148,7 @@ export default function PracticeScreen() {
                 : t('سه راند با شمعک یا دوستت: سؤال، نمودار و معامله')}
             </Txt>
           </View>
-          <Icon name="chevronBack" size={22} color={colors.text3} />
+          <Icon name="chevronNext" size={22} color={colors.text3} />
         </Pressable>
 
         <Txt w={900} size={16} color={colors.text2}>

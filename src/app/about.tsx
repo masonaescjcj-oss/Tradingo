@@ -87,7 +87,7 @@ export default function AboutScreen() {
                 {doc.summary}
               </Txt>
             </View>
-            <Icon name="chevronBack" size={18} color={colors.text3} />
+            <Icon name="chevronNext" size={18} color={colors.text3} />
           </Pressable>
         ))}
         <Txt mono size={12} color={colors.text3} center>

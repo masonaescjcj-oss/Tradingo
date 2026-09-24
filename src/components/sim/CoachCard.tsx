@@ -70,7 +70,7 @@ export function CoachCard({ history, balance }: { history: ClosedTrade[]; balanc
                 <Txt w={800} size={12.5} color={colors.skyText}>
                   {t('بخون: {title}', { title: unit.title })}
                 </Txt>
-                <Icon name="chevronBack" size={14} color={colors.skyText} />
+                <Icon name="chevronNext" size={14} color={colors.skyText} />
               </Pressable>
             ) : null}
           </View>

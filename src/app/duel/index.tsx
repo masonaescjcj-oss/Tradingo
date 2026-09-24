@@ -202,7 +202,7 @@ function DuelRow({ duel }: { duel: DuelSummary }) {
       <Txt mono w={800} size={12} color={colors.text3}>
         {duel.code}
       </Txt>
-      <Icon name="chevronBack" size={18} color={colors.text3} />
+      <Icon name="chevronNext" size={18} color={colors.text3} />
     </Pressable>
   );
 }

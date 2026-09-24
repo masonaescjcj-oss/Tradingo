@@ -160,7 +160,7 @@ export default function ProfileScreen() {
               </Txt>
             )}
           </View>
-          <Icon name="chevronBack" size={20} color={colors.text3} />
+          <Icon name="chevronNext" size={20} color={colors.text3} />
         </Pressable>
 
         <Pressable onPress={() => router.push('/league')} accessibilityRole="button" accessibilityLabel={t('لیگ هفتگی: لیگ {name}', { name: t(LEAGUES[game.league].name) })} style={styles.leagueCard}>
@@ -178,7 +178,7 @@ export default function ProfileScreen() {
             </Txt>
           </View>
           <Icon name="trophy" size={24} color={colors.gold} />
-          <Icon name="chevronBack" size={20} color={colors.text3} />
+          <Icon name="chevronNext" size={20} color={colors.text3} />
         </Pressable>
 
         <View style={styles.stats}>
@@ -307,7 +307,7 @@ export default function ProfileScreen() {
                 {t('گزارش‌ها، کاربران، پیام‌ها و کلید هوش مصنوعی')}
               </Txt>
             </View>
-            <Icon name="chevronBack" size={18} color={colors.text3} />
+            <Icon name="chevronNext" size={18} color={colors.text3} />
           </Pressable>
         ) : null}
 
@@ -342,7 +342,7 @@ export default function ProfileScreen() {
           <Txt size={13} lh={1.8} color={colors.text3} style={{ flex: 1 }}>
             {t('چارتون فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.')}
           </Txt>
-          <Icon name="chevronBack" size={18} color={colors.text3} />
+          <Icon name="chevronNext" size={18} color={colors.text3} />
         </Pressable>
 
         <Button3D label={t('پاک کردن همه‌ی پیشرفت')} variant="secondary" size={15} onPress={() => setConfirmReset(true)} />

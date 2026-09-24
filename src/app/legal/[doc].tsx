@@ -43,7 +43,7 @@ export default function LegalScreen() {
           <Txt w={800} size={14} color={colors.skyText} style={{ flex: 1 }}>
             {other.title}
           </Txt>
-          <Icon name="chevronBack" size={16} color={colors.skyText} />
+          <Icon name="chevronNext" size={16} color={colors.skyText} />
         </Pressable>
       </ScrollView>
     </Screen>

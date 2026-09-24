@@ -51,7 +51,7 @@ export function InstallRow() {
             {t(HINT[mode])}
           </Txt>
         </View>
-        <Icon name="chevronBack" size={18} color={colors.text3} />
+        <Icon name="chevronNext" size={18} color={colors.text3} />
       </Pressable>
       {sheet}
     </>
