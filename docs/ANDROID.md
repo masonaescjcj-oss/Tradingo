@@ -5,7 +5,7 @@
 | چیز | مقدار |
 | --- | --- |
 | شناسه‌ی پکیج | `net.chartoon.app` (بعد از اولین انتشار دیگه عوض نمی‌شه) |
-| نسخه | `1.0.0`، versionCode از ۱ (توی EAS خودکار بالا می‌ره) |
+| نسخه | `1.0.0`، versionCode ۲ (هر بیلدی که به فروشگاه می‌ره باید یکی بیشتر از قبلی باشه؛ توی EAS خودکار بالا می‌ره) |
 | اندروید | حداقل ۷ (API 24)، هدف API 36 |
 | مجوزها | اینترنت، صدا، لرزش، اعلان (یادآوری تمرین) و راه‌اندازی بعد از روشن شدن گوشی (تا یادآوری‌ها بمونن)؛ میکروفون، حافظه، پوش فایربیس و نشان‌های لانچر عمداً بسته شدن |
 | حجم | R8 و حذف منابع بی‌استفاده روشنه (`expo-build-properties`)؛ APK تست فقط arm64 حدود ۲۵ مگابایت |
@@ -51,6 +51,15 @@ npx expo prebuild -p android --clean
 cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pexpo.useLegacyPackaging=true \
   -Pandroid.injected.signing.store.file=/path/to/chartoon-release.keystore \
   -Pandroid.injected.signing.store.password=… -Pandroid.injected.signing.key.alias=chartoon -Pandroid.injected.signing.key.password=…
+```
+
+برای گوگل‌پلی به‌جای APK یه AAB بساز (همون پارامترهای امضا؛ ۶۴ و ۳۲ بیتی ARM):
+
+```bash
+cd android && ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
+  -Pandroid.injected.signing.store.file=… -Pandroid.injected.signing.store.password=… \
+  -Pandroid.injected.signing.key.alias=chartoon -Pandroid.injected.signing.key.password=…
+# خروجی: android/app/build/outputs/bundle/release/app-release.aab
 ```
 
 **کلید امضای چارتون** (`chartoon-release.keystore`، نام مستعار `chartoon`، RSA 4096، معتبر تا ۲۰۵۴) از ۲۴ سپتامبر ۲۰۲۶ ساخته شده و
@@ -127,13 +136,13 @@ cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pe
 ### جواب فرم‌های کنسول
 
 - **Data safety:**
-  - جمع‌آوری: *Personal info → Phone number و Name* (برای حساب کاربری، اختیاری چون حالت مهمان هست)؛ *Messages → Other in-app messages* (پیام گروه‌ها)؛ *App activity → Other user-generated content و App interactions* (پیشرفت، معامله‌های شبیه‌ساز، دوئل‌ها). هدف همه: App functionality و Account management.
+  - جمع‌آوری: *Personal info → Email address، Phone number و Name* (برای حساب کاربری؛ ایمیل یا شماره، اختیاری چون حالت مهمان هست)؛ *Messages → Other in-app messages* (پیام گروه‌ها)؛ *App activity → Other user-generated content و App interactions* (پیشرفت، معامله‌های شبیه‌ساز، دوئل‌ها). هدف همه: App functionality و Account management.
   - اشتراک با شخص ثالث: خیر (سرویس‌های Supabase، Vercel و هوش مصنوعی از طرف ما پردازش می‌کنن و طبق تعریف گوگل «اشتراک» حساب نمی‌شن).
   - رمزگذاری در انتقال: بله (HTTPS). درخواست حذف: بله؛ از داخل اپ و از https://chartoon.net/delete-account/
   - موقعیت، مخاطبین، عکس، اطلاعات مالی، شناسه‌ی دستگاه و گزارش کرش: جمع نمی‌شن.
   - مدت نگه‌داری پشتیبان‌ها رو از تنظیمات پروژه‌ی Supabase چک کن و اگه لازم شد متن صفحه‌ی حذف حساب رو دقیق‌تر کن.
 - **Account deletion URL:** https://chartoon.net/delete-account/
-- **App access:** همه‌ی بخش‌ها بدون ورود باز هستن. گفتگو، دوئل با دوست و لیگ واقعی حساب می‌خوان که داخل خود اپ با شماره موبایل و رمز، بدون کد تأیید، ساخته می‌شه؛ برای بررسی‌کننده حساب جدا لازم نیست.
+- **App access:** همه‌ی بخش‌ها بدون ورود باز هستن. گفتگو، دوئل با دوست و لیگ واقعی حساب می‌خوان که داخل خود اپ با ایمیل (یا شماره موبایل ایران) و رمز، بدون کد تأیید، ساخته می‌شه؛ برای بررسی‌کننده حساب جدا لازم نیست.
 - **Ads:** No ads.
 - **Content rating (IARC):** دسته‌ی Reference/Education؛ خشونت، محتوای جنسی، الفاظ رکیک و مواد: نه؛ قمار واقعی یا شبیه‌سازی‌شده: نه (شبیه‌ساز معامله با پول مجازیه و جایزه‌ی پولی نداره)؛ تعامل کاربرها: بله (گروه‌های گفتگو)؛ خرید دیجیتال: نه.
 - **Target audience:** ۱۸ سال به بالا (محتوای مالی؛ این‌طوری سیاست‌های Families هم شامل اپ نمی‌شه).
