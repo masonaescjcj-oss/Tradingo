@@ -86,7 +86,7 @@ export function MatchQuestion({ step, onComplete }: Props) {
                 <Txt w={900} size={16} color={textColor(termState)} center>
                   {term.term}
                 </Txt>
-                {term.sub && (
+                {term.sub && term.sub.toLowerCase() !== term.term.toLowerCase() && (
                   <Txt w={700} size={11} color={termState === 'dim' ? colors.faint : colors.text3} center>
                     {term.sub}
                   </Txt>

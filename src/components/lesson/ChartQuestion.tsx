@@ -99,7 +99,7 @@ export function ChartQuestion({ step, revealed, onAnswer }: QuestionProps<ChartS
               <Txt w={900} size={16} color={s.text} center>
                 {option.label}
               </Txt>
-              {option.latin && (
+              {option.latin && option.latin.toLowerCase() !== option.label.toLowerCase() && (
                 <Txt mono w={700} size={11} color={colors.text3}>
                   {option.latin}
                 </Txt>
