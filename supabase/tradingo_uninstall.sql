@@ -9,6 +9,7 @@ drop function if exists
   public.tradingo_duel_result_ok(jsonb),
   public.tradingo_duel_rounds_ok(jsonb);
 drop table if exists public.tradingo_duels;
+drop function if exists public.tradingo_delete_account(text, text);
 drop function if exists public.tradingo_report_create(text, text, integer, text, text, text, text);
 drop table if exists public.tradingo_reports;
 drop function if exists public.tradingo_ai_allow(text, integer);

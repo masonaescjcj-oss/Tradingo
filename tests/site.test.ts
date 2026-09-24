@@ -53,3 +53,26 @@ describe('landing pages', () => {
     }
   });
 });
+
+describe('legal pages', () => {
+  it('on the site match the text the app shows', async () => {
+    const { legalPage } = await import('../scripts/build-legal');
+    const { LEGAL } = await import('../src/content/legal');
+    for (const doc of Object.values(LEGAL)) {
+      assert.ok(doc.sections.length >= 5, doc.id);
+      const file = join(SITE, doc.id, 'index.html');
+      assert.equal(read(file), legalPage(doc), `${doc.id}: run npx tsx scripts/build-legal.ts`);
+      for (const ref of [...read(file).matchAll(/(?:src|href)="([^"#][^"]*)"/g)].map((m) => m[1]).filter((r) => !/^https?:/.test(r))) {
+        const target = join(SITE, doc.id, ref.endsWith('/') ? `${ref}index.html` : ref);
+        assert.ok(existsSync(target), `${doc.id}: ${ref}`);
+      }
+    }
+  });
+
+  it('are linked from both landing pages and listed in the sitemap', () => {
+    assert.ok(read(PAGES.fa).includes('href="privacy/"') && read(PAGES.fa).includes('href="terms/"'));
+    assert.ok(read(PAGES.en).includes('href="../privacy/"') && read(PAGES.en).includes('href="../terms/"'));
+    const sitemap = read(join(SITE, 'sitemap.xml'));
+    assert.ok(sitemap.includes('https://chartoon.net/privacy/') && sitemap.includes('https://chartoon.net/terms/'));
+  });
+});

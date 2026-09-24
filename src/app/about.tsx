@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { BackHeader } from '@/components/BackHeader';
 import { Icon, type IconName } from '@/components/Icon';
@@ -7,6 +8,7 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { ALL_COURSES } from '@/content';
+import { LEGAL } from '@/content/legal';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -70,6 +72,20 @@ export default function AboutScreen() {
             </Txt>
           </View>
         ))}
+        {Object.values(LEGAL).map((doc) => (
+          <Pressable key={doc.id} onPress={() => router.push(`/legal/${doc.id}`)} accessibilityRole="link" style={styles.link}>
+            <Icon name="book" size={20} color={colors.skyText} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Txt w={900} size={15}>
+                {doc.title}
+              </Txt>
+              <Txt w={500} size={12.5} color={colors.text3}>
+                {doc.summary}
+              </Txt>
+            </View>
+            <Icon name="chevronBack" size={18} color={colors.text3} />
+          </Pressable>
+        ))}
         <Txt mono size={12} color={colors.text3} center>
           {`v${version}`}
         </Txt>
@@ -79,6 +95,16 @@ export default function AboutScreen() {
 }
 
 const styles = StyleSheet.create({
+  link: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
   content: {
     padding: 16,
     gap: 14,

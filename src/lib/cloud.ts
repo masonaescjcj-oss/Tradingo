@@ -268,6 +268,28 @@ export async function cloudSignOut() {
   if (token) await rpc('tradingo_sign_out', { p_token: token }).catch(() => {});
 }
 
+/**
+ * Deletes the server account after checking the password; signs in first if this device's
+ * session has ended. Returns an error message, or null once the account is gone.
+ */
+export async function cloudDeleteAccount(mobile: string, password: string): Promise<string | null> {
+  try {
+    let token = session?.token ?? null;
+    if (!token) {
+      const res = await rpc<{ token?: string; error?: string }>('tradingo_sign_in', { p_mobile: mobile, p_password: password });
+      if (!res.token) return AUTH_ERRORS[res.error ?? ''] ?? 'ورود انجام نشد؛ دوباره امتحان کن.';
+      token = res.token;
+    }
+    const res = await rpc<{ ok?: boolean; error?: string }>('tradingo_delete_account', { p_token: token, p_password: password });
+    if (res.error === 'invalid_credentials') return 'رمز عبور درست نیست.';
+    if (res.error) return AUTH_ERRORS[res.error] ?? 'حذف حساب انجام نشد؛ دوباره امتحان کن.';
+    await setSession(null);
+    return null;
+  } catch {
+    return 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.';
+  }
+}
+
 export async function cloudSetName(name: string) {
   if (!session) return;
   await rpc('tradingo_set_name', { p_token: session.token, p_name: name }).catch(handleFailure);

@@ -64,6 +64,11 @@ select created_at, lesson_id, step_index, step_type, reason, message
 -- بعد از درست کردن: update public.tradingo_reports set status = 'fixed' where id = '…';
 ```
 
+**حذف حساب از داخل اپ نصب شده (۲۴ سپتامبر ۲۰۲۶، [`20260929000000_tradingo_account_delete.sql`](../supabase/migrations/20260929000000_tradingo_account_delete.sql)).**
+نسخه‌ی سرور ۵ شد و اثر انگشت بقیه‌ی پروژه باز هم دست نخورد. کاربر با رمزش تأیید می‌کنه؛ حساب، نشست‌ها، پیشرفت، لیگ، عضویت و پیام‌های گروه‌ها
+(با کم شدن تعداد اعضا)، مصرف دستیار و دوئل‌هایی که ساخته پاک می‌شن. توی دوئل‌هایی که حریف بوده نتیجه برای دوستش می‌مونه ولی اسمش
+می‌شه «حساب حذف‌شده». روی PostgreSQL محلی با داده‌ی واقعی و روی سرور با یه حساب آزمایشی (که خودش حذف شد) تست شد.
+
 `lesson_id` و `step_index` دقیقاً همون درس و مرحله توی `src/content` هستن (شماره‌ی مرحله از صفر). هر حساب روزی ۲۰ گزارش و همه با هم
 (مهمون‌ها هم) روزی ۱۰۰۰ گزارش می‌تونن بفرستن. گزارشی که بدون اینترنت ثبت بشه روی گوشی می‌مونه و بعداً خودش فرستاده می‌شه.
 
@@ -99,7 +104,8 @@ select created_at, lesson_id, step_index, step_type, reason, message
 رو بچسبون و **Run** بزن؛ بعد همین کار رو با
 [`supabase/migrations/20260925000000_tradingo_chat.sql`](../supabase/migrations/20260925000000_tradingo_chat.sql) (گفتگو)، `20260926000000_tradingo_ai.sql` (دستیار) و
 [`supabase/migrations/20260927000000_tradingo_duels.sql`](../supabase/migrations/20260927000000_tradingo_duels.sql) (دوئل) و
-[`supabase/migrations/20260928000000_tradingo_reports.sql`](../supabase/migrations/20260928000000_tradingo_reports.sql) (گزارش مشکل) بکن.
+[`supabase/migrations/20260928000000_tradingo_reports.sql`](../supabase/migrations/20260928000000_tradingo_reports.sql) (گزارش مشکل) و
+[`supabase/migrations/20260929000000_tradingo_account_delete.sql`](../supabase/migrations/20260929000000_tradingo_account_delete.sql) (حذف حساب) بکن.
 اجرای دوباره‌شون ضرری نداره.
 
 این فایل قبل از تحویل روی PostgreSQL 16 با نقش‌های مشابه Supabase و PostgREST تست شده: ثبت‌نام، شماره‌ی تکراری،

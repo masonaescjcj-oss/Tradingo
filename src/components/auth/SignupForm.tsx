@@ -96,8 +96,12 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
       )}
       <Txt size={12} lh={1.8} color={colors.text3} center>
         با ساخت حساب،{' '}
-        <Txt size={12} w={800} color={colors.skyText} onPress={() => router.push('/about')}>
-          شرایط استفاده و سلب مسئولیت
+        <Txt size={12} w={800} color={colors.skyText} onPress={() => router.push('/legal/terms')}>
+          شرایط استفاده
+        </Txt>{' '}
+        و{' '}
+        <Txt size={12} w={800} color={colors.skyText} onPress={() => router.push('/legal/privacy')}>
+          سیاست حریم خصوصی
         </Txt>{' '}
         رو قبول می‌کنی.{cloudEnabled ? '' : ' فعلاً حساب روی همین دستگاه ذخیره می‌شه.'}
       </Txt>

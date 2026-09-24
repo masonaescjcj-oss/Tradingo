@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AuthField } from '@/components/auth/AuthField';
 import { BackHeader } from '@/components/BackHeader';
@@ -9,7 +9,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { logout, uploadAccount } from '@/lib/auth';
+import { deleteAccount, logout, uploadAccount } from '@/lib/auth';
 import { resetTo } from '@/lib/nav';
 import { syncNow, useCloud } from '@/lib/cloud';
 import { formatMobile } from '@/lib/phone';
@@ -114,7 +114,61 @@ function SignedIn() {
       <Txt size={12} lh={1.8} color={colors.text3} center>
         بعد از خروج، پیشرفتت روی این دستگاه می‌مونه و با ورود دوباره برمی‌گرده.
       </Txt>
+      <DeleteAccount />
     </View>
+  );
+}
+
+/** Deleting the account for good, confirmed with the password. */
+function DeleteAccount() {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const close = () => {
+    setOpen(false);
+    setPassword('');
+    setError(null);
+  };
+  return (
+    <>
+      <Button3D label="حذف حساب" variant="secondary" size={15} onPress={() => setOpen(true)} style={{ marginTop: 8 }} />
+      <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
+        <View style={styles.backdrop}>
+          <View style={styles.dialog}>
+            <Mascot mood="sad" size={84} />
+            <Txt w={900} size={19} center>
+              حسابت برای همیشه حذف بشه؟
+            </Txt>
+            <Txt size={13.5} lh={1.9} color={colors.text2} center>
+              حساب، پیشرفت ذخیره‌شده روی سرور، امتیاز لیگ، پیام‌هات توی گروه‌ها، دوئل‌هایی که ساختی و پیشرفت روی همین دستگاه پاک می‌شه و برنمی‌گرده.
+            </Txt>
+            <View style={{ alignSelf: 'stretch' }}>
+              <AuthField label="برای تأیید، رمز عبورت رو بزن" icon="lock" ltr secret value={password} onChangeText={setPassword} placeholder="رمز عبور" error={error} />
+            </View>
+            <Button3D
+              label={busy ? 'در حال حذف…' : 'حذف همیشگی حساب'}
+              variant="danger"
+              size={16}
+              disabled={busy || !password}
+              onPress={async () => {
+                setBusy(true);
+                const err = await deleteAccount(password);
+                setBusy(false);
+                if (err) {
+                  setError(err);
+                  return;
+                }
+                close();
+                resetTo('/welcome');
+              }}
+              style={{ alignSelf: 'stretch' }}
+            />
+            <Button3D label="نه، منصرف شدم" variant="secondary" size={16} onPress={close} style={{ alignSelf: 'stretch' }} />
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -192,6 +246,24 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 16,
     borderRadius: 18,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  backdrop: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(5,8,15,0.75)',
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    gap: 12,
+    padding: 20,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,

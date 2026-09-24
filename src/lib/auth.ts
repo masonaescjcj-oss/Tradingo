@@ -1,6 +1,7 @@
 import { useGame } from '@/store/game';
 
-import { cloudSignIn, cloudSignOut, cloudSignUp } from './cloud';
+import { cloudDeleteAccount, cloudSignIn, cloudSignOut, cloudSignUp } from './cloud';
+import { clearCoach } from './coachApi';
 import { passwordHash } from './hash';
 import { cloudEnabled } from './supabase';
 
@@ -54,6 +55,24 @@ export async function login(mobile: string, password: string): Promise<string | 
   }
   if (user.passwordHash !== passwordHash(mobile, password)) return 'رمز عبور درست نیست.';
   useGame.getState().signInAccount();
+  return null;
+}
+
+/**
+ * Deletes the account for good: on the server (after checking the password) and then all
+ * progress on this device. Returns an error message, or null when it's done.
+ */
+export async function deleteAccount(password: string): Promise<string | null> {
+  const user = useGame.getState().user;
+  if (!user) return 'حسابی روی این دستگاه نیست.';
+  if (user.passwordHash !== passwordHash(user.mobile, password)) return 'رمز عبور درست نیست.';
+  if (user.cloud) {
+    if (!cloudEnabled) return 'برای حذف حساب باید به سرور وصل باشی.';
+    const error = await cloudDeleteAccount(user.mobile, password);
+    if (error) return error;
+  }
+  useGame.getState().resetAll();
+  clearCoach();
   return null;
 }
 
