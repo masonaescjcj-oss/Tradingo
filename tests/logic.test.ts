@@ -142,6 +142,7 @@ const STATE: GameData = {
   practiceSessions: 0,
   sound: true,
   reminders: { enabled: false, hour: 20, offered: false },
+  placement: null,
   mastered: [],
   user: null,
   signedOut: false,

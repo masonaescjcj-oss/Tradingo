@@ -10,6 +10,7 @@ import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRe
 import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
 import { extendBoost, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
 import { nextReview, type Review } from '@/lib/review';
+import { placementUnit } from '@/lib/placement';
 import { DEFAULT_REMINDER_HOUR } from '@/lib/reminderPlan';
 import { safeStorage } from '@/lib/storage';
 import { evaluateChallenge, findChallenge, type ChallengeRecord } from '@/lib/challenges';
@@ -110,6 +111,8 @@ type Data = {
   practiceSessions: number;
   /** Sound effects and haptics on answers, chests and lesson ends. */
   sound: boolean;
+  /** The unit whose jump test is offered after onboarding to learners who said they know some trading. */
+  placement: string | null;
   /** The daily practice reminder on phones: on or off, its hour, and whether we've offered it yet. */
   reminders: { enabled: boolean; hour: number; offered: boolean };
   /** Units whose mastery test was passed; they show a crown on the path. */
@@ -172,6 +175,7 @@ type Actions = {
   setDailyGoal: (goal: number) => void;
   setSound: (on: boolean) => void;
   setReminders: (patch: Partial<GameState['reminders']>) => void;
+  dismissPlacement: () => void;
   masterUnit: (unitId: string, xp: number) => void;
   setAnswers: (answers: { reason?: string; source?: string }) => void;
   createAccount: (user: UserAccount) => void;
@@ -253,6 +257,7 @@ function initialData(): Data {
     practiceSessions: 0,
     sound: true,
     reminders: { enabled: false, hour: DEFAULT_REMINDER_HOUR, offered: false },
+    placement: null,
     mastered: [],
     user: null,
     signedOut: false,
@@ -319,18 +324,12 @@ export const useGame = create<GameState>()(
       ...initialData(),
 
       finishOnboarding: (market, level) => {
-        const completed: Record<string, LessonRecord> = {};
-        const enrolled = starterCourses(market);
-        // Experienced users skip the first units of the introductory courses.
-        const skip: Record<string, number> = level === 'pro' ? { basics: 2, forex: 1, crypto: 1 } : level === 'some' ? { basics: 1 } : {};
-        for (const [courseId, units] of Object.entries(skip)) {
-          for (const unit of findCourse(courseId)?.units.slice(0, units) ?? []) {
-            for (const lesson of unit.lessons) completed[lesson.id] = { best: 0, perfect: false, skipped: true };
-          }
-        }
-        const activeCourse = level === 'pro' ? enrolled[1] : 'basics';
-        set({ onboarded: true, market, level, completed, enrolled, activeCourse });
+        // Everyone starts at the beginning; learners who say they know some trading get a jump
+        // test instead of skipping on their word (many turn out not to know the basics yet).
+        set({ onboarded: true, market, level, completed: {}, enrolled: starterCourses(market), activeCourse: 'basics', placement: placementUnit(level) });
       },
+
+      dismissPlacement: () => set({ placement: null }),
 
       setMarket: (market) => set({ market }),
 
@@ -446,7 +445,10 @@ export const useGame = create<GameState>()(
             if (!completed[lesson.id]) completed[lesson.id] = { best: 0, perfect: false, skipped: true };
           }
         }
-        set({ completed });
+        // Passing the offered placement test (or one further along) closes the offer.
+        const placement = get().placement;
+        const placed = placement ? hit.course.units.findIndex((u) => u.id === placement) : -1;
+        set({ completed, placement: placed !== -1 && placed <= upTo ? null : placement });
         get().addXp(xp);
       },
 

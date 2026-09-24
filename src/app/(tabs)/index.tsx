@@ -8,6 +8,7 @@ import { CourseBadge } from '@/components/CourseBadge';
 import { CourseSwitcher } from '@/components/CourseSwitcher';
 import { Icon, StarIcon } from '@/components/Icon';
 import { InstallBanner } from '@/components/InstallApp';
+import { PlacementOffer, usePlacementOpen } from '@/components/PlacementOffer';
 import { ReminderOffer } from '@/components/Reminders';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
@@ -47,6 +48,7 @@ export default function LearnScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const placementOffered = usePlacementOpen();
   const didScroll = useRef(false);
 
   const course = findCourse(activeCourse) ?? ALL_COURSES[0];
@@ -122,7 +124,7 @@ export default function LearnScreen() {
       </View>
 
       <InstallBanner />
-      <ReminderOffer />
+      {placementOffered ? <PlacementOffer /> : <ReminderOffer />}
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 48 }}>
         <Pressable onPress={() => router.push(`/course/${course.id}`)} accessibilityRole="button" style={styles.courseHead}>

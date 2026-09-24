@@ -31,8 +31,8 @@ const REASONS: { id: string; icon: IconName; title: string }[] = [
 
 const LEVELS: { id: Level; bars: number; title: string; sub: string }[] = [
   { id: 'new', bars: 1, title: 'تازه‌کارم', sub: 'تا حالا معامله نکردم؛ از صفر شروع می‌کنیم.' },
-  { id: 'some', bars: 2, title: 'یه چیزایی بلدم', sub: 'کندل و حد ضرر رو می‌شناسم؛ مقدمه‌ی اول رو رد می‌کنیم.' },
-  { id: 'pro', bars: 3, title: 'قبلاً ترید کردم', sub: 'معامله‌ی واقعی داشتم؛ مقدمه‌ها رو رد می‌کنیم.' },
+  { id: 'some', bars: 2, title: 'یه چیزایی بلدم', sub: 'کندل و حد ضرر رو می‌شناسم؛ با یه آزمون کوتاه مقدمه‌ها رو رد می‌کنی.' },
+  { id: 'pro', bars: 3, title: 'قبلاً ترید کردم', sub: 'معامله‌ی واقعی داشتم؛ با یه آزمون کوتاه از جای درست شروع می‌کنی.' },
 ];
 
 const GOALS: { xp: number; minutes: number; title: string }[] = [
@@ -253,13 +253,13 @@ function Plan({ market, level, goal }: { market: Market; level: Level; goal: num
   const minutes = GOALS.find((g) => g.xp === goal)?.minutes ?? 10;
   // About 15 XP per lesson.
   const perDay = Math.max(1, Math.round(goal / 15));
-  const start = level === 'pro' ? courses[1] : courses[0];
+  const start = courses[0];
   return (
     <View style={{ gap: 14 }}>
       <View style={styles.planCard}>
         <PlanRow icon="target" label="هدف روزانه" value={`${fa(minutes)} دقیقه (${fa(goal)} امتیاز)`} />
         <PlanRow icon="book" label="هر روز حدوداً" value={`${fa(perDay)} درس کوتاه`} />
-        {start && <PlanRow icon="play" label="شروع از" value={level === 'new' ? start.title : `${start.title} (مقدمه‌ها رد می‌شن)`} />}
+        {start && <PlanRow icon="play" label="شروع از" value={level === 'new' ? start.title : `${start.title}؛ با آزمون پرش مقدمه‌ها رو رد کن`} />}
       </View>
       <Txt w={900} size={16}>
         دوره‌هایی که برات اضافه می‌شن
