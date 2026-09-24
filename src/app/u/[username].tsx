@@ -13,8 +13,9 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse } from '@/content';
+import { useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
-import { fetchProfile, profileErrorText, type PublicProfile } from '@/lib/profileApi';
+import { blockUser, fetchProfile, profileErrorText, type PublicProfile } from '@/lib/profileApi';
 import { colors } from '@/theme';
 import { fa, faNum } from '@/utils/format';
 
@@ -46,13 +47,27 @@ export default function ProfileScreen() {
           </Txt>
         </View>
       ) : (
-        <ProfileBody profile={p} />
+        <ProfileBody profile={p} onChange={(next) => setState({ profile: next })} />
       )}
     </Screen>
   );
 }
 
-function ProfileBody({ profile: p }: { profile: PublicProfile }) {
+function ProfileBody({ profile: p, onChange }: { profile: PublicProfile; onChange: (p: PublicProfile) => void }) {
+  const signedIn = useCloud((s) => s.userId != null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  // Block or unblock this person: their messages stop (or start again) showing in your groups.
+  const toggleBlock = async () => {
+    setBusy(true);
+    const res = await blockUser(p.username, !p.blocked);
+    setBusy(false);
+    if (!res.ok) return setNote(profileErrorText(res.error));
+    onChange({ ...p, blocked: res.value.blocked });
+    setNote(res.value.blocked ? 'بلاک شد؛ پیام‌هاش دیگه توی گروه‌ها برات نشون داده نمی‌شه.' : 'از بلاک دراومد؛ پیام‌هاش دوباره نشون داده می‌شه.');
+  };
+
   const completed = Object.fromEntries(p.completed.map((id) => [id, true]));
   const courses = p.enrolled.flatMap((id) => findCourse(id) ?? []);
   const league = LEAGUES[p.league];
@@ -115,6 +130,20 @@ function ProfileBody({ profile: p }: { profile: PublicProfile }) {
       ) : null}
 
       {p.mine ? <Button3D label="ویرایش پروفایل" variant="secondary" size={16} onPress={() => router.push('/(tabs)/profile')} /> : null}
+      {!p.mine && signedIn ? (
+        <Button3D
+          label={busy ? 'چند لحظه…' : p.blocked ? `رفع بلاک ${p.name}` : `بلاک کردن ${p.name}`}
+          variant={p.blocked ? 'secondary' : 'danger'}
+          size={15}
+          disabled={busy}
+          onPress={toggleBlock}
+        />
+      ) : null}
+      {note ? (
+        <Txt w={700} size={13} lh={1.8} color={colors.text2} center>
+          {note}
+        </Txt>
+      ) : null}
     </ScrollView>
   );
 }

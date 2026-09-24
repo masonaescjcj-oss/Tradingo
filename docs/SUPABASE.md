@@ -187,6 +187,8 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 | `src/lib/login.ts`، `src/components/auth/LoginField.tsx` | ایمیل یا شماره‌ی ایران توی فرم‌های ورود و ثبت‌نام |
 | `supabase/migrations/20261003000000_tradingo_profiles.sql` | آیدی یکتا و عکس پروفایل هر حساب، پروفایل عمومی و آیدی و عکس نویسنده‌ی پیام‌ها |
 | `src/lib/profileApi.ts`، `src/components/Avatar.tsx`، `src/components/ProfileSheets.tsx`، `src/app/u/[username].tsx` | آیدی، ۲۰ عکس پروفایل و صفحه‌ی پروفایل عمومی |
+| `supabase/migrations/20261004000000_tradingo_blocks.sql` | بلاک کردن کاربرها (پیام‌هاشون فقط برای بلاک‌کننده پنهان می‌شه) و گزارش جواب‌های هوش مصنوعی برای مدیرها |
+| `src/app/blocked.tsx`، گزارش جواب توی `src/app/chat/coach.tsx`، فهرست گزارش‌ها توی تب هوش مصنوعی پنل | بلاک، رفع بلاک و گزارش جواب |
 | `src/lib/adminApi.ts`، `src/app/admin.tsx`، `src/components/admin/` | پنل مدیریت |
 
 ## قدم‌های بعدی (مرحله‌ی ۳ نقشه‌ی راه)

@@ -142,6 +142,37 @@ export async function actOnUser(id: string, action: UserAction, opts: { hours?: 
   return res.ok ? { ok: true, value: res.value.user } : res;
 }
 
+export type AiReport = {
+  id: number;
+  question: string;
+  answer: string;
+  reason: 'wrong' | 'advice' | 'offensive' | 'other';
+  note: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  author_name: string | null;
+  author_username: string | null;
+};
+
+/** Whether the server keeps reported AI answers (version 10). */
+export async function aiReportsAvailable(): Promise<boolean> {
+  return (await serverVersion()) >= 10;
+}
+
+export async function fetchAiReports(): Promise<RpcResult<AiReport[]>> {
+  const res = await call<AiReport[]>('tradingo_admin_ai_reports', {});
+  return res.ok ? { ok: true, value: Array.isArray(res.value) ? res.value : [] } : res;
+}
+
+export const markAiReportDone = (id: number) => call<{ ok: boolean }>('tradingo_admin_ai_report_done', { p_report: id });
+
+export const AI_REPORT_REASON: Record<AiReport['reason'], string> = {
+  wrong: 'اشتباه یا گمراه‌کننده',
+  advice: 'توصیه‌ی خرید و فروش',
+  offensive: 'نامناسب یا توهین‌آمیز',
+  other: 'دلیل دیگه',
+};
+
 export type AiSettingsInput = { key: string; clearKey: boolean; provider: 'anthropic' | 'openai'; model: string; baseUrl: string; dailyLimit: number | null };
 
 export const saveAiSettings = (s: AiSettingsInput) =>
@@ -190,6 +221,7 @@ export function logText(action: string, target: string | null): string {
     ai_settings: 'تنظیمات هوش مصنوعی رو عوض کرد',
     owner_admin: 'با حساب مالک وارد شد و مدیر شد',
     delete_room: `یه گروه از ${t} رو حذف کرد`,
+    ai_report_done: `گزارش ${t} درباره‌ی جواب هوش مصنوعی رو بررسی کرد`,
   };
   return lines[action] ?? action;
 }

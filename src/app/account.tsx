@@ -106,6 +106,7 @@ function SignedIn() {
       {user.cloud && (
         <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
       )}
+      {cloud.userId ? <Button3D label="کاربرهای بلاک‌شده" variant="secondary" size={16} onPress={() => router.push('/blocked')} /> : null}
       <Button3D
         label="خروج از حساب"
         variant="secondary"

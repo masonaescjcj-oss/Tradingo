@@ -15,6 +15,11 @@ import {
   saveAiSettings,
   deleteRoom,
   fetchRooms,
+  AI_REPORT_REASON,
+  aiReportsAvailable,
+  fetchAiReports,
+  markAiReportDone,
+  type AiReport,
   type AdminLogEntry,
   type AdminMessage,
   type AdminRoom,
@@ -425,6 +430,74 @@ export function AiTab({ status, notify, onSaved }: { status: AiStatus; notify: N
           onClose={() => setConfirmClear(false)}
         />
       ) : null}
+      <AiReports notify={notify} />
+    </View>
+  );
+}
+
+/** Answers of the AI assistant that learners reported, with the question before each; waiting ones first. */
+function AiReports({ notify }: { notify: Notify }) {
+  const [reports, setReports] = useState<AiReport[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    aiReportsAvailable().then(async (ok) => {
+      if (!ok || !live) return;
+      const res = await fetchAiReports();
+      if (!live) return;
+      if (res.ok) setReports(res.value);
+      else notify(adminErrorText(res.error));
+    });
+    return () => {
+      live = false;
+    };
+  }, [notify]);
+
+  if (!reports) return null;
+  const done = async (r: AiReport) => {
+    const res = await markAiReportDone(r.id);
+    if (!res.ok) return notify(adminErrorText(res.error));
+    setReports((prev) => (prev ?? []).map((x) => (x.id === r.id ? { ...x, reviewed_at: new Date().toISOString() } : x)));
+  };
+  return (
+    <View style={{ gap: 10, marginTop: 12 }}>
+      <Txt w={900} size={16}>
+        {`جواب‌های گزارش‌شده (${fa(reports.filter((r) => !r.reviewed_at).length)} بررسی‌نشده)`}
+      </Txt>
+      {!reports.length ? (
+        <Txt size={13} color={colors.text3}>
+          هنوز کسی جوابی از شمعک رو گزارش نداده.
+        </Txt>
+      ) : null}
+      {reports.map((r) => (
+        <Card key={r.id}>
+          <View style={styles.reportHead}>
+            <Badge label={AI_REPORT_REASON[r.reason] ?? r.reason} color={r.reviewed_at ? colors.raised : colors.bearSoft} ink={r.reviewed_at ? colors.text3 : colors.bearText} />
+            <Txt size={11.5} color={colors.text3} style={{ flex: 1 }} numberOfLines={1}>
+              {`${r.author_name ?? 'حساب حذف‌شده'}${r.author_username ? ` · @${r.author_username}` : ''} · ${whenText(r.created_at)}`}
+            </Txt>
+          </View>
+          {r.question ? (
+            <Txt size={13} lh={1.8} color={colors.text2}>
+              {`سؤال: ${r.question}`}
+            </Txt>
+          ) : null}
+          <Txt size={13.5} lh={1.8} numberOfLines={8}>
+            {`جواب: ${r.answer}`}
+          </Txt>
+          {r.note ? (
+            <Txt size={12.5} lh={1.7} color={colors.gold}>
+              {`توضیح: ${r.note}`}
+            </Txt>
+          ) : null}
+          {r.reviewed_at ? (
+            <Txt w={700} size={12} color={colors.bullText}>
+              بررسی شد
+            </Txt>
+          ) : (
+            <SmallButton label="بررسی شد" onPress={() => done(r)} />
+          )}
+        </Card>
+      ))}
     </View>
   );
 }
@@ -470,6 +543,11 @@ export function Stat({ label, value, tone }: { label: string; value: number; ton
 }
 
 const styles = StyleSheet.create({
+  reportHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   roomHead: {
     flexDirection: 'row',
     alignItems: 'center',

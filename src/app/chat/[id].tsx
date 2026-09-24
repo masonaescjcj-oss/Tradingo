@@ -14,6 +14,7 @@ import { deleteMessage, fetchMessages, joinRoom, leaveRoom, loadRooms, reportMes
 import { actOnUser, adminErrorText } from '@/lib/adminApi';
 import { useCloud } from '@/lib/cloud';
 import { useKeyboardOverlap } from '@/lib/keyboard';
+import { blockUser, profileErrorText } from '@/lib/profileApi';
 import { useGame } from '@/store/game';
 import { colors, fonts, MAX_WIDTH } from '@/theme';
 import { fa } from '@/utils/format';
@@ -133,6 +134,19 @@ export default function RoomScreen() {
     if (err) setError(chatErrorText(err));
     else if (kind === 'delete') setMessages((prev) => prev.filter((x) => x.id !== m.id));
     else setError('گزارشت ثبت شد؛ ممنون. پیام‌هایی که چند نفر گزارش کنن پنهان می‌شن.');
+  };
+
+  // Anyone signed in: stop seeing someone's messages (for themselves only).
+  const block = async (m: ChatMessage) => {
+    setAction(null);
+    if (!m.author_username) return;
+    const res = await blockUser(m.author_username, true);
+    if (!res.ok) {
+      setError(profileErrorText(res.error));
+      return;
+    }
+    setMessages((prev) => prev.filter((x) => x.author_username !== m.author_username));
+    setError(`${m.author_name} بلاک شد؛ پیام‌هاش دیگه برات نشون داده نمی‌شه. از پروفایلش می‌تونی برش گردونی.`);
   };
 
   // Admins: close the author's chat or ban the account, from the message itself.
@@ -276,6 +290,9 @@ export default function RoomScreen() {
               {action ? `${action.author_name}: ${action.body || 'تحلیل با نمودار'}` : ''}
             </Txt>
             {action && !action.mine ? <Button3D label="گزارش پیام" variant="danger" size={16} onPress={() => act('report')} style={{ alignSelf: 'stretch' }} /> : null}
+            {action && !action.mine && action.author_username && signedIn ? (
+              <Button3D label={`بلاک کردن ${action.author_name}`} variant="secondary" size={16} onPress={() => block(action)} style={{ alignSelf: 'stretch' }} />
+            ) : null}
             {action && (action.mine || room?.owned || admin) ? <Button3D label="حذف پیام" variant="danger" size={16} onPress={() => act('delete')} style={{ alignSelf: 'stretch' }} /> : null}
             {action && admin && action.author_id && !action.mine ? (
               <>

@@ -31,6 +31,8 @@ const ERRORS: Record<string, string> = {
   username_reserved: 'این آیدی برای چارتون نگه داشته شده؛ یه آیدی دیگه انتخاب کن.',
   invalid_avatar: 'این عکس پیدا نشد.',
   not_found: 'این پروفایل پیدا نشد.',
+  self: 'خودت رو نمی‌تونی بلاک کنی.',
+  too_many: 'بیشتر از ۵۰۰ نفر رو نمی‌شه بلاک کرد.',
   session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
   network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
 };
@@ -68,6 +70,8 @@ export type PublicProfile = {
   completed: string[];
   duelWins: number;
   messages: number;
+  /** The viewer has blocked this person. */
+  blocked: boolean;
 };
 
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
@@ -92,10 +96,37 @@ export function parseProfile(raw: Record<string, unknown>, today?: string): Publ
     completed: strings(raw.completed),
     duelWins: num(raw.duel_wins),
     messages: num(raw.messages),
+    blocked: raw.blocked === true,
   };
 }
 
 export async function fetchProfile(username: string): Promise<RpcResult<PublicProfile>> {
   const res = await callRpc<Record<string, unknown>>('tradingo_profile', { p_token: sessionToken(), p_username: normalizeUsername(username) });
   return res.ok ? { ok: true, value: parseProfile(res.value) } : res;
+}
+
+/** Whether the server has blocking (version 10). */
+export async function blocksAvailable(): Promise<boolean> {
+  return (await serverVersion()) >= 10;
+}
+
+/** Blocks (or unblocks) someone by @ID: their messages stop showing in your groups. */
+export function blockUser(username: string, block: boolean): Promise<RpcResult<{ ok: boolean; blocked: boolean }>> {
+  const token = sessionToken();
+  if (!token) return Promise.resolve({ ok: false, error: 'session' });
+  return callRpc('tradingo_block_user', { p_token: token, p_username: normalizeUsername(username), p_block: block });
+}
+
+export type BlockedUser = { username: string; name: string; avatar: number; blockedAt: string };
+
+export async function fetchBlocked(): Promise<RpcResult<BlockedUser[]>> {
+  const token = sessionToken();
+  if (!token) return { ok: false, error: 'session' };
+  const res = await callRpc<Record<string, unknown>[]>('tradingo_blocked_users', { p_token: token });
+  if (!res.ok) return res;
+  const rows = Array.isArray(res.value) ? res.value : [];
+  return {
+    ok: true,
+    value: rows.map((r) => ({ username: String(r.username ?? ''), name: String(r.name ?? ''), avatar: num(r.avatar), blockedAt: String(r.blocked_at ?? '') })),
+  };
 }

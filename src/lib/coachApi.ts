@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { historyFor, type CoachTurn } from './coach';
-import { sessionEnded, sessionToken } from './cloud';
+import { callRpc, sessionEnded, sessionToken, type RpcResult } from './cloud';
 import { supabaseRelay } from './proxy';
 import { safeStorage } from './storage';
 
@@ -66,4 +66,23 @@ export async function askCoach(earlier: CoachTurn[], question: string, context: 
   } finally {
     clearTimeout(timer);
   }
+}
+
+export type AnswerReportReason = 'wrong' | 'advice' | 'offensive' | 'other';
+
+export const ANSWER_REPORT_REASONS: { id: AnswerReportReason; label: string }[] = [
+  { id: 'wrong', label: 'اشتباه یا گمراه‌کننده' },
+  { id: 'advice', label: 'توصیه‌ی خرید و فروش یا سیگنال' },
+  { id: 'offensive', label: 'نامناسب یا توهین‌آمیز' },
+  { id: 'other', label: 'یه چیز دیگه' },
+];
+
+/**
+ * Reports one of the coach's answers. Only then do that answer and the question before it
+ * leave the device, for admins to read (servers from version 10).
+ */
+export async function reportAnswer(question: string, answer: string, reason: AnswerReportReason, note: string): Promise<RpcResult<{ ok: boolean }>> {
+  const token = sessionToken();
+  if (!token) return { ok: false, error: 'session' };
+  return callRpc('tradingo_ai_report', { p_token: token, p_question: question.slice(0, 1000), p_answer: answer.slice(0, 6000), p_reason: reason, p_note: note.trim().slice(0, 300) });
 }
