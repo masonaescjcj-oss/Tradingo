@@ -7,7 +7,8 @@
 | شناسه‌ی پکیج | `net.chartoon.app` (بعد از اولین انتشار دیگه عوض نمی‌شه) |
 | نسخه | `1.0.0`، versionCode از ۱ (توی EAS خودکار بالا می‌ره) |
 | اندروید | حداقل ۷ (API 24)، هدف API 36 |
-| مجوزها | فقط اینترنت، لرزش و تنظیم صدا؛ میکروفون و حافظه عمداً بسته شدن |
+| مجوزها | اینترنت، صدا، لرزش، اعلان (یادآوری تمرین) و راه‌اندازی بعد از روشن شدن گوشی (تا یادآوری‌ها بمونن)؛ میکروفون، حافظه، پوش فایربیس و نشان‌های لانچر عمداً بسته شدن |
+| حجم | R8 و حذف منابع بی‌استفاده روشنه (`expo-build-properties`)؛ APK تست فقط arm64 حدود ۲۵ مگابایت |
 | لینک‌ها | `chartoon://` و لینک‌های دوئل `https://app.chartoon.net/duel/...` |
 
 ## انیمیشن ورود
@@ -44,7 +45,7 @@ npx eas-cli@latest submit -p android --profile production  # فرستادن آخ
 
 ```bash
 npx expo prebuild -p android --clean
-cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a   # APK تست
+cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -Pexpo.useLegacyPackaging=true   # APK تست (کتابخونه‌های بومی فشرده، کوچیک‌تر)
 ```
 
 این APK با کلید دیباگ امضا می‌شه: برای تست روی گوشی خوبه ولی گوگل‌پلی قبولش نمی‌کنه. اگه بعداً نسخه‌ی فروشگاه رو نصب کنی، اول باید این یکی رو پاک کنی (امضاها فرق دارن). برای انتشار محلی باید یه کلید آپلود بسازی (`keytool -genkeypair ...`)، امضا رو توی Gradle تنظیم کنی و فایل کلید و رمزش رو جایی امن نگه داری؛ هیچ‌وقت توی مخزن نذار (`*.jks` و `*.keystore` توی `.gitignore` هستن).
