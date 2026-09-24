@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { canonicalCourseId, canonicalCourseIds, findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
 import type { ChestReward } from '@/lib/chest';
+import type { Drawing } from '@/lib/drawings';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
 import { heartsNow, MAX_HEARTS, nextStreak, todaysXp } from '@/lib/progress';
 import { nextReview, type Review } from '@/lib/review';
@@ -52,11 +53,20 @@ export type { ClosedTrade, PendingOrder, Position } from '@/lib/trading';
 /** Which simulator account an action applies to: the live one or the market replay's. */
 export type SimBook = 'live' | 'replay';
 
-export type SimTools = { ma: boolean; ma2: boolean; bands: boolean; rsi: boolean; volume: boolean; levels: Record<string, number[]> };
+export type SimTools = {
+  ma: boolean;
+  ma2: boolean;
+  bands: boolean;
+  rsi: boolean;
+  volume: boolean;
+  levels: Record<string, number[]>;
+  /** Trend lines, fibs, shapes and notes drawn on the live chart, per symbol. */
+  drawings: Record<string, Drawing[]>;
+};
 
 export type SimReplay = { session: ReplaySession | null; account: Account };
 
-export const DEFAULT_SIM_TOOLS: SimTools = { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {} };
+export const DEFAULT_SIM_TOOLS: SimTools = { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {}, drawings: {} };
 
 export type GameData = Data;
 

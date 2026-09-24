@@ -6,12 +6,14 @@ import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { Candle } from '@/content/types';
+import { fitsBudget, type Drawing, type ToolId } from '@/lib/drawings';
 import { formatPrice, formatSize, type SymbolSpec } from '@/lib/simulator';
 import { liquidationPrice, openPnl, type Account, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { DEFAULT_SIM_TOOLS, useGame, type SimBook, type SimTools } from '@/store/game';
 import { colors } from '@/theme';
 import { usd } from '@/utils/format';
 
+import { ToolsSheet } from './drawing/ToolsSheet';
 import { CHART_BG, ProChart, type ProLine } from './ProChart';
 import { QuickTrade } from './QuickTrade';
 import { Chip, VIOLET, VIOLET_INK } from './ui';
@@ -26,7 +28,7 @@ const GAP = 12;
 /** Room at the bottom for the tab bar's raised middle button. */
 const TAB_CLEARANCE = 26;
 
-type Indicator = { key: keyof Omit<SimTools, 'levels'>; label: string; color: string; mono?: boolean };
+type Indicator = { key: keyof Omit<SimTools, 'levels' | 'drawings'>; label: string; color: string; mono?: boolean };
 
 const INDICATORS: Indicator[] = [
   { key: 'ma', label: 'MA 9', color: colors.gold, mono: true },
@@ -152,11 +154,33 @@ export function ChartPanel({
   const [belowHeight, setBelowHeight] = useState(0);
   const [menu, setMenu] = useState(false);
   const [share, setShare] = useState(false);
+  const [sheet, setSheet] = useState(false);
+  const [tool, setTool] = useState<ToolId | null>(null);
 
   const levels = tools.levels?.[spec.id] ?? [];
   const sel = selected?.symbol === spec.id && selected.index < levels.length ? selected.index : null;
   const round = (v: number) => Number(v.toFixed(spec.decimals));
   const setLevels = (next: number[]) => setTools({ levels: { ...(tools.levels ?? {}), [spec.id]: next } });
+
+  // Drawings need candle times to sit on, so the replay (no times) has none.
+  const drawable = !!times && times.length === candles.length;
+  const drawings = tools.drawings?.[spec.id] ?? [];
+  const setDrawings = (next: Drawing[]) => {
+    const all = useGame.getState().simTools?.drawings ?? {};
+    if (!fitsBudget(all, spec.id, next)) return false;
+    setTools({ drawings: { ...all, [spec.id]: next } });
+    return true;
+  };
+  const openTools = () => {
+    setMenu(false);
+    setFull(true);
+    setSheet(true);
+  };
+  const closeFull = () => {
+    setFull(false);
+    setSheet(false);
+    setTool(null);
+  };
 
   const addLevel = () => {
     if (levels.length >= MAX_LEVELS) return;
@@ -212,11 +236,30 @@ export function ChartPanel({
         countdown={countdown}
         corner={
           fullscreen
-            ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: () => setFull(false) }
+            ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: closeFull }
             : { icon: 'expand', label: 'نمایش تمام‌صفحه', onPress: () => setFull(true) }
         }
         onTitlePress={pick ? () => setMenu((m) => !m) : undefined}
+        drawings={drawable ? drawings : undefined}
+        onDrawings={drawable ? setDrawings : undefined}
+        tool={fullscreen ? tool : null}
+        onToolDone={() => setTool(null)}
+        onOpenTools={drawable ? openTools : undefined}
       />
+      {fullscreen && sheet ? (
+        <ToolsSheet
+          width={w}
+          height={h}
+          active={tool}
+          count={drawings.length}
+          onPick={(id) => {
+            setTool(id);
+            setSheet(false);
+          }}
+          onClose={() => setSheet(false)}
+          onClearAll={() => setDrawings([])}
+        />
+      ) : null}
       {pick && menu ? (
         <SymbolMenu
           symbols={symbols}
@@ -312,7 +355,7 @@ export function ChartPanel({
       <Modal
         visible={full}
         animationType="fade"
-        onRequestClose={() => setFull(false)}
+        onRequestClose={() => (sheet ? setSheet(false) : closeFull())}
         supportedOrientations={['portrait', 'landscape', 'landscape-left', 'landscape-right']}
       >
         <View style={[styles.full, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>

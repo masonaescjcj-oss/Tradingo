@@ -7,9 +7,12 @@ import { Txt } from '@/components/Txt';
 import { bollinger, rsi as rsiValues, sma } from '@/content/indicators';
 import type { Candle } from '@/content/types';
 import { chartWindow, clockLabel, nextZoom, priceTicks, spreadLabels, timeTicks, zoomFor, ZOOMS } from '@/lib/chartMath';
+import { indexTime, timeIndex, type Drawing, type ToolId } from '@/lib/drawings';
 import { formatPrice, simVolume, type SymbolSpec } from '@/lib/simulator';
 import { colors } from '@/theme';
 
+import { DrawingLabels, DrawingSvg, PlaceBar, SelectedBar, TextPrompt } from './drawing/DrawingLayer';
+import { useDrawingEditor, type DrawingGeometry } from './drawing/useDrawingEditor';
 import { VIOLET } from './ui';
 
 /** A horizontal price line: a position, order, stop, target or the learner's own level. */
@@ -65,6 +68,11 @@ export function ProChart({
   interactive = true,
   initialCount,
   hidePrice = false,
+  drawings,
+  onDrawings,
+  tool = null,
+  onToolDone,
+  onOpenTools,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -90,6 +98,16 @@ export function ProChart({
   initialCount?: number;
   /** Leaves out the current-price line and tag (e.g. when an entry line already marks it). */
   hidePrice?: boolean;
+  /** Trend lines, fibs and shapes on this symbol (needs `times`). */
+  drawings?: Drawing[];
+  /** Saves edited drawings; false means there's no room for more. Without it drawings are read-only. */
+  onDrawings?: (next: Drawing[]) => boolean | void;
+  /** The drawing tool being placed. */
+  tool?: ToolId | null;
+  /** The tool was placed or cancelled. */
+  onToolDone?: () => void;
+  /** Shows the drawing tools button. */
+  onOpenTools?: () => void;
 }) {
   const fmt = (p: number) => formatPrice(spec, p);
   const axisW = Math.ceil(Math.max(fmt(price).length, 6) * CHAR_W + 14);
@@ -148,6 +166,24 @@ export function ProChart({
   hi += margin;
   const y = (v: number) => priceTop + ((hi - v) / (hi - lo)) * (priceBottom - priceTop);
   const priceAt = (yy: number) => hi - ((yy - priceTop) / (priceBottom - priceTop)) * (hi - lo);
+
+  // Drawings sit on candle times and prices, so they stay put as candles arrive and the view moves.
+  const canDraw = interactive && hasTimes && !!onDrawings;
+  const round = (v: number) => Number(v.toFixed(spec.decimals));
+  const geo: DrawingGeometry | null =
+    hasTimes && times && (canDraw || (drawings?.length ?? 0) > 0)
+      ? {
+          map: { f: (t) => timeIndex(times, t), xf: (fi) => (fi - win.left + 0.5) * step, y, right: plotW, bottom: mainH, fmt },
+          times,
+          pointAt: (px, py, snap) => {
+            const fi = px / step + win.left - 0.5;
+            return { t: Math.round(indexTime(times, snap ? Math.round(fi) : fi)), p: round(priceAt(py)) };
+          },
+          decimals: spec.decimals,
+          stopDistance: (hi - lo) * 0.1,
+        }
+      : null;
+  const editor = useDrawingEditor({ drawings: drawings ?? [], onChange: canDraw ? onDrawings : undefined, tool: canDraw ? tool : null, onToolDone, geo });
 
   // Candles as four paths (up/down wicks and bodies) so a 150-candle chart stays light.
   const bodyW = Math.max(1, step * 0.66);
@@ -227,13 +263,21 @@ export function ProChart({
   const grant = (e: GestureResponderEvent) => {
     const { pageX, locationX, locationY } = e.nativeEvent;
     drag.current = { pageX, offset: Math.min(win.maxOffset, offset), panning: false };
+    if ((!crossMode || editor.placing) && editor.down(locationX, locationY)) {
+      drag.current = null;
+      return true;
+    }
     if (crossMode) setCross({ x: locationX, y: locationY });
     return true;
   };
   const move = (e: GestureResponderEvent) => {
+    const { pageX, locationX, locationY } = e.nativeEvent;
+    if (editor.holding()) {
+      editor.move(locationX, locationY);
+      return;
+    }
     const d = drag.current;
     if (!d) return;
-    const { pageX, locationX, locationY } = e.nativeEvent;
     if (crossMode) {
       setCross({ x: locationX, y: locationY });
       return;
@@ -244,7 +288,8 @@ export function ProChart({
     // Dragging to the right pulls older candles into view.
     setOffset(Math.min(win.maxOffset, Math.max(0, d.offset + dx / step)));
   };
-  const end = () => {
+  const end = (tapped: boolean) => {
+    editor.up(tapped && !crossMode && !drag.current?.panning);
     drag.current = null;
     setOffset((o) => Math.round(o));
   };
@@ -323,6 +368,13 @@ export function ProChart({
         <Line x1={plotW + 0.5} x2={plotW + 0.5} y1={0} y2={height} stroke={AXIS_LINE} strokeWidth={1} />
         {hasTimes ? <Line x1={0} x2={width} y1={bodyH + 0.5} y2={bodyH + 0.5} stroke={AXIS_LINE} strokeWidth={1} /> : null}
       </Svg>
+
+      {editor.items.length > 0 ? (
+        <>
+          <DrawingSvg items={editor.items} width={plotW} height={mainH} />
+          <DrawingLabels items={editor.items} width={plotW} height={mainH} axisLeft={plotW + 1} axisWidth={axisW - 2} />
+        </>
+      ) : null}
 
       {/* Price axis labels. */}
       {ticks.map((t) =>
@@ -430,19 +482,19 @@ export function ProChart({
       {/* The touch surface: drag to scroll, or move the crosshair when it is on. */}
       {interactive ? (
         <View
-          style={[styles.touch, { width: plotW, height: bodyH }, webTouch(crossMode)]}
+          style={[styles.touch, { width: plotW, height: bodyH }, webTouch(crossMode || editor.grabsTouch, crossMode || !!editor.placing)]}
           onStartShouldSetResponder={() => true}
           onMoveShouldSetResponder={() => true}
           onResponderGrant={grant}
           onResponderMove={move}
-          onResponderRelease={end}
-          onResponderTerminate={end}
-          onResponderTerminationRequest={() => !crossMode && !drag.current?.panning}
-          accessibilityLabel="نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش"
+          onResponderRelease={() => end(true)}
+          onResponderTerminate={() => end(false)}
+          onResponderTerminationRequest={() => !crossMode && !drag.current?.panning && !editor.holding()}
+          accessibilityLabel={editor.placing ? `رسم ${editor.placing.name}: ${editor.hint}` : 'نمودار؛ برای دیدن کندل‌های قبلی به چپ و راست بکش'}
         />
       ) : null}
 
-      <View pointerEvents="box-none" style={[styles.titleRow, { maxWidth: plotW - (corner ? 48 : 8) }]}>
+      <View pointerEvents="box-none" style={[styles.titleRow, { maxWidth: plotW - (corner ? 48 : 8) - (onOpenTools && canDraw ? 40 : 0) }]}>
         {onTitlePress ? (
           <Pressable
             onPress={onTitlePress}
@@ -479,6 +531,42 @@ export function ProChart({
       {corner ? (
         <ChartButton icon={corner.icon} label={corner.label} onPress={corner.onPress} style={{ position: 'absolute', left: plotW - 40, top: 4 }} />
       ) : null}
+      {onOpenTools && canDraw ? (
+        <ChartButton
+          icon="pencil"
+          label="ابزارهای رسم (خط روند، فیبوناچی، اشکال و…)"
+          on={!!editor.placing}
+          onPress={() => {
+            editor.reset();
+            onOpenTools();
+          }}
+          style={{ position: 'absolute', left: plotW - (corner ? 80 : 40), top: 4 }}
+        />
+      ) : null}
+      {editor.placing || editor.selected || editor.text || editor.notice ? (
+        <View pointerEvents="box-none" style={[styles.drawBars, { width: plotW - 16 }]}>
+          {editor.text ? (
+            <TextPrompt initial={editor.text.drawing.text ?? ''} onSubmit={editor.submitText} onCancel={editor.cancelText} />
+          ) : editor.placing ? (
+            <PlaceBar name={editor.placing.name} hint={editor.hint ?? ''} onCancel={editor.cancel} onDone={editor.canFinish ? editor.done : undefined} />
+          ) : editor.selected ? (
+            <SelectedBar
+              color={editor.selected.color}
+              onColor={editor.recolor}
+              onText={editor.selected.tool === 'text' || editor.selected.tool === 'note' || editor.selected.tool === 'callout' ? editor.editText : undefined}
+              onDelete={editor.remove}
+              onDone={editor.deselect}
+            />
+          ) : null}
+          {editor.notice ? (
+            <View style={styles.notice}>
+              <Txt w={800} size={12} color={colors.goldInk}>
+                {editor.notice}
+              </Txt>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       {interactive ? (
         <View style={[styles.controls, { top: mainH - 42 }]} pointerEvents="box-none">
           <ChartButton icon="crosshair" label="خط‌کش قیمت (کراس‌هیر)" on={crossMode} onPress={toggleCross} />
@@ -498,10 +586,9 @@ export function ProChart({
   );
 }
 
-const webTouch = (crossMode: boolean) =>
-  Platform.OS === 'web'
-    ? ({ touchAction: crossMode ? 'none' : 'pan-y', cursor: crossMode ? 'crosshair' : 'grab', userSelect: 'none' } as unknown as ViewStyle)
-    : null;
+/** On the web: whether the page may still scroll vertically over the chart, and the mouse cursor. */
+const webTouch = (lock: boolean, aim: boolean) =>
+  Platform.OS === 'web' ? ({ touchAction: lock ? 'none' : 'pan-y', cursor: aim ? 'crosshair' : 'grab', userSelect: 'none' } as unknown as ViewStyle) : null;
 
 function ChartButton({
   icon,
@@ -615,6 +702,19 @@ const styles = StyleSheet.create({
     left: 8,
     flexDirection: 'row',
     gap: 6,
+  },
+  drawBars: {
+    position: 'absolute',
+    left: 8,
+    top: 42,
+    alignItems: 'center',
+    gap: 6,
+  },
+  notice: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    backgroundColor: colors.gold,
   },
   button: {
     width: 34,

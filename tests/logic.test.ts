@@ -149,7 +149,7 @@ const STATE: GameData = {
   simOrders: [],
   simReplay: { session: null, account: { balance: 10000, positions: [], orders: [], history: [] } },
   simChallenges: {},
-  simTools: { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {} },
+  simTools: { ma: true, ma2: false, bands: false, rsi: false, volume: false, levels: {}, drawings: {} },
 };
 
 describe('cloud merge', () => {
