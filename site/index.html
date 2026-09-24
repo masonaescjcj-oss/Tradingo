@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>چارتون | آموزش ترید به سبک بازی؛ فارکس، طلا و کریپتو از صفر</title>
+<meta name="description" content="آموزش ترید از صفر مثل یه بازی: ۸ دوره و ۲۷۹ درس کوتاه فارکس، طلا، کریپتو و تحلیل تکنیکال، شبیه‌ساز معامله با پول مجازی و قیمت زنده، و دوئل با دوستات. رایگان شروع کن.">
+<link rel="canonical" href="https://chartoon.net/">
+<link rel="alternate" hreflang="fa" href="https://chartoon.net/">
+<link rel="alternate" hreflang="en" href="https://chartoon.net/en/">
+<link rel="alternate" hreflang="x-default" href="https://chartoon.net/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0E1320">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="چارتون">
+<meta property="og:locale" content="fa_IR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://chartoon.net/">
+<meta property="og:title" content="چارتون | ترید رو مثل یه بازی یاد بگیر">
+<meta property="og:description" content="روزی پنج دقیقه با شمعک: درس‌های کوتاه با نمودار واقعی، تمرین با پول مجازی و دوئل با دوستات.">
+<meta property="og:image" content="https://chartoon.net/assets/og-fa.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="شمعک، شخصیت چارتون، کنار نمودار شمعی صعودی">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="چارتون | ترید رو مثل یه بازی یاد بگیر">
+<meta name="twitter:description" content="روزی پنج دقیقه با شمعک: درس‌های کوتاه با نمودار واقعی، تمرین با پول مجازی و دوئل با دوستات.">
+<meta name="twitter:image" content="https://chartoon.net/assets/og-fa.png">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="assets/favicon-96.png" type="image/png" sizes="96x96">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/lalezar.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/vazirmatn-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-900.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Lalezar"; src: url("assets/fonts/lalezar.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/jetbrains-mono-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+/* Chartoon's own palette, the same tokens the app uses (src/theme). One dark look, on purpose. */
+:root {
+  color-scheme: dark;
+  --bg: #0E1320;
+  --deep: #0A0F1A;
+  --surface: #171F31;
+  --raised: #1F2940;
+  --raised-edge: #151C2E;
+  --line: #2A3550;
+  --line-soft: #1C2438;
+  --text: #F1F4F9;
+  --text2: #AEB8CC;
+  --text3: #8792AB;
+  --bull: #2BD47D;
+  --bull-edge: #179457;
+  --bull-ink: #04301A;
+  --bull-text: #5BE39A;
+  --bear: #FF5A6E;
+  --gold: #FFC53D;
+  --gold-edge: #C98F0A;
+  --gold-ink: #3B2A00;
+  --gold-card: #1F1A10;
+  --gold-line: #5A4418;
+  --sky: #5AB0FF;
+  --violet: #A78BFA;
+  --flame: #FF9433;
+  --display: "Lalezar", "Vazirmatn", Tahoma, sans-serif;
+  --body: "Vazirmatn", Tahoma, "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --gutter: clamp(16px, 4vw, 32px);
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); scroll-behavior: smooth; scroll-padding-top: 84px; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 1.0625rem/1.95 var(--body); overflow-x: hidden; overflow-x: clip; }
+img, svg { max-width: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; border-radius: 10px; }
+.wrap { width: 100%; max-width: 1160px; margin-inline: auto; padding-inline: var(--gutter); }
+.skip { position: absolute; inset-inline-start: 12px; top: -60px; z-index: 50; padding: 8px 14px; border-radius: 10px; background: var(--text); color: var(--bg); font-weight: 900; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+/* Header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: rgba(14, 19, 32, 0.86); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft); }
+.top .wrap { display: flex; align-items: center; gap: 22px; min-height: 68px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 400 1.95rem/1 var(--display); color: var(--text); padding-top: 4px; }
+.brand svg { width: 30px; height: 37px; flex: none; margin-top: -6px; }
+.links { display: flex; gap: 24px; margin-inline-start: auto; }
+.links a { text-decoration: none; color: var(--text2); font-weight: 700; font-size: 0.98rem; }
+.links a:hover { color: var(--text); }
+.lang { text-decoration: none; font: 700 0.82rem/1 var(--mono); color: var(--text2); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.lang:hover { color: var(--text); border-color: var(--text3); }
+
+/* 3D buttons, like the app's */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 16px; border: 0; font: 900 1.12rem/1 var(--body); text-decoration: none; background: var(--bull); color: var(--bull-ink); box-shadow: 0 5px 0 var(--bull-edge); transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease; }
+.btn:hover { filter: brightness(1.07); }
+.btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--bull-edge); }
+.btn.alt { background: var(--raised); color: var(--text); box-shadow: 0 5px 0 var(--raised-edge), inset 0 0 0 2px var(--line); }
+.btn.alt:active { box-shadow: 0 0 0 var(--raised-edge), inset 0 0 0 2px var(--line); }
+.btn.small { min-height: 42px; padding: 0 18px; border-radius: 12px; font-size: 0.98rem; box-shadow: 0 4px 0 var(--bull-edge); }
+.btn.small:active { transform: translateY(4px); box-shadow: 0 0 0 var(--bull-edge); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: 1.05fr 0.95fr; align-items: center; gap: clamp(28px, 5vw, 64px); padding-block: clamp(36px, 7vw, 84px) clamp(32px, 5vw, 60px); }
+.eyebrow { display: inline-block; margin: 0; padding: 3px 14px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; color: var(--bull-text); background: rgba(43, 212, 125, 0.1); border: 1px solid rgba(43, 212, 125, 0.28); }
+h1 { margin: 18px 0 16px; font: 400 clamp(2.9rem, 6.2vw, 4.9rem)/1.24 var(--display); text-wrap: balance; }
+h1 em { font-style: normal; color: var(--gold); }
+.lede { margin: 0; max-width: 33em; color: var(--text2); font-size: clamp(1.05rem, 1.5vw, 1.18rem); }
+.ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 30px 0 0; padding: 0; list-style: none; color: var(--text2); font-weight: 700; }
+.facts li { display: flex; align-items: baseline; gap: 8px; }
+.facts b { font: 400 2rem/1 var(--display); color: var(--text); }
+.note { margin: 16px 0 0; color: var(--text3); font-size: 0.95rem; font-weight: 700; }
+
+.stage { position: relative; width: 100%; max-width: 600px; aspect-ratio: 600 / 470; justify-self: center; }
+.chartcard { position: absolute; inset: 0; border-radius: 28px; border: 1.5px solid var(--line); background: linear-gradient(180deg, #152037 0%, #0D1322 100%); overflow: hidden; }
+.chartcard svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chartcard .grid line { stroke: var(--line-soft); stroke-width: 1.5; stroke-dasharray: 3 7; }
+.k line { stroke-width: 2.2; }
+.k.up rect { fill: var(--bull); }
+.k.up line { stroke: var(--bull); }
+.k.dn rect { fill: var(--bear); }
+.k.dn line { stroke: var(--bear); }
+.k { transform-box: fill-box; transform-origin: 50% 100%; animation: grow 0.5s cubic-bezier(0.3, 1.4, 0.6, 1) both; animation-delay: calc(var(--i) * 55ms + 120ms); }
+.ma { fill: none; stroke: var(--gold); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; stroke-dasharray: 520; animation: draw 1.2s ease-out 0.5s both; }
+.sh { transform-box: fill-box; transform-origin: 50% 100%; animation: pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) 1.15s both, bob 2.4s ease-in-out 1.9s infinite; }
+.chip { position: absolute; top: 16px; left: 18px; display: flex; gap: 10px; align-items: center; font: 700 0.8rem/1 var(--mono); color: var(--text3); direction: ltr; }
+.chip span { padding: 6px 9px; border-radius: 8px; background: rgba(43, 212, 125, 0.14); color: var(--bull-text); }
+.bubble { position: absolute; top: 13%; right: 27%; max-width: 250px; margin: 0; padding: 12px 16px; border-radius: 18px; background: var(--text); color: var(--bg); font-weight: 900; font-size: 0.98rem; line-height: 1.75; box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.6); animation: rise 0.5s ease-out 1.65s both; }
+.bubble::after { content: ""; position: absolute; bottom: -9px; right: 18px; border-top: 12px solid var(--text); border-left: 12px solid transparent; }
+@keyframes grow { from { transform: scaleY(0); opacity: 0; } }
+@keyframes draw { from { stroke-dashoffset: 520; } to { stroke-dashoffset: 0; } }
+@keyframes pop { from { transform: translateY(40px) scale(0.3); opacity: 0; } }
+@keyframes bob { 50% { transform: translateY(-9px); } }
+@keyframes rise { from { transform: translateY(10px); opacity: 0; } }
+
+/* Ticker tape of topics */
+.tape { border-block: 1px solid var(--line); background: var(--deep); overflow: hidden; }
+.tape-track { display: flex; width: max-content; animation: tape 60s linear infinite; }
+.tape ul { display: flex; gap: 34px; margin: 0; padding: 14px 17px; list-style: none; white-space: nowrap; font-weight: 700; color: var(--text2); }
+.tape li { display: flex; align-items: center; gap: 10px; }
+.tape li::before { content: "▲"; font: 700 0.7rem/1 var(--mono); color: var(--bull); }
+.tape li.dn::before { content: "▼"; color: var(--bear); }
+.tape .sym { font: 700 0.9rem/1 var(--mono); color: var(--text); direction: ltr; }
+.tape:hover .tape-track { animation-play-state: paused; }
+@keyframes tape { to { transform: translateX(50%); } }
+[dir="ltr"] .tape-track { animation-name: tape-ltr; }
+@keyframes tape-ltr { to { transform: translateX(-50%); } }
+
+/* Feature panels */
+main { display: flex; flex-direction: column; gap: clamp(84px, 11vw, 150px); padding-bottom: clamp(56px, 8vw, 96px); }
+.features { display: flex; flex-direction: column; gap: clamp(84px, 11vw, 150px); }
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 88px); align-items: center; }
+.feature.flip .media { order: -1; }
+.kicker { display: inline-flex; align-items: center; gap: 10px; margin: 0; font-weight: 900; font-size: 0.98rem; color: var(--c); }
+.kicker .code { font: 700 0.75rem/1 var(--mono); letter-spacing: 0.08em; padding: 6px 8px; border-radius: 7px; background: var(--c); color: var(--ink); direction: ltr; }
+h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--display); text-wrap: balance; }
+.copy > p { margin: 0; max-width: 34em; color: var(--text2); }
+.ticks { display: grid; gap: 12px; margin: 24px 0 0; padding: 0; list-style: none; }
+.ticks li { display: grid; grid-template-columns: 14px 1fr; gap: 14px; align-items: start; font-weight: 700; line-height: 1.85; }
+.ticks li::before { content: ""; width: 12px; height: 24px; margin-top: 4px; border-radius: 3px; background: linear-gradient(var(--c), var(--c)) 50% 0 / 2px 100% no-repeat, linear-gradient(var(--c), var(--c)) 50% 50% / 10px 14px no-repeat; }
+.rounds { display: grid; gap: 14px; margin: 24px 0 0; padding: 0; list-style: none; counter-reset: r; }
+.rounds li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; counter-increment: r; }
+.rounds li::before { content: counter(r, persian); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--gold-card); border: 1.5px solid var(--gold-line); color: var(--gold); font: 400 1.5rem/1 var(--display); padding-top: 4px; }
+[dir="ltr"] .rounds li::before { content: counter(r); }
+.rounds b { display: block; font-weight: 900; }
+.rounds span { color: var(--text2); font-size: 0.97rem; line-height: 1.7; }
+.foot-note { margin-top: 18px !important; font-size: 0.95rem; color: var(--text3) !important; }
+
+.media { position: relative; display: grid; place-items: center; min-height: 100%; }
+.media::before { content: ""; position: absolute; width: 78%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 30%, transparent), transparent); }
+.phone { position: relative; grid-area: 1 / 1; width: min(290px, 70vw); aspect-ratio: 390 / 844; padding: 9px; border-radius: 44px; background: #05080F; border: 1.5px solid var(--line); box-shadow: 0 44px 80px -34px rgba(0, 0, 0, 0.85), inset 0 0 0 2px #0B1120; }
+.phone img { display: block; width: 100%; height: 100%; border-radius: 35px; object-fit: cover; }
+.pair .front { transform: translateX(-16%); }
+.pair .back { transform: translateX(26%) rotate(7deg) scale(0.86); filter: brightness(0.62) saturate(0.9); }
+
+/* Courses as a watchlist */
+.section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px; }
+.section-head p { margin: 0 0 12px; max-width: 30em; color: var(--text2); }
+.watch { margin: 28px 0 0; padding: 0; list-style: none; border: 1.5px solid var(--line); border-radius: 24px; background: var(--surface); overflow: hidden; }
+.watch li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 84px 84px 104px; gap: 18px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line-soft); }
+.watch li.head { border-top: 0; padding-block: 11px; background: var(--deep); color: var(--text3); font-size: 0.85rem; font-weight: 700; }
+.watch .meta { display: contents; }
+.tick { display: grid; place-items: center; width: 58px; height: 46px; border-radius: 13px; background: var(--c); color: var(--ink); box-shadow: 0 4px 0 var(--edge); font: 700 0.95rem/1 var(--mono); direction: ltr; }
+.tick svg { width: 22px; height: 30px; }
+.watch h3 { margin: 0; font: 900 1.12rem/1.55 var(--body); }
+.watch p { margin: 2px 0 0; color: var(--text2); font-size: 0.95rem; line-height: 1.7; }
+.stat { display: flex; align-items: baseline; gap: 6px; color: var(--text3); font-size: 0.9rem; font-weight: 700; }
+.stat b { font: 400 1.55rem/1 var(--display); color: var(--text); }
+.lvl { justify-self: start; padding: 3px 12px; border-radius: 999px; border: 1.5px solid currentColor; font-size: 0.85rem; font-weight: 900; }
+.lvl.b { color: var(--bull-text); }
+.lvl.i { color: var(--gold); }
+.lvl.a { color: var(--violet); }
+
+/* Trust band */
+.trust { display: grid; grid-template-columns: auto 1fr; gap: clamp(20px, 4vw, 48px); align-items: center; padding: clamp(24px, 4.5vw, 52px); border-radius: 30px; border: 1.5px solid var(--line); background: var(--surface); }
+.trust svg { width: clamp(110px, 16vw, 170px); height: auto; }
+.trust h2 { margin-top: 0; }
+.trust p { margin: 0; max-width: 40em; color: var(--text2); }
+
+/* FAQ */
+.faq { display: grid; gap: 12px; max-width: 860px; margin-top: 26px; }
+.faq details { border-radius: 18px; border: 1.5px solid var(--line); background: var(--surface); padding-inline: 22px; }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px; cursor: pointer; list-style: none; font-weight: 900; font-size: 1.08rem; line-height: 1.6; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; flex: none; font: 700 1.5rem/1 var(--mono); color: var(--bull); transition: transform 0.2s ease; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin: 0 0 20px; color: var(--text2); }
+
+/* Closing call to action */
+.final { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; padding: clamp(28px, 5vw, 60px); border-radius: 32px; border: 2px solid var(--gold-line); background: radial-gradient(120% 150% at 10% 0%, rgba(255, 197, 61, 0.2), transparent 55%), var(--gold-card); }
+.final h2 { margin-top: 0; color: var(--gold); }
+.final p { margin: 0 0 26px; color: var(--text2); }
+.final svg { width: clamp(130px, 18vw, 200px); height: auto; }
+
+/* Footer */
+.foot { border-top: 1px solid var(--line-soft); padding-block: 36px calc(36px + env(safe-area-inset-bottom, 0px)); color: var(--text3); font-size: 0.92rem; line-height: 1.9; }
+.foot .wrap { display: grid; grid-template-columns: 1fr 2fr auto; gap: 24px 40px; align-items: start; }
+.foot .brand { font-size: 1.6rem; }
+.foot p { margin: 0; max-width: 46em; }
+.foot nav { display: flex; flex-direction: column; gap: 6px; }
+.foot nav a { color: var(--text2); text-decoration: none; font-weight: 700; }
+.foot nav a:hover { color: var(--text); }
+
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  .stage { max-width: 560px; }
+  .feature { grid-template-columns: 1fr; }
+  .feature.flip .media { order: 0; }
+  .watch li { grid-template-columns: 58px minmax(0, 1fr); gap: 6px 16px; }
+  .watch li.head { display: none; }
+  .watch .tick { grid-row: span 2; align-self: start; }
+  .watch .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; grid-column: 2; }
+  .foot .wrap { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .links { display: none; }
+  .lang { margin-inline-start: auto; }
+  .trust, .final { grid-template-columns: 1fr; }
+  .final svg { order: -1; }
+  .bubble { font-size: 0.85rem; max-width: 190px; top: 10%; right: 26%; padding: 9px 12px; }
+  .chip { display: none; }
+  .phone { width: min(260px, 64vw); }
+  .pair .front { transform: translateX(-10%); }
+  .pair .back { transform: translateX(18%) rotate(6deg) scale(0.84); }
+}
+@media (max-width: 420px) {
+  .top .btn.small { padding: 0 14px; }
+  .brand { font-size: 1.7rem; }
+  .ctas .btn { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .tape { overflow-x: auto; }
+}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://chartoon.net/#org",
+      "name": "چارتون",
+      "alternateName": "Chartoon",
+      "url": "https://chartoon.net/",
+      "logo": "https://chartoon.net/assets/icon-512.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://chartoon.net/#site",
+      "url": "https://chartoon.net/",
+      "name": "چارتون",
+      "alternateName": "Chartoon",
+      "inLanguage": "fa-IR",
+      "publisher": { "@id": "https://chartoon.net/#org" }
+    },
+    {
+      "@type": "WebApplication",
+      "name": "چارتون",
+      "alternateName": "Chartoon",
+      "url": "https://app.chartoon.net/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "fa",
+      "description": "اپ آموزش ترید به سبک بازی: ۸ دوره و ۲۷۹ درس کوتاه فارکس، طلا، کریپتو و تحلیل تکنیکال، شبیه‌ساز معامله با پول مجازی و دوئل با دوستان.",
+      "image": "https://chartoon.net/assets/og-fa.png",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "publisher": { "@id": "https://chartoon.net/#org" }
+    },
+    {
+      "@type": "FAQPage",
+      "inLanguage": "fa-IR",
+      "mainEntity": [
+        { "@type": "Question", "name": "چارتون رایگانه؟", "acceptedAnswer": { "@type": "Answer", "text": "شروعش رایگانه و برای یادگیری و تمرین هیچ پول واقعی لازم نیست. سکه‌های داخل اپ مجازی‌ان و با درس خوندن جمع می‌شن." } },
+        { "@type": "Question", "name": "هیچی از ترید بلد نیستم؛ به دردم می‌خوره؟", "acceptedAnswer": { "@type": "Answer", "text": "دقیقاً برای همینه. دوره‌ی «مبانی ترید» از این شروع می‌کنه که بازار مالی چیه و نمودار چطور خونده می‌شه. اگه چیزایی بلدی، با آزمون پرش واحدهای آسون رو رد کن." } },
+        { "@type": "Question", "name": "برای تمرین پول واقعی لازمه؟", "acceptedAnswer": { "@type": "Answer", "text": "نه. شبیه‌ساز با ۱۰٬۰۰۰ دلار مجازی کار می‌کنه و قیمت‌هاش از بازار زنده میاد. تا وقتی آماده نشدی، سراغ پول واقعی نرو." } },
+        { "@type": "Question", "name": "چارتون سیگنال خرید و فروش می‌ده؟", "acceptedAnswer": { "@type": "Answer", "text": "نه. چارتون فقط آموزشیه، کارگزار یا مشاور مالی نیست و هیچ‌کدوم از مطالبش توصیه‌ی سرمایه‌گذاری نیست." } },
+        { "@type": "Question", "name": "روی گوشی کار می‌کنه؟", "acceptedAnswer": { "@type": "Answer", "text": "آره. نسخه‌ی وب روی مرورگر گوشی کار می‌کنه و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. نسخه‌ی اندروید و iOS هم در راهه." } },
+        { "@type": "Question", "name": "حساب کاربری لازمه؟", "acceptedAnswer": { "@type": "Answer", "text": "برای شروع نه؛ پیشرفتت روی همون دستگاه ذخیره می‌شه. با ساختن حساب، پیشرفتت روی همه‌ی دستگاه‌هات همگام می‌شه و می‌تونی توی لیگ هفتگی باشی و با دوستات دوئل کنی." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="sh-happy" viewBox="0 0 140 172"><ellipse cx="70" cy="163" rx="36" ry="6" fill="#000" opacity="0.3"/><path d="M70 6 V34" stroke="#0B3D24" stroke-width="7" stroke-linecap="round"/><path d="M70 128 V156" stroke="#0B3D24" stroke-width="7" stroke-linecap="round"/><rect x="30" y="30" width="80" height="100" rx="24" fill="#2BD47D" stroke="#0B3D24" stroke-width="4"/><rect x="40" y="42" width="11" height="40" rx="5.5" fill="#fff" opacity="0.35"/><path d="M32 92 Q16 96 14 112 M108 88 Q126 80 126 60" stroke="#0B3D24" stroke-width="8" stroke-linecap="round" fill="none"/><circle cx="55" cy="72" r="12" fill="#fff" stroke="#0B3D24" stroke-width="3"/><circle cx="85" cy="72" r="12" fill="#fff" stroke="#0B3D24" stroke-width="3"/><circle cx="57" cy="73" r="6" fill="#0E1320"/><circle cx="87" cy="73" r="6" fill="#0E1320"/><circle cx="59" cy="71" r="2" fill="#fff"/><circle cx="89" cy="71" r="2" fill="#fff"/><ellipse cx="44" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.55"/><ellipse cx="96" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.55"/><path d="M58 96 Q70 108 82 96" stroke="#0B3D24" stroke-width="4" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="sh-party" viewBox="0 0 140 172"><ellipse cx="70" cy="163" rx="36" ry="6" fill="#000" opacity="0.3"/><g fill="#FFC53D"><path d="M18 26 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z"/><path d="M122 18 l2.4 6 6 2.4 -6 2.4 -2.4 6 -2.4 -6 -6 -2.4 6 -2.4z"/><path d="M130 100 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z"/><path d="M9 104 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z"/></g><path d="M70 6 V34" stroke="#4A3300" stroke-width="7" stroke-linecap="round"/><path d="M70 128 V156" stroke="#4A3300" stroke-width="7" stroke-linecap="round"/><rect x="30" y="30" width="80" height="100" rx="24" fill="#FFC53D" stroke="#4A3300" stroke-width="4"/><rect x="40" y="42" width="11" height="40" rx="5.5" fill="#fff" opacity="0.35"/><path d="M32 84 Q12 72 16 46 M108 84 Q128 72 124 46" stroke="#4A3300" stroke-width="8" stroke-linecap="round" fill="none"/><circle cx="55" cy="72" r="12" fill="#fff" stroke="#4A3300" stroke-width="3"/><circle cx="85" cy="72" r="12" fill="#fff" stroke="#4A3300" stroke-width="3"/><circle cx="56" cy="72" r="6" fill="#0E1320"/><circle cx="86" cy="72" r="6" fill="#0E1320"/><circle cx="58" cy="70" r="2" fill="#fff"/><circle cx="88" cy="70" r="2" fill="#fff"/><ellipse cx="44" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.6"/><ellipse cx="96" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.6"/><path d="M56 94 Q70 118 84 94 Z" fill="#4A3300"/></symbol>
+  <symbol id="sh-think" viewBox="0 0 140 172"><ellipse cx="70" cy="163" rx="36" ry="6" fill="#000" opacity="0.3"/><path d="M70 6 V34" stroke="#0B3D24" stroke-width="7" stroke-linecap="round"/><path d="M70 128 V156" stroke="#0B3D24" stroke-width="7" stroke-linecap="round"/><rect x="30" y="30" width="80" height="100" rx="24" fill="#2BD47D" stroke="#0B3D24" stroke-width="4"/><rect x="40" y="42" width="11" height="40" rx="5.5" fill="#fff" opacity="0.35"/><path d="M32 94 Q18 104 22 120 M108 94 Q122 110 90 108" stroke="#0B3D24" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M46 55 L64 54 M78 51 L96 56" stroke="#0B3D24" stroke-width="4" stroke-linecap="round" fill="none"/><circle cx="55" cy="72" r="12" fill="#fff" stroke="#0B3D24" stroke-width="3"/><circle cx="85" cy="72" r="12" fill="#fff" stroke="#0B3D24" stroke-width="3"/><circle cx="58" cy="69" r="6" fill="#0E1320"/><circle cx="88" cy="69" r="6" fill="#0E1320"/><circle cx="60" cy="67" r="2" fill="#fff"/><circle cx="90" cy="67" r="2" fill="#fff"/><ellipse cx="44" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.3"/><ellipse cx="96" cy="93" rx="7" ry="4" fill="#FF7A93" opacity="0.3"/><path d="M62 102 Q70 99 80 102" stroke="#0B3D24" stroke-width="4" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="g-bull" viewBox="0 0 22 30"><path d="M11 1v28" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="4" y="7" width="14" height="15" rx="3" fill="currentColor"/></symbol>
+  <symbol id="g-hammer" viewBox="0 0 22 30"><path d="M11 3v25" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="4" y="4" width="14" height="9" rx="3" fill="currentColor"/></symbol>
+</svg>
+<a class="skip" href="#main">رفتن به محتوا</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="چارتون، صفحه‌ی اصلی"><svg aria-hidden="true"><use href="#sh-happy"/></svg>چارتون</a>
+    <nav class="links" aria-label="بخش‌های صفحه">
+      <a href="#features">ویژگی‌ها</a>
+      <a href="#courses">دوره‌ها</a>
+      <a href="#duel">دوئل</a>
+      <a href="#faq">سؤال‌ها</a>
+    </nav>
+    <a class="lang" href="en/" hreflang="en" lang="en">EN</a>
+    <a class="btn small" href="https://app.chartoon.net/">شروع رایگان</a>
+  </div>
+</header>
+
+<main id="main">
+  <section aria-labelledby="hero-title">
+    <div class="wrap hero">
+      <div>
+        <p class="eyebrow">آموزش ترید از صفر · فارکس، طلا و کریپتو</p>
+        <h1 id="hero-title">ترید رو مثل یه <em>بازی</em> یاد بگیر</h1>
+        <p class="lede">روزی پنج دقیقه با شمعک: درس‌های کوتاه با نمودار واقعی، تمرین با پول مجازی و دوئل با دوستات. از «کندل چیه؟» تا اسمارت مانی و هارمونیک، قدم به قدم.</p>
+        <div class="ctas">
+          <a class="btn" href="https://app.chartoon.net/">شروع رایگان</a>
+          <a class="btn alt" href="#courses">دوره‌ها رو ببین</a>
+        </div>
+        <ul class="facts">
+          <li><b>۸</b> دوره</li>
+          <li><b>۲۷۹</b> درس کوتاه</li>
+          <li><b>۴۲</b> ابزار رسم</li>
+        </ul>
+      </div>
+      <div class="stage">
+        <div class="chartcard" aria-hidden="true">
+          <svg viewBox="0 0 600 470" preserveAspectRatio="xMidYMid meet">
+            <g class="grid"><line x1="0" x2="600" y1="110" y2="110"/><line x1="0" x2="600" y1="190" y2="190"/><line x1="0" x2="600" y1="270" y2="270"/><line x1="0" x2="600" y1="350" y2="350"/><line x1="0" x2="600" y1="430" y2="430"/></g>
+            <g transform="translate(-14 -50) scale(1.2)">
+              <g class="k up" style="--i:0"><line x1="28" x2="28" y1="368" y2="404"/><rect x="22" y="378" width="12" height="14" rx="2.5"/></g>
+              <g class="k up" style="--i:1"><line x1="50" x2="50" y1="358" y2="387"/><rect x="44" y="368" width="12" height="10" rx="2.5"/></g>
+              <g class="k up" style="--i:2"><line x1="72" x2="72" y1="340" y2="378"/><rect x="66" y="350" width="12" height="18" rx="2.5"/></g>
+              <g class="k dn" style="--i:3"><line x1="94" x2="94" y1="344" y2="368"/><rect x="88" y="350" width="12" height="11" rx="2.5"/></g>
+              <g class="k up" style="--i:4"><line x1="116" x2="116" y1="334" y2="371"/><rect x="110" y="346" width="12" height="14" rx="2.5"/></g>
+              <g class="k up" style="--i:5"><line x1="138" x2="138" y1="314" y2="359"/><rect x="132" y="328" width="12" height="18" rx="2.5"/></g>
+              <g class="k up" style="--i:6"><line x1="160" x2="160" y1="311" y2="334"/><rect x="154" y="321" width="12" height="7" rx="2.5"/></g>
+              <g class="k dn" style="--i:7"><line x1="182" x2="182" y1="311" y2="336"/><rect x="176" y="321" width="12" height="9" rx="2.5"/></g>
+              <g class="k up" style="--i:8"><line x1="204" x2="204" y1="307" y2="335"/><rect x="198" y="314" width="12" height="16" rx="2.5"/></g>
+              <g class="k up" style="--i:9"><line x1="226" x2="226" y1="294" y2="326"/><rect x="220" y="303" width="12" height="11" rx="2.5"/></g>
+              <g class="k up" style="--i:10"><line x1="248" x2="248" y1="275" y2="312"/><rect x="242" y="286" width="12" height="17" rx="2.5"/></g>
+              <g class="k dn" style="--i:11"><line x1="270" x2="270" y1="277" y2="304"/><rect x="264" y="286" width="12" height="11" rx="2.5"/></g>
+              <g class="k up" style="--i:12"><line x1="292" x2="292" y1="273" y2="309"/><rect x="286" y="287" width="12" height="10" rx="2.5"/></g>
+              <g class="k up" style="--i:13"><line x1="314" x2="314" y1="269" y2="294"/><rect x="308" y="276" width="12" height="11" rx="2.5"/></g>
+              <g class="k up" style="--i:14"><line x1="336" x2="336" y1="255" y2="288"/><rect x="330" y="260" width="12" height="16" rx="2.5"/></g>
+              <g class="k dn" style="--i:15"><line x1="358" x2="358" y1="248" y2="276"/><rect x="352" y="260" width="12" height="7" rx="2.5"/></g>
+              <g class="k up" style="--i:16"><line x1="380" x2="380" y1="242" y2="273"/><rect x="374" y="254" width="12" height="13" rx="2.5"/></g>
+              <polyline class="ma" points="28,378 50,373 72,365 94,364 116,360 138,350 160,341 182,337 204,328 226,319 248,311 270,306 292,298 314,290 336,281 358,278 380,269"/>
+            </g>
+            <circle cx="515" cy="200" r="130" fill="url(#glow)"/>
+            <defs><radialGradient id="glow"><stop offset="0" stop-color="#2BD47D" stop-opacity="0.28"/><stop offset="1" stop-color="#2BD47D" stop-opacity="0"/></radialGradient></defs>
+            <g class="sh"><use href="#sh-happy" x="440" y="111" width="150" height="184"/></g>
+          </svg>
+          <div class="chip">XP/DAY · 1D <span>+120 ▲</span></div>
+        </div>
+        <p class="bubble">سلام! من شمعکم. بیا با هم ترید رو یاد بگیریم.</p>
+      </div>
+    </div>
+    <div class="tape" aria-label="چند موضوع از دوره‌ها">
+      <div class="tape-track">
+        <ul>
+          <li>کندل‌شناسی</li><li class="dn"><span class="sym">EUR/USD</span></li><li>حمایت و مقاومت</li><li>خط روند و کانال</li><li><span class="sym">XAU/USD</span></li><li>فیبوناچی</li><li>RSI و MACD</li><li class="dn">مدیریت ریسک</li><li><span class="sym">BTC/USDT</span></li><li>ایچیموکو</li><li>پرایس اکشن</li><li>اسمارت مانی</li><li class="dn">فیوچرز و لیکوئید</li><li>امواج الیوت</li><li><span class="sym">ETH/USDT</span></li><li>الگوهای هارمونیک</li><li>بک‌تست</li>
+        </ul>
+        <ul aria-hidden="true">
+          <li>کندل‌شناسی</li><li class="dn"><span class="sym">EUR/USD</span></li><li>حمایت و مقاومت</li><li>خط روند و کانال</li><li><span class="sym">XAU/USD</span></li><li>فیبوناچی</li><li>RSI و MACD</li><li class="dn">مدیریت ریسک</li><li><span class="sym">BTC/USDT</span></li><li>ایچیموکو</li><li>پرایس اکشن</li><li>اسمارت مانی</li><li class="dn">فیوچرز و لیکوئید</li><li>امواج الیوت</li><li><span class="sym">ETH/USDT</span></li><li>الگوهای هارمونیک</li><li>بک‌تست</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap features" id="features">
+    <section class="feature" style="--c: var(--bull); --ink: var(--bull-ink)" aria-labelledby="f-lessons">
+      <div class="copy">
+        <p class="kicker"><span class="code">LESSON</span>درس‌ها</p>
+        <h2 id="f-lessons">آموزش ترید از صفر، روزی پنج دقیقه</h2>
+        <p>هر درس چند اسلاید کوتاه و چند سؤاله. نمودار رو می‌بینی، الگو رو پیدا می‌کنی و همون لحظه می‌فهمی درست زدی یا نه.</p>
+        <ul class="ticks">
+          <li>سؤال‌ها روی نمودار شمعی‌ان، نه فقط متن</li>
+          <li>امتیاز، قلب و صندوقچه، مثل یه بازی واقعی</li>
+          <li>مرور هوشمند: اشتباه‌هات برمی‌گردن تا یادت بمونن</li>
+          <li>بلدی؟ با آزمون پرش واحدهای آسون رو رد کن</li>
+        </ul>
+      </div>
+      <div class="media">
+        <div class="phone"><img src="assets/shots/lesson.webp" width="780" height="1688" loading="lazy" decoding="async" alt="یه سؤال درس چارتون: کندل آخر این نمودار چه الگوییه؟ جواب درست، چکش، سبز شده و شمعک می‌گه عالی بود."></div>
+      </div>
+    </section>
+
+    <section class="feature flip" style="--c: var(--sky); --ink: #07233F" aria-labelledby="f-sim">
+      <div class="copy">
+        <p class="kicker"><span class="code">SIM</span>شبیه‌ساز</p>
+        <h2 id="f-sim">شبیه‌ساز معامله با پول مجازی</h2>
+        <p>قبل از این‌که پول واقعی وسط بذاری، با ۱۰٬۰۰۰ دلار مجازی تمرین کن و ببین تحلیلت چقدر جواب می‌ده.</p>
+        <ul class="ticks">
+          <li>بیت‌کوین، اتریوم، طلا و یورو/دلار با قیمت زنده</li>
+          <li>سفارش لیمیت و استاپ، حد ضرر و حد سود، و اهرم</li>
+          <li>۴۲ ابزار رسم به سبک تریدینگ‌ویو: خط روند، فیبوناچی، کانال و الگوها</li>
+          <li>بازپخش بازار، چالش‌ها و ژورنال معامله‌ها</li>
+        </ul>
+      </div>
+      <div class="media pair">
+        <div class="phone back"><img src="assets/shots/tools.webp" width="780" height="1688" loading="lazy" decoding="async" alt="فهرست ابزارهای رسم چارتون: خط روند، پرتو، خط افقی، کانال موازی و بقیه."></div>
+        <div class="phone front"><img src="assets/shots/chart.webp" width="780" height="1688" loading="lazy" decoding="async" alt="نمودار یورو/دلار توی شبیه‌ساز با فیبوناچی اصلاحی؛ قیمت از سطح ۰٫۶۱۸ برگشته."></div>
+      </div>
+    </section>
+
+    <section class="feature" id="duel" style="--c: var(--gold); --ink: var(--gold-ink)" aria-labelledby="f-duel">
+      <div class="copy">
+        <p class="kicker"><span class="code">DUEL</span>دوئل</p>
+        <h2 id="f-duel">با دوستات دوئل کن</h2>
+        <p>اول خودت بازی می‌کنی، بعد لینک دوئل رو برای دوستت می‌فرستی تا همون راندها رو بازی کنه. کسی نبود؟ شمعک در سه سطح آسون، معمولی و سخت پایه‌ست.</p>
+        <ol class="rounds">
+          <li><div><b>سؤال سرعتی</b><span>پنج سؤال از درس‌ها، پونزده ثانیه برای هر کدوم.</span></div></li>
+          <li><div><b>ادامه‌ی نمودار</b><span>یه نمودار واقعی؛ حدس بزن قیمت پنج کندل بعد کجاست.</span></div></li>
+          <li><div><b>معامله‌ی ۶۰ ثانیه‌ای</b><span>نمودار جلو می‌ره و تو با ۱۰۰۰ دلار خرید و فروش می‌کنی.</span></div></li>
+        </ol>
+      </div>
+      <div class="media">
+        <div class="phone"><img src="assets/shots/duel.webp" width="780" height="1688" loading="lazy" decoding="async" alt="صفحه‌ی دوئل چارتون با سه راند، انتخاب سطح شمعک و دکمه‌ی ساختن دوئل و دعوت دوست."></div>
+      </div>
+    </section>
+
+    <section class="feature flip" style="--c: var(--flame); --ink: #3A1C00" aria-labelledby="f-habit">
+      <div class="copy">
+        <p class="kicker"><span class="code">STREAK</span>هر روز</p>
+        <h2 id="f-habit">هر روز یه قدم نزدیک‌تر به تریدر شدن</h2>
+        <p>ترید رو با تمرین کم ولی هر روزه یاد می‌گیری، نه با یه شب بیداری. چارتون کمکت می‌کنه هر روز برگردی.</p>
+        <ul class="ticks">
+          <li>روزهای پیاپی، و یخ شعله برای روزی که نمی‌رسی</li>
+          <li>سه مأموریت تازه هر روز، با صندوقچه‌ی جایزه</li>
+          <li>لیگ هفتگی، از میگو تا نهنگ</li>
+          <li>کارت اشتراک برای رکوردها و دوره‌هایی که تموم می‌کنی</li>
+        </ul>
+      </div>
+      <div class="media pair">
+        <div class="phone back"><img src="assets/shots/league.webp" width="780" height="1688" loading="lazy" decoding="async" alt="جدول لیگ هفتگی دلفین با امتیاز بازیکن‌ها و منطقه‌ی صعود."></div>
+        <div class="phone front"><img src="assets/shots/streak.webp" width="780" height="1688" loading="lazy" decoding="async" alt="صفحه‌ی روزهای پیاپی: ۱۲ روز پشت سر هم، تقویم ماه و یخ شعله."></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="wrap" id="courses" aria-labelledby="c-title">
+    <div class="section-head">
+      <div>
+        <p class="kicker" style="--c: var(--bull); --ink: var(--bull-ink)"><span class="code">WATCHLIST</span>دوره‌ها</p>
+        <h2 id="c-title">۸ دوره، از صفر تا تحلیل پیشرفته</h2>
+      </div>
+      <p>۹۳ واحد و ۲۷۹ درس. از هر جا که بلدی شروع کن و هر وقت خواستی دوره‌ی بعدی رو اضافه کن.</p>
+    </div>
+    <ul class="watch">
+      <li class="head" aria-hidden="true"><span>نماد</span><span>دوره</span><span>واحد</span><span>درس</span><span>سطح</span></li>
+      <li style="--c:#2BD47D; --edge:#179457; --ink:#04301A"><span class="tick" aria-hidden="true"><svg><use href="#g-bull"/></svg></span><div><h3>مبانی ترید</h3><p>بازار مالی چیه، نمودار و تایم‌فریم، انواع سفارش، کار با پلتفرم و انتخاب بروکر.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#5AB0FF; --edge:#2F7FD0; --ink:#07233F"><span class="tick" aria-hidden="true">FX</span><div><h3>فارکس و طلا</h3><p>جفت‌ارزها، پیپ و لات، طلا، نفت و شاخص‌ها، تقویم اقتصادی و فاندامنتال.</p></div><div class="meta"><span class="stat"><b>۹</b> واحد</span><span class="stat"><b>۲۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FFC53D; --edge:#C98F0A; --ink:#3B2A00"><span class="tick" aria-hidden="true">BTC</span><div><h3>کریپتو</h3><p>از بیت‌کوین و بلاک‌چین تا صرافی، امنیت کیف پول، دیفای، فیوچرز و داده‌های آنچین.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FF8A7A; --edge:#D65A4A; --ink:#3A0E08"><span class="tick" aria-hidden="true"><svg><use href="#g-hammer"/></svg></span><div><h3>تحلیل تکنیکال</h3><p>کندل‌شناسی، روند، حمایت و مقاومت، الگوهای نموداری، فیبوناچی و تحلیل چندزمانی.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#4FD1C5; --edge:#2A9D93; --ink:#062B28"><span class="tick" aria-hidden="true">2%</span><div><h3>ریسک و روانشناسی</h3><p>اندازه‌ی ریسک، ریاضی ضرر، کنترل احساسات، سوگیری‌های ذهنی و انضباط.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۷</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FF9433; --edge:#C86A12; --ink:#3A1C00"><span class="tick" aria-hidden="true">RSI</span><div><h3>اندیکاتورها</h3><p>میانگین متحرک، بولینگر، RSI، MACD، واگرایی، حجم و ولوم پروفایل، و ایچیموکو.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl i">متوسط</span></div></li>
+      <li style="--c:#F472B6; --edge:#C2417F; --ink:#3D0A24"><span class="tick" aria-hidden="true">SYS</span><div><h3>استراتژی‌های معاملاتی</h3><p>شکست، رنج، سوئینگ، دی‌ترید و اسکالپ، و ساختن سیستم خودت با بک‌تست.</p></div><div class="meta"><span class="stat"><b>۱۸</b> واحد</span><span class="stat"><b>۵۴</b> درس</span><span class="lvl i">متوسط</span></div></li>
+      <li style="--c:#A78BFA; --edge:#7556D9; --ink:#1E1240"><span class="tick" aria-hidden="true">SMC</span><div><h3>تحلیل پیشرفته</h3><p>پرایس اکشن، عرضه و تقاضا، اسمارت مانی، امواج الیوت و الگوهای هارمونیک.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl a">پیشرفته</span></div></li>
+    </ul>
+  </section>
+
+  <section class="wrap" aria-labelledby="t-title">
+    <div class="trust">
+      <svg viewBox="0 0 140 172" aria-hidden="true"><use href="#sh-think"/></svg>
+      <div>
+        <h2 id="t-title">آموزش می‌دیم، سیگنال نمی‌فروشیم</h2>
+        <p>بازار پره از کانال سیگنال و وعده‌ی سود تضمینی. چارتون کارگزار یا مشاور مالی نیست؛ کمکت می‌کنه خودت نمودار رو بفهمی، ریسکت رو مدیریت کنی و قبل از پول واقعی، با پول مجازی تمرین کنی.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="faq" aria-labelledby="q-title">
+    <h2 id="q-title">سؤال‌هایی که زیاد می‌پرسن</h2>
+    <div class="faq">
+      <details><summary>چارتون رایگانه؟</summary><p>شروعش رایگانه و برای یادگیری و تمرین هیچ پول واقعی لازم نیست. سکه‌های داخل اپ مجازی‌ان و با درس خوندن جمع می‌شن.</p></details>
+      <details><summary>هیچی از ترید بلد نیستم؛ به دردم می‌خوره؟</summary><p>دقیقاً برای همینه. دوره‌ی «مبانی ترید» از این شروع می‌کنه که بازار مالی چیه و نمودار چطور خونده می‌شه. اگه چیزایی بلدی، با آزمون پرش واحدهای آسون رو رد کن.</p></details>
+      <details><summary>برای تمرین پول واقعی لازمه؟</summary><p>نه. شبیه‌ساز با ۱۰٬۰۰۰ دلار مجازی کار می‌کنه و قیمت‌هاش از بازار زنده میاد. تا وقتی آماده نشدی، سراغ پول واقعی نرو.</p></details>
+      <details><summary>چارتون سیگنال خرید و فروش می‌ده؟</summary><p>نه. چارتون فقط آموزشیه، کارگزار یا مشاور مالی نیست و هیچ‌کدوم از مطالبش توصیه‌ی سرمایه‌گذاری نیست.</p></details>
+      <details><summary>روی گوشی کار می‌کنه؟</summary><p>آره. نسخه‌ی وب روی مرورگر گوشی کار می‌کنه و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. نسخه‌ی اندروید و iOS هم در راهه.</p></details>
+      <details><summary>حساب کاربری لازمه؟</summary><p>برای شروع نه؛ پیشرفتت روی همون دستگاه ذخیره می‌شه. با ساختن حساب، پیشرفتت روی همه‌ی دستگاه‌هات همگام می‌شه و می‌تونی توی لیگ هفتگی باشی و با دوستات دوئل کنی.</p></details>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="cta-title">
+    <div class="final">
+      <div>
+        <h2 id="cta-title">اولین درست رو همین امروز بزن</h2>
+        <p>پنج دقیقه وقت داری؟ همین کافیه. بدون نصب، روی مرورگر گوشی یا کامپیوتر.</p>
+        <a class="btn" href="https://app.chartoon.net/">شروع رایگان</a>
+      </div>
+      <svg viewBox="0 0 140 172" aria-hidden="true"><use href="#sh-party"/></svg>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <a class="brand" href="./"><svg aria-hidden="true"><use href="#sh-happy"/></svg>چارتون</a>
+    <p>چارتون یه اپ آموزشیه و توصیه‌ی سرمایه‌گذاری نمی‌ده. معامله‌ی فارکس، ارز دیجیتال، طلا و قراردادهای اهرمی ریسک بالایی داره و ممکنه کل سرمایه‌ت رو از دست بدی. نتیجه‌ی خوب توی شبیه‌ساز تضمینی برای بازار واقعی نیست.</p>
+    <nav aria-label="پیوندها">
+      <a href="https://app.chartoon.net/">ورود به اپ</a>
+      <a href="en/" hreflang="en" lang="en">English</a>
+      <span>© ۱۴۰۵ چارتون</span>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

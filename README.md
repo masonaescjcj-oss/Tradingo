@@ -7,7 +7,7 @@
 
 **نسخه‌ی وب:** https://tradingo.vercel.app
 
-برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md)
+برنامه‌ی ساخت اپ از نمونه‌ی اولیه تا انتشار: [ROADMAP.md](ROADMAP.md) · وصل کردن سرور: [docs/SUPABASE.md](docs/SUPABASE.md) · لندینگ‌پیج chartoon.net: [docs/SITE.md](docs/SITE.md)
 
 ## اجرا
 
