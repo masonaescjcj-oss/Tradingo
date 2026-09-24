@@ -89,7 +89,7 @@ cd android && ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armea
 
 1. **حساب توسعه‌دهنده:** play.google.com/console (۲۵ دلار یک‌بار). گوگل از ایران حساب قبول نمی‌کنه؛ حساب باید مال یه شخص یا شرکت توی یه کشور پشتیبانی‌شده باشه، با احراز هویت واقعی.
 2. **تست بسته:** حساب‌های شخصی جدید باید قبل از انتشار عمومی، اپ رو حداقل ۱۴ روز با حداقل ۱۲ تستر توی Closed testing نگه دارن (قانون فعلی گوگل؛ قبل از شروع توی کنسول چک کن).
-3. **ساخت اپ:** اسم، زبان پیش‌فرض فارسی، نوع App، رایگان.
+3. **ساخت اپ:** اسم انگلیسی `Chartoon: Learn Trading`، پکیج `net.chartoon.app`، زبان پیش‌فرض English (United States)، نوع App، رایگان. صفحه‌ی فروشگاه گوگل‌پلی انگلیسیه و متن فارسی برای مایکت و کافه‌بازاره.
 4. **اولین AAB رو دستی آپلود کن** (Testing → Internal testing). Play App Signing رو قبول کن.
 5. **لینک‌های دوئل:** `public/.well-known/assetlinks.json` از قبل اثر انگشت کلید چارتون رو داره (برای APKهای نصب مستقیم و فروشگاه‌های ایرانی). بعد از آپلود توی گوگل‌پلی، از **Setup → App signing** اثر انگشت SHA-256 کلید امضای گوگل رو هم به همون فهرست `sha256_cert_fingerprints` اضافه کن و نسخه‌ی وب رو دوباره منتشر کن. تا نسخه‌ی وب منتشر نشه، لینک‌های دوئل توی مرورگر باز می‌شن (و باز هم کار می‌کنن). شکل فایل:
 
@@ -129,7 +129,7 @@ cd android && ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armea
 
 - Title: Chartoon: Learn Trading
 - Short description: Learn trading like a game: 5-minute lessons, live charts and paper trading.
-- Full description: Chartoon teaches trading the way Duolingo teaches languages: bite-sized lessons, streaks, XP and a friendly candlestick mascot. 8 courses and 279 lessons on forex, gold and crypto, from candlesticks and trends to indicators, patterns, Fibonacci, price action, risk management and trading psychology. Practise in a paper-trading simulator with live prices, 42 drawing tools and a trade journal, duel friends, and climb the weekly league. Education only: no investment advice, not a broker, no real money.
+- Full description: Chartoon teaches trading the way Duolingo teaches languages: bite-sized lessons, streaks, XP and a friendly candlestick mascot. 8 courses and 279 lessons on forex, gold and crypto, from candlesticks and trends to indicators, patterns, Fibonacci, price action, risk management and trading psychology. Practise in a paper-trading simulator with live prices, 42 drawing tools and a trade journal, duel friends, and climb the weekly league. The app is in Persian (Farsi). Education only: no investment advice, not a broker, no real money.
 
 **دسته:** Education · **ایمیل تماس:** (لازمه؛ هنوز مشخص نشده) · **وب‌سایت:** https://chartoon.net · **سیاست حریم خصوصی:** https://chartoon.net/privacy/
 
