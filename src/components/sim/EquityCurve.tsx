@@ -3,6 +3,7 @@ import { StyleSheet, View, type GestureResponderEvent } from 'react-native';
 import Svg, { Circle, Line, Path, Polyline } from 'react-native-svg';
 
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa, usd } from '@/utils/format';
 
@@ -20,7 +21,7 @@ export function EquityCurve({ curve, width, height = 150 }: { curve: number[]; w
     return (
       <View style={[styles.empty, { width, height: 90 }]}>
         <Txt w={700} size={12.5} color={colors.text3} center>
-          بعد از اولین معامله‌ی بسته‌شده، نمودار سرمایه‌ت این‌جا کشیده می‌شه.
+          {t('بعد از اولین معامله‌ی بسته‌شده، نمودار سرمایه‌ت این‌جا کشیده می‌شه.')}
         </Txt>
       </View>
     );
@@ -46,7 +47,7 @@ export function EquityCurve({ curve, width, height = 150 }: { curve: number[]; w
     <View style={{ gap: 6 }}>
       <View style={styles.readout}>
         <Txt w={700} size={12} color={colors.text2}>
-          {idx === 0 ? 'شروع' : `بعد از معامله‌ی ${fa(idx)}`}
+          {idx === 0 ? t('شروع') : t('بعد از معامله‌ی {n}', { n: fa(idx) })}
         </Txt>
         <Txt mono w={800} size={13}>
           {usd(curve[idx])}
@@ -59,7 +60,7 @@ export function EquityCurve({ curve, width, height = 150 }: { curve: number[]; w
         onResponderMove={pick}
         onResponderTerminationRequest={() => true}
         accessibilityRole="image"
-        accessibilityLabel={`نمودار سرمایه از ${usd(curve[0])} تا ${usd(curve[last])} در ${fa(last)} معامله`}
+        accessibilityLabel={t('نمودار سرمایه از {from} تا {to} در {n} معامله', { from: usd(curve[0]), to: usd(curve[last]), n: fa(last), count: last })}
       >
         <Svg width={width} height={height}>
           <Line x1={0} x2={width} y1={y(curve[0])} y2={y(curve[0])} stroke={colors.line} strokeWidth={1} />

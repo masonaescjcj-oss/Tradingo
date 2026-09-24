@@ -22,7 +22,7 @@ export const DOT_COLOR: Record<Tone, string> = {
   neutral: colors.text2,
 };
 
-/** Small coloured label above a question, e.g. "الگوشناسی". */
+/** Small coloured label above a question, e.g. "Chart reading". */
 export function QuestionTag({ label, icon, color = colors.gold }: { label: string; icon?: IconName; color?: string }) {
   return (
     <View style={styles.tag}>

@@ -4,6 +4,7 @@ import Svg, { Line, Path, Polyline, Rect } from 'react-native-svg';
 
 import { bollinger, rsi as rsiValues, sma } from '@/content/indicators';
 import type { Candle, ChartSpec, Tone } from '@/content/types';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { formatPrice, priceDecimals } from '@/utils/format';
 
@@ -382,7 +383,7 @@ export function CandleChart({
       {ghost && (
         <View pointerEvents="none" style={[styles.ghostMark, { left: cx(candles.length) - ghostW / 2, top: y(last[3]) - 28, width: ghostW }]}>
           <Txt w={900} size={20} color={colors.gold}>
-            ؟
+            {t('؟')}
           </Txt>
         </View>
       )}
@@ -423,7 +424,7 @@ export function CandleChart({
             key={`t${i}`}
             onPress={() => onCandlePress(i)}
             accessibilityRole="button"
-            accessibilityLabel={`کندل ${i + 1}`}
+            accessibilityLabel={t('کندل {n}', { n: i + 1 })}
             style={[styles.tapZone, { left: PAD_L + i * step, width: step, height: mainH }]}
           />
         ))}

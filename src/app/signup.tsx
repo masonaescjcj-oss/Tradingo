@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
 import { t } from '@/i18n';
+import { isDefaultName } from '@/lib/names';
 import { useGame } from '@/store/game';
 
 /** Creating an account later, for learners who started without one. */
@@ -27,7 +28,7 @@ export default function SignupScreen() {
           </SpeechBubble>
         </View>
         <SignupForm
-          initialName={name === 'تریدر' ? '' : name} // i18n-ignore
+          initialName={isDefaultName(name) ? '' : name}
           onDone={() => router.replace('/(tabs)/profile')}
         />
       </KeyboardScroll>

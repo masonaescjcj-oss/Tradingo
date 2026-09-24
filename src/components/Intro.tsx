@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LogoMark } from '@/components/LogoMark';
 import { Txt } from '@/components/Txt';
+import { byLang, t } from '@/i18n';
 import { colors } from '@/theme';
 
 const native = Platform.OS !== 'web';
@@ -50,7 +51,7 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
   const startScale = SPLASH_BOX / box;
   const wordSize = Math.round(Math.min(W * 0.2, 84));
 
-  const [t] = useState(() => ({
+  const [anim] = useState(() => ({
     fall: new Animated.Value(0),
     squash: new Animated.Value(0),
     bob: new Animated.Value(0),
@@ -76,27 +77,27 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
         if (cancelled) return;
         if (reduce) {
           // No hops or pops: everything simply shows, then fades out as usual.
-          [t.appear, t.fall, t.word, ...t.candles].forEach((v) => v.setValue(1));
+          [anim.appear, anim.fall, anim.word, ...anim.candles].forEach((v) => v.setValue(1));
           return;
         }
         run = Animated.parallel([
-          drive(t.appear, 1, 220),
+          drive(anim.appear, 1, 220),
           Animated.sequence([
             Animated.delay(native ? 60 : 200),
-            drive(t.squash, 1, 160, Easing.out(Easing.quad)),
+            drive(anim.squash, 1, 160, Easing.out(Easing.quad)),
             Animated.parallel([
-              drive(t.squash, 0, 260, Easing.out(Easing.back(3))),
-              Animated.spring(t.fall, { toValue: 1, friction: 7, tension: 55, useNativeDriver: native }),
+              drive(anim.squash, 0, 260, Easing.out(Easing.back(3))),
+              Animated.spring(anim.fall, { toValue: 1, friction: 7, tension: 55, useNativeDriver: native }),
             ]),
             Animated.delay(120),
-            drive(t.bob, 1, 260, Easing.inOut(Easing.sin)),
-            drive(t.bob, 0, 300, Easing.inOut(Easing.sin)),
+            drive(anim.bob, 1, 260, Easing.inOut(Easing.sin)),
+            drive(anim.bob, 0, 300, Easing.inOut(Easing.sin)),
           ]),
           Animated.sequence([
             Animated.delay(native ? 320 : 460),
             Animated.parallel([
-              Animated.spring(t.word, { toValue: 1, friction: 6, tension: 80, useNativeDriver: native }),
-              Animated.stagger(70, t.candles.map((v) => drive(v, 1, 280, Easing.out(Easing.back(2))))),
+              Animated.spring(anim.word, { toValue: 1, friction: 6, tension: 80, useNativeDriver: native }),
+              Animated.stagger(70, anim.candles.map((v) => drive(v, 1, 280, Easing.out(Easing.back(2))))),
             ]),
           ]),
         ]);
@@ -107,38 +108,38 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
       clearTimeout(done);
       run?.stop();
     };
-  }, [fontsReady, t]);
+  }, [fontsReady, anim]);
 
   useEffect(() => {
     if (!played || !ready || leaving.current) return;
     leaving.current = true;
-    Animated.timing(t.exit, { toValue: 1, duration: 380, easing: Easing.in(Easing.cubic), useNativeDriver: native }).start(() => onDone());
-  }, [played, ready, onDone, t]);
+    Animated.timing(anim.exit, { toValue: 1, duration: 380, easing: Easing.in(Easing.cubic), useNativeDriver: native }).start(() => onDone());
+  }, [played, ready, onDone, anim]);
 
   const lift = Animated.add(
-    t.fall.interpolate({ inputRange: [0, 1], outputRange: [startY, 0] }),
+    anim.fall.interpolate({ inputRange: [0, 1], outputRange: [startY, 0] }),
     Animated.add(
-      t.bob.interpolate({ inputRange: [0, 1], outputRange: [0, -16] }),
-      t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, box + H - floor] }),
+      anim.bob.interpolate({ inputRange: [0, 1], outputRange: [0, -16] }),
+      anim.exit.interpolate({ inputRange: [0, 1], outputRange: [0, box + H - floor] }),
     ),
   );
   const mascotStyle = {
     transform: [
       { translateY: lift },
-      { scale: t.fall.interpolate({ inputRange: [0, 1], outputRange: [startScale, 1] }) },
+      { scale: anim.fall.interpolate({ inputRange: [0, 1], outputRange: [startScale, 1] }) },
       // A little squash before the hop, and a stretch as he lets go.
-      { scaleX: t.squash.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) },
-      { scaleY: t.squash.interpolate({ inputRange: [0, 1], outputRange: [1, 0.9] }) },
+      { scaleX: anim.squash.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] }) },
+      { scaleY: anim.squash.interpolate({ inputRange: [0, 1], outputRange: [1, 0.9] }) },
     ],
-    opacity: t.appear,
+    opacity: anim.appear,
   };
   const wordStyle = {
-    opacity: t.word.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 1] }),
+    opacity: anim.word.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 1] }),
     transform: [
       {
         scale: Animated.add(
-          t.word.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }),
-          t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, 0.12] }),
+          anim.word.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }),
+          anim.exit.interpolate({ inputRange: [0, 1], outputRange: [0, 0.12] }),
         ),
       },
     ],
@@ -147,19 +148,19 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
   return (
     <Animated.View
       pointerEvents={played && ready ? 'none' : 'auto'}
-      style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: t.exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}
+      style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: anim.exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}
       onLayout={() => {
         if (native) SplashScreen.hide();
       }}
-      accessibilityLabel="چارتون"
+      accessibilityLabel={t('چارتون')}
     >
       {/* Mounted only once the brand font is in: Android keeps the stand-in face a text was first
           drawn with, even after the real font arrives. */}
       {fontsReady ? (
         <Animated.View style={[styles.brand, { top: H * 0.45 - 70 }, wordStyle]}>
-          <View style={styles.candles}>
+          <View style={[styles.candles, { flexDirection: byLang('row-reverse', 'row') }]}>
             {CANDLES.map(([color, body, rise], i) => (
-              <Animated.View key={i} style={[styles.candle, { marginBottom: rise, opacity: t.candles[i], transform: [{ scaleY: t.candles[i] }] }]}>
+              <Animated.View key={i} style={[styles.candle, { marginBottom: rise, opacity: anim.candles[i], transform: [{ scaleY: anim.candles[i] }] }]}>
                 <View style={[styles.wick, { backgroundColor: color }]} />
                 <View style={[styles.body, { height: body, backgroundColor: color }]} />
                 <View style={[styles.wick, { backgroundColor: color }]} />
@@ -167,7 +168,7 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
             ))}
           </View>
           <Txt display size={wordSize} color={colors.text} style={{ lineHeight: Math.round(wordSize * 1.25) }}>
-            چارتون
+            {t('چارتون')}
           </Txt>
         </Animated.View>
       ) : null}
@@ -195,8 +196,7 @@ const styles = StyleSheet.create({
     gap: 7,
     height: 58,
     marginBottom: 4,
-    // The app lays rows out right to left; a chart still rises from left to right.
-    flexDirection: 'row-reverse',
+    // The row's direction is set where it's used: a chart rises from left to right in both layouts.
   },
   candle: {
     alignItems: 'center',

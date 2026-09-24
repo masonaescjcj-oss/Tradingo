@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { HeartIcon, Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -18,24 +19,24 @@ type Props = {
 export function LessonHeader({ progress, onClose, hearts, secondsLeft, onReport }: Props) {
   return (
     <View style={styles.row}>
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="خروج از درس" style={styles.close}>
+      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('خروج از درس')} style={styles.close}>
         <Icon name="close" size={26} color={colors.text3} strokeWidth={2.8} />
       </Pressable>
-      <ProgressBar value={progress} label="پیشرفت درس" />
+      <ProgressBar value={progress} label={t('پیشرفت درس')} />
       {onReport ? (
-        <Pressable onPress={onReport} accessibilityRole="button" accessibilityLabel="گزارش مشکل این مرحله" hitSlop={6} style={styles.flag}>
+        <Pressable onPress={onReport} accessibilityRole="button" accessibilityLabel={t('گزارش مشکل این مرحله')} hitSlop={6} style={styles.flag}>
           <Icon name="flag" size={20} color={colors.text3} strokeWidth={2.4} />
         </Pressable>
       ) : null}
       {secondsLeft != null ? (
-        <View style={styles.counter} accessible accessibilityLabel={`${fa(secondsLeft)} ثانیه مونده`}>
+        <View style={styles.counter} accessible accessibilityLabel={t('{n} ثانیه مونده', { n: fa(secondsLeft), count: secondsLeft })}>
           <Icon name="clock" size={20} color={secondsLeft <= 10 ? colors.bear : colors.gold} strokeWidth={2.6} />
           <Txt w={900} size={16} color={secondsLeft <= 10 ? colors.bear : colors.gold}>
             {fa(secondsLeft)}
           </Txt>
         </View>
       ) : hearts != null ? (
-        <View style={styles.counter} accessible accessibilityLabel={`${fa(hearts)} قلب`}>
+        <View style={styles.counter} accessible accessibilityLabel={t('{n} قلب', { n: fa(hearts), count: hearts })}>
           <HeartIcon />
           <Txt w={900} size={16} color={colors.bear}>
             {fa(hearts)}

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import type { CandleMark } from '@/components/CandleChart';
 import { Txt } from '@/components/Txt';
 import type { TapStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { ChartCard } from './ChartQuestion';
@@ -25,7 +26,7 @@ export function TapQuestion({ step, revealed, onAnswer }: QuestionProps<TapStep>
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="روی نمودار بزن" icon="target" color={colors.sky} />
+        <QuestionTag label={t('روی نمودار بزن')} icon="target" color={colors.sky} />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
       <ChartCard
@@ -44,7 +45,7 @@ export function TapQuestion({ step, revealed, onAnswer }: QuestionProps<TapStep>
         }
       />
       <Txt size={13} color={colors.text3} center>
-        {selected == null ? 'روی کندلی که فکر می‌کنی درسته بزن.' : 'می‌تونی انتخابت رو عوض کنی؛ بعد «بررسی» رو بزن.'}
+        {selected == null ? t('روی کندلی که فکر می‌کنی درسته بزن.') : t('می‌تونی انتخابت رو عوض کنی؛ بعد «بررسی» رو بزن.')}
       </Txt>
     </View>
   );

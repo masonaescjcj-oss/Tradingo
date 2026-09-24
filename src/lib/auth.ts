@@ -5,6 +5,7 @@ import { cloudDeleteAccount, cloudSignIn, cloudSignOut, cloudSignUp } from './cl
 import { clearCoach } from './coachApi';
 import { passwordHash } from './hash';
 import { loginMethod } from './login';
+import { defaultName } from './names';
 import { cloudEnabled } from './supabase';
 
 export const MIN_PASSWORD = 6;
@@ -22,7 +23,7 @@ export async function register(name: string, login: string, password: string): P
     cloud = !result.offline;
   }
   useGame.getState().createAccount({
-    name: name.trim() || 'تریدر', // i18n-ignore: the default name, kept as data (translated where shown)
+    name: name.trim() || defaultName(),
     login,
     passwordHash: passwordHash(login, password),
     createdAt: Date.now(),

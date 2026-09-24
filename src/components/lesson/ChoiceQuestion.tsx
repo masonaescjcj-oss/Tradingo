@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import type { ChoiceStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 import { shuffle } from '@/utils/random';
@@ -31,7 +32,7 @@ export function ChoiceQuestion({ step, topic, revealed, onAnswer }: QuestionProp
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label={step.facts ? `محاسبه · ${topic}` : topic} icon={step.facts ? 'target' : undefined} color={step.facts ? colors.sky : colors.gold} />
+        <QuestionTag label={step.facts ? t('محاسبه · {topic}', { topic }) : topic} icon={step.facts ? 'target' : undefined} color={step.facts ? colors.sky : colors.gold} />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
       {step.facts && (

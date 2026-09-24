@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import type { Summary } from '@/lib/trading';
 import { colors } from '@/theme';
 import { faNum, usd } from '@/utils/format';
@@ -36,7 +37,7 @@ export function AccountBar({
         </View>
         <View style={{ alignItems: 'flex-end', gap: 4 }}>
           <Txt w={700} size={12} color={colors.text2}>
-            سود و زیان کل
+            {t('سود و زیان کل')}
           </Txt>
           <View style={[styles.pnlChip, { backgroundColor: total >= 0 ? colors.bullSoft : colors.bearSoft }]}>
             <Txt mono w={800} size={15} color={pnlColor(total)}>
@@ -47,20 +48,20 @@ export function AccountBar({
       </View>
       <View style={styles.grid}>
         <View style={styles.gridRow}>
-          <Figure label="موجودی" value={usd(summary.balance)} />
-          <Figure label="مارجین درگیر" value={usd(summary.usedMargin)} />
+          <Figure label={t('موجودی')} value={usd(summary.balance)} />
+          <Figure label={t('مارجین درگیر')} value={usd(summary.usedMargin)} />
         </View>
         <View style={styles.gridRow}>
-          <Figure label="مارجین آزاد" value={usd(summary.freeMargin)} color={summary.freeMargin < 0 ? colors.bearText : colors.text} />
+          <Figure label={t('مارجین آزاد')} value={usd(summary.freeMargin)} color={summary.freeMargin < 0 ? colors.bearText : colors.text} />
           <View style={{ flex: 1, gap: 1 }}>
-            <Pressable onPress={onInfo} accessibilityRole="button" accessibilityLabel="اهرم و مارجین یعنی چی؟" style={styles.levelHead} hitSlop={8}>
+            <Pressable onPress={onInfo} accessibilityRole="button" accessibilityLabel={t('اهرم و مارجین یعنی چی؟')} style={styles.levelHead} hitSlop={8}>
               <Txt w={700} size={11} color={colors.text2}>
-                سطح مارجین
+                {t('سطح مارجین')}
               </Txt>
               <Icon name="info" size={13} color={colors.skyText} strokeWidth={2.4} />
             </Pressable>
             <Txt w={800} size={12.5} color={levelColor}>
-              {level == null ? 'بدون معامله‌ی باز' : `${faNum(level)}٪`}
+              {level == null ? t('بدون معامله‌ی باز') : t('{n}٪', { n: faNum(level) })}
             </Txt>
           </View>
         </View>

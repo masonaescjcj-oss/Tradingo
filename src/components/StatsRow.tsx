@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { boostLeftMs } from '@/lib/shop';
 import { currentStreak, heartsNow, useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -23,10 +24,10 @@ export function StatsRow({ showHearts = true }: { showHearts?: boolean }) {
   return (
     <View style={styles.row}>
       {boostMin > 0 ? (
-        <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" accessibilityLabel={`امتیاز دو برابر، ${fa(boostMin)} دقیقه مونده`} style={styles.boost}>
+        <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" accessibilityLabel={t('امتیاز دو برابر، {n} دقیقه مونده', { n: fa(boostMin), count: boostMin })} style={styles.boost}>
           <BoltIcon size={14} color={colors.goldInk} />
           <Txt w={900} size={12} color={colors.goldInk}>
-            ۲×
+            {`${fa(2)}×`}
           </Txt>
           <Txt w={700} size={11} color={colors.goldInk}>
             {`${fa(boostMin)}′`}
@@ -36,7 +37,7 @@ export function StatsRow({ showHearts = true }: { showHearts?: boolean }) {
       <Pressable
         onPress={() => router.push('/streak')}
         accessibilityRole="button"
-        accessibilityLabel={`${fa(streak)} روز پیاپی${freezes ? `، ${fa(freezes)} یخ شعله` : ''}`}
+        accessibilityLabel={`${t('{n} روز پیاپی', { n: fa(streak), count: streak })}${freezes ? t('، {n} یخ شعله', { n: fa(freezes), count: freezes }) : ''}`}
         hitSlop={4}
         style={styles.stat}
       >
@@ -52,14 +53,14 @@ export function StatsRow({ showHearts = true }: { showHearts?: boolean }) {
           {fa(streak)}
         </Txt>
       </Pressable>
-      <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" accessibilityLabel={`${faNum(coins)} سکه؛ فروشگاه`} hitSlop={4} style={styles.stat}>
+      <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" accessibilityLabel={t('{n} سکه؛ فروشگاه', { n: faNum(coins), count: coins })} hitSlop={4} style={styles.stat}>
         <CoinIcon />
         <Txt w={900} size={16} color={colors.gold}>
           {faNum(coins)}
         </Txt>
       </Pressable>
       {showHearts && (
-        <View style={styles.stat} accessible accessibilityLabel={`${fa(hearts)} قلب`}>
+        <View style={styles.stat} accessible accessibilityLabel={t('{n} قلب', { n: fa(hearts), count: hearts })}>
           <HeartIcon />
           <Txt w={900} size={16} color={colors.bear}>
             {fa(hearts)}

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import type { FillStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { shuffle } from '@/utils/random';
 
@@ -17,7 +18,7 @@ export function FillQuestion({ step, revealed, onAnswer }: QuestionProps<FillSte
   const parts = useMemo(
     () =>
       step.sentence.split('___').map((part, i) => {
-        const trailing = i > 0 ? (part.match(/^[،؛.!؟,:]+/)?.[0] ?? '') : '';
+        const trailing = i > 0 ? (part.match(/^[،؛.!؟,:;?]+/)?.[0] ?? '') : ''; // i18n-ignore: Persian and English punctuation
         return { trailing, words: part.slice(trailing.length).split(' ').filter(Boolean) };
       }),
     [step],
@@ -50,8 +51,8 @@ export function FillQuestion({ step, revealed, onAnswer }: QuestionProps<FillSte
   return (
     <View style={{ gap: 16 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="کامل کن" icon="pencil" />
-        <QuestionTitle>جمله رو با کلمه‌های درست کامل کن</QuestionTitle>
+        <QuestionTag label={t('کامل کن')} icon="pencil" />
+        <QuestionTitle>{t('جمله رو با کلمه‌های درست کامل کن')}</QuestionTitle>
       </View>
 
       <View style={styles.sentenceRow}>
@@ -81,7 +82,7 @@ export function FillQuestion({ step, revealed, onAnswer }: QuestionProps<FillSte
 
       <View style={styles.divider} />
 
-      <View style={styles.bank} accessibilityLabel="بانک کلمه‌ها">
+      <View style={styles.bank} accessibilityLabel={t('بانک کلمه‌ها')}>
         {bank.map((word, i) =>
           used.has(i) ? (
             <View key={i} style={[styles.tile, styles.ghost]}>
@@ -106,7 +107,7 @@ export function FillQuestion({ step, revealed, onAnswer }: QuestionProps<FillSte
         )}
       </View>
       <Txt size={13} color={colors.text3} center>
-        روی کلمه بزن تا بره توی جای خالی؛ دوباره بزن تا برگرده.
+        {t('روی کلمه بزن تا بره توی جای خالی؛ دوباره بزن تا برگرده.')}
       </Txt>
     </View>
   );
@@ -128,7 +129,7 @@ function Slot({
   onRemove: (slot: number) => void;
 }) {
   if (bankIndex == null) {
-    return <View style={styles.emptySlot} accessibilityLabel="جای خالی" />;
+    return <View style={styles.emptySlot} accessibilityLabel={t('جای خالی')} />;
   }
   const word = bank[bankIndex];
   const right = word === step.answers[slot];
@@ -142,7 +143,7 @@ function Slot({
       disabled={revealed}
       onPress={() => onRemove(slot)}
       accessibilityRole="button"
-      accessibilityLabel={`${word}، برای برداشتن بزن`}
+      accessibilityLabel={t('{word}، برای برداشتن بزن', { word })}
       style={[styles.filled, { borderColor: tone.border, backgroundColor: tone.bg }]}
     >
       <Txt w={900} size={16} color={tone.text}>

@@ -4,10 +4,10 @@ import type { ChestTier } from '@/lib/chest';
 
 /** Colours of each chest tier: the screen behind it, the wooden body and the metal trim. */
 export const CHEST_LOOK: Record<ChestTier, { label: string; bg: string; body: string; bodyDark: string; trim: string; trimDark: string; trimLight: string }> = {
-  common: { label: 'معمولی', bg: '#1F8A5B', body: '#2BB673', bodyDark: '#1C8A55', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' },
-  rare: { label: 'کمیاب', bg: '#3AA7F2', body: '#1F8FE0', bodyDark: '#1674C2', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' },
-  epic: { label: 'حماسی', bg: '#8A5CF6', body: '#6D3FE0', bodyDark: '#5530B8', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' },
-  legendary: { label: 'افسانه‌ای', bg: '#F29B0C', body: '#E4572E', bodyDark: '#B8401E', trim: '#FFE27A', trimDark: '#F2B705', trimLight: '#FFF4C2' },
+  common: { label: 'معمولی', bg: '#1F8A5B', body: '#2BB673', bodyDark: '#1C8A55', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' }, // i18n-ignore: translated where shown
+  rare: { label: 'کمیاب', bg: '#3AA7F2', body: '#1F8FE0', bodyDark: '#1674C2', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' }, // i18n-ignore: translated where shown
+  epic: { label: 'حماسی', bg: '#8A5CF6', body: '#6D3FE0', bodyDark: '#5530B8', trim: '#FFC53D', trimDark: '#E0A21C', trimLight: '#FFE08A' }, // i18n-ignore: translated where shown
+  legendary: { label: 'افسانه‌ای', bg: '#F29B0C', body: '#E4572E', bodyDark: '#B8401E', trim: '#FFE27A', trimDark: '#F2B705', trimLight: '#FFF4C2' }, // i18n-ignore: translated where shown
 };
 
 const LOCKED = { body: '#39445E', bodyDark: '#2B3449', trim: '#56627D', trimDark: '#46516A', trimLight: '#6B7894' };

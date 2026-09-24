@@ -33,6 +33,8 @@ export function distanceLabel(spec: SymbolSpec, d: number): string {
 
 /** A trade's entry, as a label. Not through t(): on its own the Persian word is "sign in" in the dictionary. */
 export const entryText = () => byLang('ورود', 'Entry'); // i18n-ignore: see above
+/** A trade's exit, as a label; on its own the Persian word is "quit" in the dictionary. */
+export const exitText = () => byLang('خروج', 'Exit'); // i18n-ignore: see above
 
 export const sideText = (side: Side) => (side === 'buy' ? t('خرید') : t('فروش'));
 

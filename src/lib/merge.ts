@@ -1,5 +1,6 @@
 import { canonicalCourseId, canonicalCourseIds } from '@/content';
 import { mergeChallenges } from '@/lib/challenges';
+import { isDefaultName } from '@/lib/names';
 import { mergeQuestLogs } from '@/lib/quests';
 import type { GameData, LessonRecord } from '@/store/game';
 
@@ -44,7 +45,7 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
   return {
     ...base,
     onboarded: local.onboarded || remote.onboarded,
-    name: local.name !== 'تریدر' ? local.name : remote.name, // i18n-ignore: the default name, kept as data
+    name: !isDefaultName(local.name) ? local.name : remote.name,
     xp: Math.max(local.xp, remote.xp),
     coins: Math.max(local.coins, remote.coins),
     streak: localNewerDay ? local.streak : remote.streak,

@@ -4,7 +4,7 @@ import { MOODS, type MascotMood } from '@/lib/mascotArt';
 
 export type { MascotMood } from '@/lib/mascotArt';
 
-/** «شمعک», the candlestick mascot. Height is 170/140 of the width. */
+/** Shamak, the candlestick mascot. Height is 170/140 of the width. */
 export function Mascot({ mood = 'happy', size = 140 }: { mood?: MascotMood; size?: number }) {
   const m = MOODS[mood];
   return (

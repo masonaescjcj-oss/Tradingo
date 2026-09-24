@@ -6,6 +6,7 @@ import { Button3D } from '@/components/Button3D';
 import { FlameIcon, Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -17,12 +18,12 @@ type Props = {
   onContinue: () => void;
 };
 
-const PRAISE = ['آفرین! درست گفتی', 'عالی بود!', 'دقیقاً همینه!', 'مثل یه تریدر حرفه‌ای!'];
+const PRAISE = ['آفرین! درست گفتی', 'عالی بود!', 'دقیقاً همینه!', 'مثل یه تریدر حرفه‌ای!']; // i18n-ignore: translated where shown
 
 export function FeedbackSheet({ correct, correctAnswer, explanation, combo = 0, onContinue }: Props) {
   const insets = useSafeAreaInsets();
   const [slide] = useState(() => new Animated.Value(80));
-  const praise = PRAISE[combo % PRAISE.length];
+  const praise = t(PRAISE[combo % PRAISE.length]);
 
   useEffect(() => {
     Animated.spring(slide, { toValue: 0, useNativeDriver: false, friction: 8, tension: 90 }).start();
@@ -47,11 +48,11 @@ export function FeedbackSheet({ correct, correctAnswer, explanation, combo = 0, 
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Txt w={900} size={22} color={correct ? colors.bull : '#FF7A8A'}>
-            {correct ? praise : 'این بار نه!'}
+            {correct ? praise : t('این بار نه!')}
           </Txt>
           {!correct && correctAnswer ? (
             <Txt w={800} size={14} color="#FFB3BD">
-              {`جواب درست: ${correctAnswer}`}
+              {t('جواب درست: {answer}', { answer: correctAnswer })}
             </Txt>
           ) : null}
         </View>
@@ -59,7 +60,7 @@ export function FeedbackSheet({ correct, correctAnswer, explanation, combo = 0, 
           <View style={styles.combo}>
             <FlameIcon size={16} />
             <Txt w={900} size={13} color={colors.flame}>
-              {`${fa(combo)} تا پشت سر هم`}
+              {t('{n} تا پشت سر هم', { n: fa(combo), count: combo })}
             </Txt>
           </View>
         ) : (
@@ -71,7 +72,7 @@ export function FeedbackSheet({ correct, correctAnswer, explanation, combo = 0, 
           {explanation}
         </Txt>
       ) : null}
-      <Button3D label={correct ? 'ادامه' : 'فهمیدم'} variant={correct ? 'primary' : 'danger'} onPress={onContinue} />
+      <Button3D label={correct ? t('ادامه') : t('فهمیدم')} variant={correct ? 'primary' : 'danger'} onPress={onContinue} />
     </Animated.View>
   );
 }

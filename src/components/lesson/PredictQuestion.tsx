@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { PredictStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { ChartCard } from './ChartQuestion';
@@ -12,8 +13,8 @@ import { OptionButton } from './OptionButton';
 import type { QuestionProps } from './types';
 
 const SIDES = [
-  { id: 'buy' as const, label: 'خرید', latin: 'Long', icon: 'arrowUpRight' as const, face: colors.bull, ink: colors.bullInk },
-  { id: 'sell' as const, label: 'فروش', latin: 'Short', icon: 'arrowDownRight' as const, face: colors.bear, ink: colors.bearInk },
+  { id: 'buy' as const, label: 'خرید', latin: 'Long', icon: 'arrowUpRight' as const, face: colors.bull, ink: colors.bullInk }, // i18n-ignore: translated where shown
+  { id: 'sell' as const, label: 'فروش', latin: 'Short', icon: 'arrowDownRight' as const, face: colors.bear, ink: colors.bearInk }, // i18n-ignore: translated where shown
 ];
 
 export function PredictQuestion({ step, revealed, onAnswer }: QuestionProps<PredictStep>) {
@@ -22,7 +23,7 @@ export function PredictQuestion({ step, revealed, onAnswer }: QuestionProps<Pred
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="پیش‌بینی قیمت" icon="target" color={colors.sky} />
+        <QuestionTag label={t('پیش‌بینی قیمت')} icon="target" color={colors.sky} />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
       <ChartCard chart={step.chart} symbol={step.symbol} trend={step.trend} height={176} />
@@ -38,7 +39,7 @@ export function PredictQuestion({ step, revealed, onAnswer }: QuestionProps<Pred
                 setSelected(side.id);
                 onAnswer(side.id === step.answer);
               }}
-              accessibilityLabel={`${side.label} (${side.latin})`}
+              accessibilityLabel={`${t(side.label)} (${side.latin})`}
               style={styles.option}
             >
               <View style={[styles.icon, { backgroundColor: side.face }]}>
@@ -46,7 +47,7 @@ export function PredictQuestion({ step, revealed, onAnswer }: QuestionProps<Pred
               </View>
               <View style={{ alignItems: 'flex-start' }}>
                 <Txt w={900} size={20}>
-                  {side.label}
+                  {t(side.label)}
                 </Txt>
                 <Txt mono w={700} size={11} color={colors.text2}>
                   {side.latin}

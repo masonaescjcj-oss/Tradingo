@@ -6,6 +6,7 @@ import { Txt } from '@/components/Txt';
 import type { ChartSpec, LineStep } from '@/content';
 import { toneColor } from '@/content/charts';
 import { bandDecimals, isLineCorrect, lineDecimals, lineExtent, lineNudge, roundPrice } from '@/content/line';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { formatPrice } from '@/utils/format';
 
@@ -38,16 +39,16 @@ export function LineQuestion({ step, revealed, onAnswer }: QuestionProps<LineSte
 
   const hint = revealed
     ? inBand
-      ? `خطت روی ${fmt(price)} و داخل محدوده‌ی درسته.`
-      : `خطت روی ${fmt(price)} بود؛ محدوده‌ی درست (ناحیه‌ی سبز) ${band[0]} تا ${band[1]} هست.`
+      ? t('خطت روی {price} و داخل محدوده‌ی درسته.', { price: fmt(price) })
+      : t('خطت روی {price} بود؛ محدوده‌ی درست (ناحیه‌ی سبز) {from} تا {to} هست.', { price: fmt(price), from: band[0], to: band[1] })
     : moved
-      ? 'هنوز می‌تونی جابه‌جاش کنی؛ هر وقت مطمئن شدی «بررسی» رو بزن.'
-      : 'خط رو بگیر و بالا یا پایین بکش، یا روی نمودار بزن. با دکمه‌ها هم دقیق جابه‌جا می‌شه.';
+      ? t('هنوز می‌تونی جابه‌جاش کنی؛ هر وقت مطمئن شدی «بررسی» رو بزن.')
+      : t('خط رو بگیر و بالا یا پایین بکش، یا روی نمودار بزن. با دکمه‌ها هم دقیق جابه‌جا می‌شه.');
 
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="خط رو بکش" icon="sliders" color={colors.sky} />
+        <QuestionTag label={t('خط رو بکش')} icon="sliders" color={colors.sky} />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
       <ChartCard
@@ -92,7 +93,7 @@ function NudgeButton({ dir, disabled, onPress }: { dir: 1 | -1; disabled: boolea
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={dir === 1 ? 'خط بالاتر' : 'خط پایین‌تر'}
+      accessibilityLabel={dir === 1 ? t('خط بالاتر') : t('خط پایین‌تر')}
       accessibilityState={{ disabled }}
       hitSlop={6}
       style={({ pressed }) => [styles.nudge, disabled && { opacity: 0.4 }, pressed && !disabled && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]}

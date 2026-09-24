@@ -8,6 +8,7 @@ import { RichText } from '@/components/RichText';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
 import type { ExampleRow, LearnStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { useColumnWidth } from '@/utils/layout';
 
@@ -19,7 +20,7 @@ export function LearnCard({ step, topic }: { step: LearnStep; topic: string }) {
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label={`مفهوم جدید · ${topic}`} icon="bulb" />
+        <QuestionTag label={t('مفهوم جدید · {topic}', { topic })} icon="bulb" />
         <Txt w={900} size={24} lh={1.6}>
           {step.title}
         </Txt>
@@ -56,10 +57,10 @@ export function LearnCard({ step, topic }: { step: LearnStep; topic: string }) {
       )}
 
       {step.example && (
-        <View style={[styles.card, styles.example]} accessibilityLabel="مثال">
+        <View style={[styles.card, styles.example]} accessibilityLabel={t('مثال')}>
           <View style={styles.exampleTag}>
             <Txt w={900} size={12} color={colors.gold}>
-              مثال
+              {t('مثال')}
             </Txt>
           </View>
           {step.example.rows.map((row) => (

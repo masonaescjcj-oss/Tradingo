@@ -2,17 +2,18 @@ import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { Icon, type IconName } from './Icon';
 import { Txt } from './Txt';
 
 const TABS: Record<string, { label: string; icon: IconName }> = {
-  index: { label: 'یادگیری', icon: 'home' },
-  practice: { label: 'تمرین', icon: 'target' },
-  simulator: { label: 'شبیه‌ساز', icon: 'candles' },
-  chat: { label: 'گفتگو', icon: 'chat' },
-  profile: { label: 'پروفایل', icon: 'user' },
+  index: { label: 'یادگیری', icon: 'home' }, // i18n-ignore: translated where shown
+  practice: { label: 'تمرین', icon: 'target' }, // i18n-ignore: translated where shown
+  simulator: { label: 'شبیه‌ساز', icon: 'candles' }, // i18n-ignore: translated where shown
+  chat: { label: 'گفتگو', icon: 'chat' }, // i18n-ignore: translated where shown
+  profile: { label: 'پروفایل', icon: 'user' }, // i18n-ignore: translated where shown
 };
 
 export function TabBar({ state, navigation }: BottomTabBarProps) {
@@ -36,14 +37,14 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               onPress={onPress}
               accessibilityRole="tab"
               accessibilityState={{ selected: focused }}
-              accessibilityLabel={tab.label}
+              accessibilityLabel={t(tab.label)}
               style={styles.centerTab}
             >
               <View style={[styles.centerFace, { borderColor: focused ? colors.gold : colors.bg }]}>
                 <Icon name="candles" size={26} color={colors.bullInk} strokeWidth={2.4} />
               </View>
               <Txt w={800} size={11} color={color}>
-                {tab.label}
+                {t(tab.label)}
               </Txt>
             </Pressable>
           );
@@ -55,12 +56,12 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             onPress={onPress}
             accessibilityRole="tab"
             accessibilityState={{ selected: focused }}
-            accessibilityLabel={tab.label}
+            accessibilityLabel={t(tab.label)}
             style={[styles.tab, focused && styles.tabActive]}
           >
             <Icon name={tab.icon} size={24} color={color} />
             <Txt w={800} size={11} color={color}>
-              {tab.label}
+              {t(tab.label)}
             </Txt>
           </Pressable>
         );

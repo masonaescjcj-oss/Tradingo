@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { courseProgress, findCourse, type Course } from '@/content';
+import { t } from '@/i18n';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -22,14 +23,14 @@ export function CourseSwitcher({ visible, onClose }: { visible: boolean; onClose
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="بستن">
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t('بستن')}>
         <Pressable style={[styles.panel, { marginTop: Math.max(insets.top, 16) + 52 }]} onPress={() => {}}>
           <View style={styles.head}>
             <Txt w={900} size={17}>
-              دوره‌های من
+              {t('دوره‌های من')}
             </Txt>
             <Txt w={700} size={13} color={colors.text3}>
-              {`${fa(courses.length)} دوره`}
+              {t('{n} دوره', { n: fa(courses.length), count: courses.length })}
             </Txt>
           </View>
           <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={styles.grid}>
@@ -45,7 +46,7 @@ export function CourseSwitcher({ visible, onClose }: { visible: boolean; onClose
                   }}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isActive }}
-                  accessibilityLabel={`${course.title}، ${fa(p.done)} از ${fa(p.total)} درس`}
+                  accessibilityLabel={t('{title}، {done} از {total} درس', { title: course.title, done: fa(p.done), total: fa(p.total), count: p.total })}
                   style={({ pressed }) => [styles.tile, isActive && styles.tileActive, pressed && { opacity: 0.8 }]}
                 >
                   <CourseBadge course={course} size={52} />
@@ -64,14 +65,14 @@ export function CourseSwitcher({ visible, onClose }: { visible: boolean; onClose
                 router.push('/courses');
               }}
               accessibilityRole="button"
-              accessibilityLabel="افزودن دوره‌ی جدید"
+              accessibilityLabel={t('افزودن دوره‌ی جدید')}
               style={({ pressed }) => [styles.tile, styles.addTile, pressed && { opacity: 0.8 }]}
             >
               <View style={styles.addIcon}>
                 <Icon name="plus" size={28} color={colors.text2} strokeWidth={3} />
               </View>
               <Txt w={800} size={13} center color={colors.text2} style={{ minHeight: 36 }}>
-                دوره‌ی جدید
+                {t('دوره‌ی جدید')}
               </Txt>
               <Txt w={700} size={11} color="transparent">
                 .

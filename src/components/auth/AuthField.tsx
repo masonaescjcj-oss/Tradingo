@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'rea
 
 import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
-import { textStart } from '@/i18n';
+import { byLang, t, textStart } from '@/i18n';
 import { colors, fonts } from '@/theme';
 
 type Props = Omit<TextInputProps, 'style'> & {
@@ -23,6 +23,8 @@ type Props = Omit<TextInputProps, 'style'> & {
 export function AuthField({ label, icon, ltr, secret, hint, error, prefix, ...input }: Props) {
   const [focused, setFocused] = useState(false);
   const [shown, setShown] = useState(false);
+  // Picked by language: the dictionary already has this Persian word as "Hidden" (for other screens).
+  const toggleLabel = shown ? byLang('پنهان', 'Hide') : byLang('نمایش', 'Show'); // i18n-ignore
   const border = error ? colors.bear : focused ? colors.sky : colors.line;
   return (
     <View style={{ gap: 6 }}>
@@ -56,11 +58,11 @@ export function AuthField({ label, icon, ltr, secret, hint, error, prefix, ...in
           <Pressable
             onPress={() => setShown((v) => !v)}
             accessibilityRole="button"
-            accessibilityLabel={shown ? 'پنهان کردن رمز' : 'نمایش رمز'}
+            accessibilityLabel={shown ? t('پنهان کردن رمز') : t('نمایش رمز')}
             hitSlop={8}
           >
             <Txt w={800} size={12} color={colors.skyText}>
-              {shown ? 'پنهان' : 'نمایش'}
+              {toggleLabel}
             </Txt>
           </Pressable>
         )}

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import type { OrderStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 import { shuffle } from '@/utils/random';
@@ -29,11 +30,11 @@ export function OrderQuestion({ step, revealed, onAnswer }: QuestionProps<OrderS
   return (
     <View style={{ gap: 16 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="مرتب کن" icon="list" />
+        <QuestionTag label={t('مرتب کن')} icon="list" />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
 
-      <View style={styles.answer} accessibilityLabel="ترتیب انتخاب‌شده">
+      <View style={styles.answer} accessibilityLabel={t('ترتیب انتخاب‌شده')}>
         {step.items.map((_, slot) => {
           const item = placed[slot];
           if (item == null) {
@@ -57,7 +58,7 @@ export function OrderQuestion({ step, revealed, onAnswer }: QuestionProps<OrderS
               disabled={revealed}
               onPress={() => update(placed.filter((_, k) => k !== slot))}
               accessibilityRole="button"
-              accessibilityLabel={`${fa(slot + 1)}: ${step.items[item]}، برای برداشتن بزن`}
+              accessibilityLabel={t('{n}: {item}، برای برداشتن بزن', { n: fa(slot + 1), item: step.items[item] })}
               style={[styles.row, { borderColor: tone.border, backgroundColor: tone.bg }]}
             >
               <View style={[styles.num, { backgroundColor: tone.border }]}>
@@ -100,7 +101,7 @@ export function OrderQuestion({ step, revealed, onAnswer }: QuestionProps<OrderS
         )}
       </View>
       <Txt size={13} color={colors.text3} center>
-        به ترتیب درست روی گزینه‌ها بزن؛ برای جابه‌جایی، دوباره روشون بزن.
+        {t('به ترتیب درست روی گزینه‌ها بزن؛ برای جابه‌جایی، دوباره روشون بزن.')}
       </Txt>
     </View>
   );

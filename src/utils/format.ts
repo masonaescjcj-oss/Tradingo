@@ -1,6 +1,6 @@
 import { isEn } from '@/i18n/lang';
 
-const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']; // i18n-ignore
 
 /** Digits for the app's language: Persian digits in Persian, Latin ones in English. */
 export function fa(value: number | string): string {
@@ -8,11 +8,11 @@ export function fa(value: number | string): string {
   return String(value).replace(/[0-9]/g, (d) => FA_DIGITS[Number(d)]);
 }
 
-/** Formats an integer with thousands separators, in the app's language (۱۲٬۳۴۵ or 12,345). */
+/** Formats an integer with thousands separators in the app's language: 12,345 in English, Persian digits and separator in Persian. */
 export function faNum(value: number): string {
   const rounded = Math.round(value);
   const sign = rounded < 0 ? '-' : '';
-  const grouped = String(Math.abs(rounded)).replace(/\B(?=(\d{3})+(?!\d))/g, isEn() ? ',' : '٬');
+  const grouped = String(Math.abs(rounded)).replace(/\B(?=(\d{3})+(?!\d))/g, isEn() ? ',' : '٬'); // i18n-ignore: Persian thousands separator
   return sign + fa(grouped);
 }
 

@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import type { MatchStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 import { shuffle } from '@/utils/random';
@@ -64,8 +65,8 @@ export function MatchQuestion({ step, onComplete }: Props) {
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="واژه‌نامه‌ی ترید" icon="book" />
-        <QuestionTitle>هر اصطلاح رو به معنیش وصل کن</QuestionTitle>
+        <QuestionTag label={t('واژه‌نامه‌ی ترید')} icon="book" />
+        <QuestionTitle>{t('هر اصطلاح رو به معنیش وصل کن')}</QuestionTitle>
       </View>
       <View style={{ gap: 12 }}>
         {terms.map((termPair, row) => {
@@ -109,7 +110,7 @@ export function MatchQuestion({ step, onComplete }: Props) {
         })}
       </View>
       <Txt w={700} size={13} color={colors.text3} center>
-        {`${fa(matched.length)} از ${fa(step.pairs.length)} جفت پیدا شد`}
+        {t('{n} از {total} جفت پیدا شد', { n: fa(matched.length), total: fa(step.pairs.length), count: step.pairs.length })}
       </Txt>
     </View>
   );

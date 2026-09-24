@@ -6,6 +6,7 @@ import { CandleGlyph } from '@/components/CandleGlyph';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { ChartSpec, ChartStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { useColumnWidth } from '@/utils/layout';
 import { shuffle } from '@/utils/random';
@@ -46,7 +47,7 @@ export function ChartCard({
           <View style={[styles.trend, { backgroundColor: trend === 'up' ? colors.bullSoft : colors.bearSoft }]}>
             <Icon name={trend === 'up' ? 'arrowUpRight' : 'arrowDownRight'} size={14} color={trend === 'up' ? colors.bullText : colors.bearText} strokeWidth={3} />
             <Txt w={800} size={12} color={trend === 'up' ? colors.bullText : colors.bearText}>
-              {trend === 'up' ? 'روند صعودی' : 'روند نزولی'}
+              {trend === 'up' ? t('روند صعودی') : t('روند نزولی')}
             </Txt>
           </View>
         )}
@@ -77,7 +78,7 @@ export function ChartQuestion({ step, revealed, onAnswer }: QuestionProps<ChartS
   return (
     <View style={{ gap: 14 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="نمودارخوانی" />
+        <QuestionTag label={t('نمودارخوانی')} />
         <QuestionTitle>{step.prompt}</QuestionTitle>
       </View>
       <ChartCard chart={step.chart} symbol={step.symbol} trend={step.trend} />

@@ -5,6 +5,7 @@ import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import type { TrueFalseStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { OPTION_STYLE, QuestionTag, QuestionTitle, optionState } from './common';
@@ -12,8 +13,8 @@ import { OptionButton } from './OptionButton';
 import type { QuestionProps } from './types';
 
 const CHOICES = [
-  { value: true, label: 'درسته', icon: 'check' as const, tint: colors.bull, soft: colors.bullSoft },
-  { value: false, label: 'غلطه', icon: 'close' as const, tint: '#FF7A8A', soft: colors.bearSoft },
+  { value: true, label: 'درسته', icon: 'check' as const, tint: colors.bull, soft: colors.bullSoft }, // i18n-ignore: translated where shown
+  { value: false, label: 'غلطه', icon: 'close' as const, tint: '#FF7A8A', soft: colors.bearSoft }, // i18n-ignore: translated where shown
 ];
 
 export function TrueFalseQuestion({ step, revealed, onAnswer }: QuestionProps<TrueFalseStep>) {
@@ -22,8 +23,8 @@ export function TrueFalseQuestion({ step, revealed, onAnswer }: QuestionProps<Tr
   return (
     <View style={{ gap: 16 }}>
       <View style={{ gap: 6 }}>
-        <QuestionTag label="درست یا غلط؟" icon="check" color={colors.sky} />
-        <QuestionTitle>این جمله درسته یا غلط؟</QuestionTitle>
+        <QuestionTag label={t('درست یا غلط؟')} icon="check" color={colors.sky} />
+        <QuestionTitle>{t('این جمله درسته یا غلط؟')}</QuestionTitle>
       </View>
       <View style={styles.statement}>
         {step.topic && (
@@ -34,7 +35,7 @@ export function TrueFalseQuestion({ step, revealed, onAnswer }: QuestionProps<Tr
           </View>
         )}
         <Txt w={900} size={21} lh={1.8} center>
-          {`«${step.statement}»`}
+          {t('«{text}»', { text: step.statement })}
         </Txt>
       </View>
       <View style={{ alignItems: 'center' }}>
@@ -52,14 +53,14 @@ export function TrueFalseQuestion({ step, revealed, onAnswer }: QuestionProps<Tr
                 setSelected(c.value);
                 onAnswer(c.value === step.answer);
               }}
-              accessibilityLabel={c.label}
+              accessibilityLabel={t(c.label)}
               style={styles.option}
             >
               <View style={[styles.icon, { backgroundColor: c.soft }]}>
                 <Icon name={c.icon} size={24} color={c.tint} strokeWidth={3.4} />
               </View>
               <Txt w={900} size={19} color={OPTION_STYLE[state].text}>
-                {c.label}
+                {t(c.label)}
               </Txt>
             </OptionButton>
           );

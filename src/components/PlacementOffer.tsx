@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { findCourse } from '@/content';
+import { t } from '@/i18n';
 import { placementOpen } from '@/lib/placement';
 import { TEST_QUESTIONS } from '@/lib/session';
 import { useGame } from '@/store/game';
@@ -29,23 +30,23 @@ export function PlacementOffer() {
   const units = findCourse('basics')?.units ?? [];
   const index = units.findIndex((u) => u.id === placement);
   if (!open || index === -1) return null;
-  const skipped = index === 0 ? `«${units[0].title}»` : `${fa(index + 1)} واحد اول`;
+  const skipped = index === 0 ? t('«{text}»', { text: units[0].title }) : t('{n} واحد اول', { n: fa(index + 1), count: index + 1 });
 
   return (
     <View style={styles.card}>
       <Mascot mood="think" size={54} />
       <View style={{ flex: 1, gap: 8 }}>
         <Txt w={900} size={15}>
-          {level === 'pro' ? 'قبلاً ترید کردی؟ نشونم بده!' : 'گفتی یه چیزایی بلدی؟ نشونم بده!'}
+          {level === 'pro' ? t('قبلاً ترید کردی؟ نشونم بده!') : t('گفتی یه چیزایی بلدی؟ نشونم بده!')}
         </Txt>
         <Txt w={500} size={12.5} lh={1.7} color={colors.text2}>
-          {`یه آزمون ${fa(TEST_QUESTIONS)} سؤالی. قبول بشی، ${skipped} رد می‌شه و از واحد ${fa(index + 2)} شروع می‌کنی؛ نشد هم اشکالی نداره، از اول با هم پیش می‌ریم.`}
+          {t('یه آزمون {n} سؤالی. قبول بشی، {skipped} رد می‌شه و از واحد {next} شروع می‌کنی؛ نشد هم اشکالی نداره، از اول با هم پیش می‌ریم.', { n: fa(TEST_QUESTIONS), skipped, next: fa(index + 2) })}
         </Txt>
         <View style={styles.actions}>
-          <Button3D label="شروع آزمون" size={14} onPress={() => router.push(`/lesson/test-${placement}`)} style={{ flex: 1 }} />
+          <Button3D label={t('شروع آزمون')} size={14} onPress={() => router.push(`/lesson/test-${placement}`)} style={{ flex: 1 }} />
           <Pressable onPress={dismiss} accessibilityRole="button" style={styles.later}>
             <Txt w={800} size={13} color={colors.text3}>
-              از اول شروع می‌کنم
+              {t('از اول شروع می‌کنم')}
             </Txt>
           </Pressable>
         </View>

@@ -1,16 +1,17 @@
 import { StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { Txt } from './Txt';
 
 const LABELS = [
-  { y: 16, text: 'سقف · High' },
-  { y: 48, text: 'بسته شدن · Close' },
-  { y: 96, text: 'بدنه · Body' },
-  { y: 144, text: 'باز شدن · Open' },
-  { y: 176, text: 'کف · Low' },
+  { y: 16, text: 'سقف · High' }, // i18n-ignore: translated where shown
+  { y: 48, text: 'بسته شدن · Close' }, // i18n-ignore: translated where shown
+  { y: 96, text: 'بدنه · Body' }, // i18n-ignore: translated where shown
+  { y: 144, text: 'باز شدن · Open' }, // i18n-ignore: translated where shown
+  { y: 176, text: 'کف · Low' }, // i18n-ignore: translated where shown
 ];
 
 /** A bullish candle with each price labelled, for the first candlestick lesson. */
@@ -27,7 +28,7 @@ export function CandleAnatomy() {
       {LABELS.map((l) => (
         <View key={l.text} style={[styles.label, { top: l.y - 11 }]}>
           <Txt w={800} size={13}>
-            {l.text}
+            {t(l.text)}
           </Txt>
         </View>
       ))}

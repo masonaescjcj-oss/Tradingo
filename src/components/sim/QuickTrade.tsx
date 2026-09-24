@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { quoteParts } from '@/lib/chartMath';
 import { formatPrice, formatSize, nudgeSize, quote, type SymbolSpec } from '@/lib/simulator';
 import { DEFAULT_LEVERAGE, type PlaceError, type Side, type TradeEvent } from '@/lib/trading';
@@ -39,16 +40,16 @@ export function QuickTrade({
     <View style={styles.bar}>
       <TradeButton side="sell" spec={spec} price={bid} onPress={() => place('sell')} />
       <View style={styles.lot}>
-        <StepButton up={false} label="کم کردن حجم" onPress={() => onSize(nudgeSize(spec, size, -1))} />
+        <StepButton up={false} label={t('کم کردن حجم')} onPress={() => onSize(nudgeSize(spec, size, -1))} />
         <View style={styles.lotValue}>
           <Txt mono w={800} size={15}>
             {formatSize(spec, size)}
           </Txt>
           <Txt w={700} size={10} color={colors.text3}>
-            {`${spec.sizeUnit} · ${fa(DEFAULT_LEVERAGE)}×`}
+            {`${t(spec.sizeUnit)} · ${fa(DEFAULT_LEVERAGE)}×`}
           </Txt>
         </View>
-        <StepButton up label="زیاد کردن حجم" onPress={() => onSize(nudgeSize(spec, size, 1))} />
+        <StepButton up label={t('زیاد کردن حجم')} onPress={() => onSize(nudgeSize(spec, size, 1))} />
       </View>
       <TradeButton side="buy" spec={spec} price={ask} onPress={() => place('buy')} />
     </View>
@@ -64,11 +65,11 @@ function TradeButton({ side, spec, price, onPress }: { side: Side; spec: SymbolS
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${buy ? 'خرید' : 'فروش'} فوری با قیمت ${text}`}
+      accessibilityLabel={buy ? t('خرید فوری با قیمت {price}', { price: text }) : t('فروش فوری با قیمت {price}', { price: text })}
       style={({ pressed }) => [styles.trade, { borderColor: tone, backgroundColor: buy ? colors.bullSoft : colors.bearSoft }, pressed && styles.pressed]}
     >
       <Txt w={900} size={12} color={buy ? colors.bullText : colors.bearText}>
-        {buy ? 'خرید' : 'فروش'}
+        {buy ? t('خرید') : t('فروش')}
       </Txt>
       <View style={styles.quote}>
         <Txt mono w={700} size={13} color={colors.text}>

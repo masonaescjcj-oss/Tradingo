@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { questChestId, questProgress, questsDone, questsFor, type Quest, type QuestLog, type QuestMetric } from '@/lib/quests';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -49,7 +50,7 @@ export function QuestList({ quests, log, day, before }: { quests: Quest[]; log: 
         const justDone = done && was < q.target;
         const moved = n > was;
         return (
-          <View key={q.id} style={styles.row} accessible accessibilityLabel={`${q.title}: ${amount(q, n)} از ${amount(q, q.target)}${done ? '، انجام شد' : ''}`}>
+          <View key={q.id} style={styles.row} accessible accessibilityLabel={done ? t('{title}: {n} از {total}، انجام شد', { title: q.title, n: amount(q, n), total: amount(q, q.target) }) : t('{title}: {n} از {total}', { title: q.title, n: amount(q, n), total: amount(q, q.target) })}>
             <QuestIcon metric={q.metric} done={done} />
             <View style={{ flex: 1, gap: 6 }}>
               <View style={styles.titleRow}>
@@ -59,7 +60,7 @@ export function QuestList({ quests, log, day, before }: { quests: Quest[]; log: 
                 {justDone ? (
                   <View style={styles.newTag}>
                     <Txt w={900} size={11} color={colors.goldInk}>
-                      انجام شد!
+                      {t('انجام شد!')}
                     </Txt>
                   </View>
                 ) : moved ? (
@@ -84,7 +85,7 @@ export function QuestList({ quests, log, day, before }: { quests: Quest[]; log: 
 
 function hoursLeftText(): string {
   const mins = Math.max(1, Math.round(msToMidnight() / 60_000));
-  return mins >= 60 ? `${fa(Math.floor(mins / 60))} ساعت مونده` : `${fa(mins)} دقیقه مونده`;
+  return mins >= 60 ? t('{n} ساعت مونده', { n: fa(Math.floor(mins / 60)), count: Math.floor(mins / 60) }) : t('{n} دقیقه مونده', { n: fa(mins), count: mins });
 }
 
 /** Today's three quests and their chest, for the Practice tab. */
@@ -102,7 +103,7 @@ export function QuestsCard({ footer }: { footer?: ReactNode }) {
       <View style={styles.head}>
         <View style={styles.tag}>
           <Txt w={900} size={12} color={colors.gold}>
-            مأموریت‌های امروز
+            {t('مأموریت‌های امروز')}
           </Txt>
         </View>
         <View style={{ flex: 1 }} />
@@ -115,9 +116,13 @@ export function QuestsCard({ footer }: { footer?: ReactNode }) {
       <View style={styles.chestRow}>
         <Chest tier={claimed ? 'rare' : 'common'} size={54} open={claimed} locked={!ready && !claimed} />
         <Txt w={800} size={13} lh={1.6} color={colors.text2} style={{ flex: 1 }}>
-          {claimed ? 'صندوق امروز رو گرفتی. فردا سه مأموریت تازه داری!' : ready ? 'هر سه مأموریت انجام شد! صندوقت آماده‌ست.' : `${fa(done)} از ${fa(quests.length)} مأموریت؛ با هر سه‌تاش یه صندوق جایزه می‌گیری.`}
+          {claimed
+            ? t('صندوق امروز رو گرفتی. فردا سه مأموریت تازه داری!')
+            : ready
+              ? t('هر سه مأموریت انجام شد! صندوقت آماده‌ست.')
+              : t('{done} از {total} مأموریت؛ با هر سه‌تاش یه صندوق جایزه می‌گیری.', { done: fa(done), total: fa(quests.length) })}
         </Txt>
-        {ready ? <Button3D variant="gold" label="باز کن" height={42} radius={12} edge={4} size={15} onPress={() => router.push(`/chest/${questChestId(day)}`)} /> : null}
+        {ready ? <Button3D variant="gold" label={t('باز کن')} height={42} radius={12} edge={4} size={15} onPress={() => router.push(`/chest/${questChestId(day)}`)} /> : null}
       </View>
       {footer}
     </View>

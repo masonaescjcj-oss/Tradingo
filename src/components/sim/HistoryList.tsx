@@ -11,7 +11,7 @@ import { useGame, type SimBook } from '@/store/game';
 import { colors, fonts } from '@/theme';
 import { fa, usd } from '@/utils/format';
 
-import { entryText, reasonText, rText, sideText } from './text';
+import { entryText, exitText, reasonText, rText, sideText } from './text';
 import { Figure, pnlColor, SectionTitle } from './ui';
 
 /** Closed trades; tapping one shows its details and a short note ("why did I take it?"). */
@@ -87,7 +87,7 @@ function HistoryRow({ book, trade }: { book: SimBook; trade: ClosedTrade }) {
         <View style={styles.details}>
           <View style={styles.figures}>
             <Figure label={entryText()} value={formatPrice(spec, trade.entry)} />
-            <Figure label={t('خروج')} value={formatPrice(spec, trade.exit)} />
+            <Figure label={exitText()} value={formatPrice(spec, trade.exit)} />
             <Figure label={t('حجم')} value={`${formatSize(spec, trade.size)} · ${trade.leverage ?? LEGACY_LEVERAGE}x`} />
           </View>
           <View style={styles.figures}>

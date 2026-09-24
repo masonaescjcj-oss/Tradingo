@@ -1,15 +1,16 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import type { Market } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { Icon } from './Icon';
 import { Txt } from './Txt';
 
 export const MARKETS: { id: Market; title: string; sub: string; badge: string; badgeColor: string; badgeBg: string }[] = [
-  { id: 'forex', title: 'فارکس', sub: 'جفت‌ارزها مثل EUR/USD و طلا', badge: '€$', badgeColor: colors.skyText, badgeBg: '#1B3A5C' },
-  { id: 'crypto', title: 'کریپتو', sub: 'بیت‌کوین، اتریوم و آلت‌کوین‌ها', badge: '₿', badgeColor: colors.gold, badgeBg: '#3A2E10' },
-  { id: 'both', title: 'هر دو', sub: 'مسیر کامل یه تریدر، قدم به قدم', badge: '∞', badgeColor: colors.bull, badgeBg: '#12382A' },
+  { id: 'forex', title: 'فارکس', sub: 'جفت‌ارزها مثل EUR/USD و طلا', badge: '€$', badgeColor: colors.skyText, badgeBg: '#1B3A5C' }, // i18n-ignore: translated where shown
+  { id: 'crypto', title: 'کریپتو', sub: 'بیت‌کوین، اتریوم و آلت‌کوین‌ها', badge: '₿', badgeColor: colors.gold, badgeBg: '#3A2E10' }, // i18n-ignore: translated where shown
+  { id: 'both', title: 'هر دو', sub: 'مسیر کامل یه تریدر، قدم به قدم', badge: '∞', badgeColor: colors.bull, badgeBg: '#12382A' }, // i18n-ignore: translated where shown
 ];
 
 export function marketLabel(market: Market) {
@@ -32,10 +33,10 @@ export function MarketCard({ market, selected, onPress }: { market: (typeof MARK
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Txt w={900} size={18}>
-          {market.title}
+          {t(market.title)}
         </Txt>
         <Txt size={13} color={colors.text2}>
-          {market.sub}
+          {t(market.sub)}
         </Txt>
       </View>
       <View style={[styles.radio, selected && styles.radioOn]}>
@@ -48,10 +49,10 @@ export function MarketCard({ market, selected, onPress }: { market: (typeof MARK
 export function MarketPicker({ visible, value, onChange, onClose }: { visible: boolean; value: Market; onChange: (m: Market) => void; onClose: () => void }) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="بستن">
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t('بستن')}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <Txt w={900} size={18} style={{ marginBottom: 4 }}>
-            کدوم بازار رو یاد می‌گیری؟
+            {t('کدوم بازار رو یاد می‌گیری؟')}
           </Txt>
           {MARKETS.map((m) => (
             <MarketCard

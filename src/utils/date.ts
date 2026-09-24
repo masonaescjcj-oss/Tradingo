@@ -24,12 +24,12 @@ export function weekKey(date: Date = new Date()): string {
   return dayKey(weekStart(date));
 }
 
-/** Saturday-first index of a weekday: شنبه = 0 … جمعه = 6. */
+/** Saturday-first index of a weekday: Saturday = 0 … Friday = 6. */
 export function faWeekdayIndex(date: Date): number {
   return (date.getDay() + 1) % 7;
 }
 
-export const FA_WEEKDAYS_SHORT = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+export const FA_WEEKDAYS_SHORT = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']; // i18n-ignore: translated where shown
 
 /** Time left until the next local midnight, when daily goals and quests start over. */
 export function msToMidnight(now: Date = new Date()): number {

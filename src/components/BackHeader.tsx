@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import { Icon } from './Icon';
@@ -14,7 +15,7 @@ export function BackHeader({ caption, title, right }: { caption?: string; title:
       <Pressable
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
         accessibilityRole="button"
-        accessibilityLabel="بازگشت"
+        accessibilityLabel={t('بازگشت')}
         style={styles.back}
       >
         <Icon name="chevronBack" size={26} color={colors.text3} strokeWidth={2.6} />

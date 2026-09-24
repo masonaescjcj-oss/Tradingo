@@ -7,6 +7,7 @@ import type { Drawing } from '@/lib/drawings';
 import type { Timeframe } from '@/lib/marketData';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
 import { withLogin } from '@/lib/login';
+import { defaultName, defaultNameFor, isDefaultName } from '@/lib/names';
 import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRepair, todaysXp, type LostStreak } from '@/lib/progress';
 import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
 import { extendBoost, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
@@ -244,7 +245,7 @@ function initialData(): Data {
     enrolled: ['basics'],
     activeCourse: 'basics',
     level: 'new',
-    name: 'تریدر',
+    name: defaultNameFor('fa'),
     avatar: 0,
     xp: 0,
     coins: 50,
@@ -364,13 +365,19 @@ export const useGame = create<GameState>()(
         }),
 
       setName: (name) => {
-        const clean = name.trim() || 'تریدر';
+        const clean = name.trim() || defaultName();
         set((s) => ({ name: clean, user: s.user ? { ...s.user, name: clean } : null }));
       },
       setAvatar: (avatar) => set({ avatar }),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setSound: (sound) => set({ sound }),
-      setLanguage: (language) => set({ language }),
+      // A name the learner never picked follows the language (تریدر ↔ Trader).
+      setLanguage: (language) =>
+        set((s) => {
+          if (!isDefaultName(s.name)) return { language };
+          const name = defaultNameFor(language);
+          return { language, name, user: s.user && isDefaultName(s.user.name) ? { ...s.user, name } : s.user };
+        }),
       setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
 
       setAnswers: (answers) => set((s) => ({ answers: { ...s.answers, ...answers } })),

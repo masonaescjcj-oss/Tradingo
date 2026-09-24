@@ -554,4 +554,8 @@ export const EN_APP: Record<string, string> = {
   // Simulator market (profile)
   'فارکس': 'Forex',
   'هر دو': 'Both',
+  // Error screen (root layout)
+  'یه چیزی خراب شد!': 'Something went wrong!',
+  'پیشرفتت سالمه. دوباره امتحان کن؛ اگه باز هم این صفحه اومد، برگرد به صفحه‌ی اصلی.': "Your progress is safe. Try again; if you see this screen again, go back to the home screen.",
+  'صفحه‌ی اصلی': 'Home',
 };
