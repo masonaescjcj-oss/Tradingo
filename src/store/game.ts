@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { canonicalCourseId, canonicalCourseIds, findCourse, findUnitWithCourse, starterCourses, type Market } from '@/content';
 import type { ChestReward } from '@/lib/chest';
 import type { Drawing } from '@/lib/drawings';
+import type { Timeframe } from '@/lib/marketData';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
 import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRepair, todaysXp, type LostStreak } from '@/lib/progress';
 import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
@@ -64,6 +65,8 @@ export type SimTools = {
   levels: Record<string, number[]>;
   /** Trend lines, fibs, shapes and notes drawn on the live chart, per symbol. */
   drawings: Record<string, Drawing[]>;
+  /** Candle length of the live chart; above M1 it needs live prices. */
+  timeframe?: Timeframe;
 };
 
 export type SimReplay = { session: ReplaySession | null; account: Account };

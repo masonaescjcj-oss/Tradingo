@@ -73,20 +73,21 @@ export function zoomFor(plotWidth: number, px = 7): number {
   return ZOOMS.reduce((best, z) => (Math.abs(z - want) < Math.abs(best - want) ? z : best), ZOOMS[0]);
 }
 
-const TIME_STEPS = [10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400].map((s) => s * 1000);
+const DAY = 86_400;
+const TIME_STEPS = [10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 21600, 43200, DAY, 2 * DAY, 7 * DAY, 14 * DAY, 28 * DAY].map((s) => s * 1000);
 
 /**
  * Candles that get a time label: the first candle of each round period (a minute,
  * five minutes, …) chosen so about `maxLabels` fit. Labels stay put while the chart
  * scrolls because they follow the clock, not the candle index.
  */
-export function timeTicks(times: number[], from: number, to: number, maxLabels: number): { index: number; seconds: boolean }[] {
+export function timeTicks(times: number[], from: number, to: number, maxLabels: number): { index: number; seconds: boolean; date: boolean }[] {
   if (to <= from || !times.length) return [];
   const span = times[to] - times[from];
   const step = TIME_STEPS.find((s) => span / s <= maxLabels) ?? TIME_STEPS[TIME_STEPS.length - 1];
-  const out: { index: number; seconds: boolean }[] = [];
+  const out: { index: number; seconds: boolean; date: boolean }[] = [];
   for (let i = Math.max(from, 1); i <= to; i++) {
-    if (Math.floor(times[i] / step) > Math.floor(times[i - 1] / step)) out.push({ index: i, seconds: step < 60_000 });
+    if (Math.floor(times[i] / step) > Math.floor(times[i - 1] / step)) out.push({ index: i, seconds: step < 60_000, date: step >= DAY * 1000 });
   }
   return out;
 }
@@ -100,9 +101,16 @@ export function clockLabel(ms: number, seconds = false): string {
   return seconds ? `${hm}:${pad2(d.getSeconds())}` : hm;
 }
 
-/** Seconds as a mm:ss countdown. */
+/** Local date in Latin digits, month first: 09/24. */
+export function dateLabel(ms: number): string {
+  const d = new Date(ms);
+  return `${pad2(d.getMonth() + 1)}/${pad2(d.getDate())}`;
+}
+
+/** Seconds as a mm:ss countdown, or h:mm:ss from an hour up (H1 candles and longer). */
 export function countdownLabel(seconds: number): string {
   const s = Math.max(0, Math.ceil(seconds));
+  if (s >= 3600) return `${Math.floor(s / 3600)}:${pad2(Math.floor((s % 3600) / 60))}:${pad2(s % 60)}`;
   return `${pad2(Math.floor(s / 60))}:${pad2(s % 60)}`;
 }
 

@@ -3,17 +3,18 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import { countdownLabel } from '@/lib/chartMath';
-import { forexWeekend, LIVE_SYMBOLS, supportsLive } from '@/lib/marketData';
+import { followLive, forexWeekend, LIVE_SYMBOLS, supportsLive, type Timeframe } from '@/lib/marketData';
 import { findSymbol, formatPrice, simCountdown, type SymbolSpec } from '@/lib/simulator';
 import { summarize, type Account, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
 
-import { ChartPanel, type SymbolOption } from './ChartPanel';
+import { ChartPanel, type SymbolOption, type TimeframeControl } from './ChartPanel';
 import { OrderTicket } from './OrderTicket';
 import { eventNotice, placeErrorText, type Notice } from './text';
 import { Toggle } from './ui';
 import { liveCountdown, midsOf, useClock, type LiveStatus, type Series } from './useMarketFeed';
+import { useTimeframe } from './useTimeframe';
 
 type Feed = { series: Record<string, Series>; live: boolean; status: LiveStatus; setLive: (on: boolean) => void };
 
@@ -36,6 +37,8 @@ export function LiveView({
   const sim = useGame((s) => s.sim);
   const orders = useGame((s) => s.simOrders) ?? [];
   const [symbolId, setSymbolId] = useState(specs[0].id);
+  const timeframe: Timeframe = useGame((s) => s.simTools?.timeframe) ?? 'M1';
+  const setTools = useGame((s) => s.setSimTools);
   const now = useClock();
   const account: Account = { ...sim, orders };
 
@@ -57,6 +60,8 @@ export function LiveView({
   };
 
   const liveHere = current.source === 'live';
+  // Above M1 the chart shows Binance's candles of that timeframe; trading keeps using the live price.
+  const tf = useTimeframe(spec.id, timeframe, liveHere);
   const badge = (
     <View style={[styles.badge, liveHere && styles.badgeLive]}>
       <View style={[styles.dot, { backgroundColor: liveHere ? colors.bull : colors.text3 }]} />
@@ -96,7 +101,21 @@ export function LiveView({
 
   const onResult = (r: { error?: PlaceError; event?: TradeEvent }) =>
     onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' });
-  const countdown = countdownLabel(liveHere && current.lastOpen != null ? liveCountdown(current.lastOpen, now) : simCountdown(current.tick));
+  const higher = tf.status === 'ready' ? { ...followLive(tf.feed, current.price, now, tf.ms), ms: tf.ms } : null;
+  const countdown = countdownLabel(
+    higher ? (higher.lastOpen + higher.ms - now) / 1000 : liveHere && current.lastOpen != null ? liveCountdown(current.lastOpen, now) : simCountdown(current.tick),
+  );
+  const timeframes: TimeframeControl = {
+    value: timeframe,
+    onChange: (next) => setTools({ timeframe: next }),
+    enabled: liveHere,
+    note:
+      tf.status === 'loading'
+        ? `در حال گرفتن کندل‌های ${timeframe} از بایننس…`
+        : tf.status === 'failed'
+          ? `کندل‌های ${timeframe} بار نشد؛ فعلاً M1 نشون داده می‌شه.`
+          : undefined,
+  };
   const symbols: SymbolOption[] = shown.map((s) => {
     const cur = feed.series[s.id];
     return {
@@ -110,15 +129,16 @@ export function LiveView({
   return (
     <ChartPanel
       spec={spec}
-      candles={current.candles}
-      volumes={current.volumes}
-      times={current.times}
+      candles={higher?.candles ?? current.candles}
+      volumes={higher?.volumes ?? current.volumes}
+      times={higher?.times ?? current.times}
       price={current.price}
       account={account}
       width={chartWidth}
       badge={badge}
       footer={footer}
-      timeframe={liveHere ? 'M1' : '8s'}
+      timeframe={higher ? timeframe : liveHere ? 'M1' : '8s'}
+      timeframes={supportsLive(spec.id) ? timeframes : undefined}
       countdown={countdown}
       trade={{ book: 'live', mids, onResult }}
       viewport={viewport}

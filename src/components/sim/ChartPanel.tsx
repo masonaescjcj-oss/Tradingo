@@ -7,6 +7,7 @@ import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { Candle } from '@/content/types';
 import { fitsBudget, type Drawing, type ToolId } from '@/lib/drawings';
+import { TIMEFRAMES, type Timeframe } from '@/lib/marketData';
 import { formatPrice, formatSize, type SymbolSpec } from '@/lib/simulator';
 import { liquidationPrice, openPnl, type Account, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { DEFAULT_SIM_TOOLS, useGame, type SimBook, type SimTools } from '@/store/game';
@@ -28,7 +29,7 @@ const GAP = 12;
 /** Room at the bottom for the tab bar's raised middle button. */
 const TAB_CLEARANCE = 26;
 
-type Indicator = { key: keyof Omit<SimTools, 'levels' | 'drawings'>; label: string; color: string; mono?: boolean };
+type Indicator = { key: keyof Omit<SimTools, 'levels' | 'drawings' | 'timeframe'>; label: string; color: string; mono?: boolean };
 
 const INDICATORS: Indicator[] = [
   { key: 'ma', label: 'MA 9', color: colors.gold, mono: true },
@@ -115,6 +116,7 @@ export function ChartPanel({
   symbols,
   onSymbol,
   shareable,
+  timeframes,
 }: {
   spec: SymbolSpec;
   candles: Candle[];
@@ -143,6 +145,8 @@ export function ChartPanel({
   onSymbol?: (id: string) => void;
   /** Offers "share analysis" (live prices only; the replay's history isn't the market's). */
   shareable?: boolean;
+  /** A timeframe switch next to the symbol; above M1 it needs live prices (`enabled`). */
+  timeframes?: TimeframeControl;
 }) {
   const tools = useGame((s) => s.simTools) ?? DEFAULT_SIM_TOOLS;
   const setTools = useGame((s) => s.setSimTools);
@@ -156,6 +160,7 @@ export function ChartPanel({
   const [share, setShare] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [tool, setTool] = useState<ToolId | null>(null);
+  const [tfMenu, setTfMenu] = useState(false);
 
   const levels = tools.levels?.[spec.id] ?? [];
   const sel = selected?.symbol === spec.id && selected.index < levels.length ? selected.index : null;
@@ -198,7 +203,8 @@ export function ChartPanel({
   };
 
   const lines = buildLines(spec, candles, price, account, levels, sel);
-  const title = timeframe ? `${spec.label} · ${timeframe}` : spec.label;
+  // With the timeframe switch, the timeframe gets its own button next to the symbol.
+  const title = timeframe && !timeframes ? `${spec.label} · ${timeframe}` : spec.label;
   // The trade bar, the chart and whatever sits under it fill the first screen; the rest scrolls.
   const fill = viewport
     ? viewport - CONTENT_TOP - EDGE_BORDERS - (trade ? QUICK_H : 0) - (below && fitBelow ? GAP + belowHeight : 0) - TAB_CLEARANCE
@@ -232,14 +238,44 @@ export function ChartPanel({
         width={w}
         height={h}
         title={title}
-        badge={badge}
+        badge={
+          timeframes ? (
+            <>
+              <Pressable
+                onPress={() => {
+                  setMenu(false);
+                  setTfMenu((m) => !m);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`تایم‌فریم ${timeframe ?? timeframes.value}؛ برای عوض کردن بزن`}
+                hitSlop={6}
+                style={({ pressed }) => [styles.tfButton, pressed && { opacity: 0.7 }]}
+              >
+                <Txt mono w={800} size={12} color={colors.skyText}>
+                  {timeframe ?? timeframes.value}
+                </Txt>
+                <Icon name="chevronDown" size={12} color={colors.skyText} strokeWidth={3} />
+              </Pressable>
+              {badge}
+            </>
+          ) : (
+            badge
+          )
+        }
         countdown={countdown}
         corner={
           fullscreen
             ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: closeFull }
             : { icon: 'expand', label: 'نمایش تمام‌صفحه', onPress: () => setFull(true) }
         }
-        onTitlePress={pick ? () => setMenu((m) => !m) : undefined}
+        onTitlePress={
+          pick
+            ? () => {
+                setTfMenu(false);
+                setMenu((m) => !m);
+              }
+            : undefined
+        }
         drawings={drawable ? drawings : undefined}
         onDrawings={drawable ? setDrawings : undefined}
         tool={fullscreen ? tool : null}
@@ -258,6 +294,17 @@ export function ChartPanel({
           }}
           onClose={() => setSheet(false)}
           onClearAll={() => setDrawings([])}
+        />
+      ) : null}
+      {timeframes && tfMenu ? (
+        <TimeframeMenu
+          control={timeframes}
+          width={Math.min(320, w - 16)}
+          onClose={() => setTfMenu(false)}
+          onPick={(tf) => {
+            setTfMenu(false);
+            timeframes.onChange(tf);
+          }}
         />
       ) : null}
       {pick && menu ? (
@@ -369,6 +416,43 @@ export function ChartPanel({
 
 export type SymbolOption = { id: string; label: string; price: string; change: number };
 
+export type TimeframeControl = { value: Timeframe; onChange: (tf: Timeframe) => void; enabled: boolean; note?: string };
+
+/** The timeframes, dropping down under the chart title. Above M1 they need live prices. */
+function TimeframeMenu({ control, width, onPick, onClose }: { control: TimeframeControl; width: number; onPick: (tf: Timeframe) => void; onClose: () => void }) {
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel="بستن تایم‌فریم‌ها" />
+      <View style={[styles.menu, styles.tfMenu, { width }]}>
+        <View style={styles.tfRow} accessibilityRole="radiogroup" accessibilityLabel="تایم‌فریم">
+          {TIMEFRAMES.map(({ id }) => {
+            const on = control.enabled && id === control.value;
+            const usable = control.enabled || id === 'M1';
+            return (
+              <Pressable
+                key={id}
+                onPress={() => usable && onPick(id)}
+                disabled={!usable}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: on, disabled: !usable }}
+                accessibilityLabel={id}
+                style={({ pressed }) => [styles.tfOption, on && styles.tfOptionOn, !usable && { opacity: 0.4 }, pressed && { opacity: 0.7 }]}
+              >
+                <Txt mono w={800} size={13} color={on ? colors.skyInk : colors.text}>
+                  {id}
+                </Txt>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Txt w={700} size={11.5} lh={1.7} color={colors.text3} style={{ direction: 'rtl', textAlign: 'right' }}>
+          {control.note ?? (control.enabled ? 'کندل‌های واقعی هر تایم‌فریم از بایننس؛ آخرین کندل با قیمت زنده جلو می‌ره.' : 'تایم‌فریم‌های بالاتر با قیمت زنده فعال می‌شن؛ «قیمت زنده» رو زیر نمودار روشن کن.')}
+        </Txt>
+      </View>
+    </View>
+  );
+}
+
 /** MetaTrader-style symbol list that drops down from the chart title. */
 function SymbolMenu({
   symbols,
@@ -445,6 +529,37 @@ const styles = StyleSheet.create({
   menuChange: {
     minWidth: 58,
     textAlign: 'right',
+  },
+  tfButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 7,
+    backgroundColor: colors.skySoft,
+  },
+  tfMenu: {
+    gap: 8,
+    padding: 10,
+  },
+  tfRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tfOption: {
+    minWidth: 44,
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+  },
+  tfOptionOn: {
+    borderColor: colors.sky,
+    backgroundColor: colors.sky,
   },
   edge: {
     // Cancels the simulator's side padding so the chart runs edge to edge.

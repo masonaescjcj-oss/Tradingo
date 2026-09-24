@@ -6,7 +6,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import { bollinger, rsi as rsiValues, sma } from '@/content/indicators';
 import type { Candle } from '@/content/types';
-import { chartWindow, clockLabel, nextZoom, priceTicks, spreadLabels, timeTicks, zoomFor, ZOOMS } from '@/lib/chartMath';
+import { chartWindow, clockLabel, dateLabel, nextZoom, priceTicks, spreadLabels, timeTicks, zoomFor, ZOOMS } from '@/lib/chartMath';
 import { indexTime, timeIndex, type Drawing, type ToolId } from '@/lib/drawings';
 import { formatPrice, simVolume, type SymbolSpec } from '@/lib/simulator';
 import { colors } from '@/theme';
@@ -256,6 +256,10 @@ export function ProChart({
   const crossCandle = crossIndex != null ? candles[crossIndex] : undefined;
   const crossY = cross ? Math.min(priceBottom, Math.max(priceTop, cross.y)) : 0;
   const secondsLabels = hasTimes && total > 1 && times[total - 1] - times[total - 2] < 60_000;
+  // H1 candles and longer: the crosshair shows the date too.
+  const datedCross = hasTimes && total > 1 && times[total - 1] - times[total - 2] >= 3_600_000;
+  const crossTime = hasTimes && crossIndex != null ? (datedCross ? `${dateLabel(times[crossIndex])} ${clockLabel(times[crossIndex])}` : clockLabel(times[crossIndex], secondsLabels)) : '';
+  const crossTimeW = crossTime.length * 6.2 + 12;
   if (cross) tagBoxes.push([crossY - TAG_H / 2, crossY + TAG_H / 2]);
   // Grid labels hidden under a tag would only peek out around its edges.
   const labelFree = (yy: number) => yy > 8 && yy < mainH - 8 && tagBoxes.every(([a, b]) => yy < a - 7 || yy > b + 7);
@@ -404,8 +408,8 @@ export function ProChart({
       ) : null}
 
       {/* Time axis labels. */}
-      {timeLabels.map(({ index, seconds }) => {
-        const text = clockLabel(times![index], seconds);
+      {timeLabels.map(({ index, seconds, date }) => {
+        const text = date ? dateLabel(times![index]) : clockLabel(times![index], seconds);
         const w = text.length * 6.4 + 6;
         const left = Math.min(plotW - w, Math.max(0, cx(index) - w / 2));
         return (
@@ -469,10 +473,10 @@ export function ProChart({
           {hasTimes && crossIndex != null ? (
             <View
               pointerEvents="none"
-              style={[styles.tag, styles.crossTag, styles.crossTime, { top: bodyH + 1, left: Math.min(plotW - 70, Math.max(0, cx(crossIndex) - 35)) }]}
+              style={[styles.tag, styles.crossTag, styles.crossTime, { top: bodyH + 1, width: crossTimeW, left: Math.min(plotW - crossTimeW, Math.max(0, cx(crossIndex) - crossTimeW / 2)) }]}
             >
               <Txt mono w={800} size={10} color={colors.bg}>
-                {clockLabel(times![crossIndex], secondsLabels)}
+                {crossTime}
               </Txt>
             </View>
           ) : null}

@@ -25,6 +25,43 @@ export const LIVE_POLL_MS = 2500;
 
 export type Kline = { openTime: number; candle: Candle; volume: number };
 
+/** Chart timeframes, as MetaTrader names them, with Binance's interval for each. */
+export type Timeframe = 'M1' | 'M5' | 'M15' | 'H1' | 'H4' | 'D1';
+
+export const TIMEFRAMES: { id: Timeframe; interval: string; ms: number }[] = [
+  { id: 'M1', interval: '1m', ms: 60_000 },
+  { id: 'M5', interval: '5m', ms: 5 * 60_000 },
+  { id: 'M15', interval: '15m', ms: 15 * 60_000 },
+  { id: 'H1', interval: '1h', ms: 60 * 60_000 },
+  { id: 'H4', interval: '4h', ms: 4 * 60 * 60_000 },
+  { id: 'D1', interval: '1d', ms: 24 * 60 * 60_000 },
+];
+
+export function timeframeSpec(id: Timeframe | string | undefined) {
+  return TIMEFRAMES.find((t) => t.id === id) ?? TIMEFRAMES[0];
+}
+
+/**
+ * A higher-timeframe chart that moves with every live tick: the forming candle follows the
+ * one-minute feed's price, and when its period is over a new one starts at that price
+ * (until the next poll brings Binance's own).
+ */
+export function followLive(feed: Feed, price: number, now: number, ms: number): { candles: Candle[]; volumes: number[]; times: number[]; lastOpen: number } {
+  const candles = feed.candles.slice();
+  const volumes = feed.volumes.slice();
+  let lastOpen = feed.lastOpen;
+  if (now >= lastOpen + ms) {
+    lastOpen += ms;
+    candles.push([price, price, price, price]);
+    volumes.push(0);
+  } else {
+    const [o, h, l] = candles[candles.length - 1];
+    candles[candles.length - 1] = [o, Math.max(h, price), Math.min(l, price), price];
+  }
+  const times = candles.map((_, i) => lastOpen - (candles.length - 1 - i) * ms);
+  return { candles, volumes, times, lastOpen };
+}
+
 /** Candles and volumes of a live chart, plus the open time of its last candle. */
 export type Feed = { candles: Candle[]; volumes: number[]; lastOpen: number };
 
