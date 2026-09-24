@@ -3,11 +3,11 @@
 export type ReportReason = 'answer' | 'typo' | 'chart' | 'unclear' | 'other';
 
 export const REPORT_REASONS: { id: ReportReason; label: string }[] = [
-  { id: 'answer', label: 'جواب درست اشتباهه' },
-  { id: 'typo', label: 'غلط تایپی یا نگارشی داره' },
-  { id: 'chart', label: 'نمودار درست نیست' },
-  { id: 'unclear', label: 'متن گنگه یا ناقصه' },
-  { id: 'other', label: 'یه مشکل دیگه' },
+  { id: 'answer', label: 'جواب درست اشتباهه' }, // i18n-ignore: translated where shown
+  { id: 'typo', label: 'غلط تایپی یا نگارشی داره' }, // i18n-ignore: translated where shown
+  { id: 'chart', label: 'نمودار درست نیست' }, // i18n-ignore: translated where shown
+  { id: 'unclear', label: 'متن گنگه یا ناقصه' }, // i18n-ignore: translated where shown
+  { id: 'other', label: 'یه مشکل دیگه' }, // i18n-ignore: translated where shown
 ];
 
 export const MAX_REPORT_MESSAGE = 500;

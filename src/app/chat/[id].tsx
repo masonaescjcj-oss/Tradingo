@@ -9,6 +9,7 @@ import { Avatar } from '@/components/Avatar';
 import { AnalysisChart, TopicAvatar } from '@/components/chat/ChatBits';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import { chatErrorText, MAX_MESSAGE, mergeMessages, messageProblem, messageTime, mutedNotice, type ChatMessage } from '@/lib/chat';
 import { deleteMessage, fetchMessages, joinRoom, leaveRoom, loadRooms, reportMessage, sendMessage, useChat } from '@/lib/chatApi';
 import { actOnUser, adminErrorText } from '@/lib/adminApi';
@@ -74,10 +75,10 @@ export default function RoomScreen() {
   useEffect(() => {
     if (!focused) return;
     const first = setTimeout(() => poll(), 0);
-    const t = setInterval(() => poll(), POLL_MS);
+    const timer = setInterval(() => poll(), POLL_MS);
     return () => {
       clearTimeout(first);
-      clearInterval(t);
+      clearInterval(timer);
     };
   }, [focused, id]);
 
@@ -133,7 +134,7 @@ export default function RoomScreen() {
     const err = kind === 'report' ? await reportMessage(m.id) : await deleteMessage(m.id);
     if (err) setError(chatErrorText(err));
     else if (kind === 'delete') setMessages((prev) => prev.filter((x) => x.id !== m.id));
-    else setError('گزارشت ثبت شد؛ ممنون. پیام‌هایی که چند نفر گزارش کنن پنهان می‌شن.');
+    else setError(t('گزارشت ثبت شد؛ ممنون. پیام‌هایی که چند نفر گزارش کنن پنهان می‌شن.'));
   };
 
   // Anyone signed in: stop seeing someone's messages (for themselves only).
@@ -146,7 +147,7 @@ export default function RoomScreen() {
       return;
     }
     setMessages((prev) => prev.filter((x) => x.author_username !== m.author_username));
-    setError(`${m.author_name} بلاک شد؛ پیام‌هاش دیگه برات نشون داده نمی‌شه. از پروفایلش می‌تونی برش گردونی.`);
+    setError(t('{name} بلاک شد؛ پیام‌هاش دیگه برات نشون داده نمی‌شه. از پروفایلش می‌تونی برش گردونی.', { name: m.author_name }));
   };
 
   // Admins: close the author's chat or ban the account, from the message itself.
@@ -160,7 +161,13 @@ export default function RoomScreen() {
       return;
     }
     if (kind === 'ban') setMessages((prev) => prev.filter((x) => x.author_id !== m.author_id));
-    setError(kind === 'ban' ? `حساب ${m.author_name} مسدود شد و پیام‌هاش پاک شد.` : `چت ${m.author_name} ${kind === 'mute_day' ? 'تا ۲۴ ساعت' : 'تا وقتی بازش کنی'} بسته شد.`);
+    setError(
+      kind === 'ban'
+        ? t('حساب {name} مسدود شد و پیام‌هاش پاک شد.', { name: m.author_name })
+        : kind === 'mute_day'
+          ? t('چت {name} تا ۲۴ ساعت بسته شد.', { name: m.author_name })
+          : t('چت {name} تا وقتی بازش کنی بسته شد.', { name: m.author_name }),
+    );
   };
 
   const joined = room?.joined ?? false;
@@ -168,20 +175,20 @@ export default function RoomScreen() {
   return (
     <View style={styles.screen} onLayout={keyboard.onLayout}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.headerBtn}>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('برگشت')} hitSlop={8} style={styles.headerBtn}>
           <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
         </Pressable>
         {room ? <TopicAvatar topic={room.topic} size={40} /> : null}
         <View style={{ flex: 1, gap: 1 }}>
           <Txt w={900} size={16} numberOfLines={1}>
-            {room?.title ?? 'گروه'}
+            {room?.title ?? t('گروه')}
           </Txt>
           <Txt w={700} size={12} color={colors.text3} numberOfLines={1}>
-            {room ? `${fa(room.member_count)} عضو${room.about ? ` · ${room.about}` : ''}` : ''}
+            {room ? `${t('{n} عضو', { n: fa(room.member_count), count: room.member_count })}${room.about ? ` · ${room.about}` : ''}` : ''}
           </Txt>
         </View>
         {joined ? (
-          <Pressable onPress={() => setMenu(true)} accessibilityRole="button" accessibilityLabel="گزینه‌های گروه" hitSlop={8} style={styles.headerBtn}>
+          <Pressable onPress={() => setMenu(true)} accessibilityRole="button" accessibilityLabel={t('گزینه‌های گروه')} hitSlop={8} style={styles.headerBtn}>
             <Icon name="list" size={22} color={colors.text2} strokeWidth={2.4} />
           </Pressable>
         ) : null}
@@ -199,23 +206,23 @@ export default function RoomScreen() {
         <View style={styles.rules}>
           <Icon name="shield" size={16} color={colors.gold} strokeWidth={2.4} />
           <Txt w={700} size={12} lh={1.7} color={colors.text2} style={{ flex: 1 }}>
-            با احترام حرف بزن. لینک، آیدی، شماره تماس و تبلیغ سیگنال ممنوعه. هیچ پیامی توصیه‌ی سرمایه‌گذاری نیست. برای پیام نامناسب، نگهش دار و گزارش بده.
+            {t('با احترام حرف بزن. لینک، آیدی، شماره تماس و تبلیغ سیگنال ممنوعه. هیچ پیامی توصیه‌ی سرمایه‌گذاری نیست. برای پیام نامناسب، نگهش دار و گزارش بده.')}
           </Txt>
         </View>
         {!olderDone && messages.length > 0 ? (
           <Pressable onPress={loadOlder} accessibilityRole="button" style={styles.older}>
             <Txt w={800} size={13} color={colors.skyText}>
-              پیام‌های قبلی
+              {t('پیام‌های قبلی')}
             </Txt>
           </Pressable>
         ) : null}
         {loading ? (
           <Txt w={700} size={13} color={colors.text3} center>
-            در حال گرفتن پیام‌ها…
+            {t('در حال گرفتن پیام‌ها…')}
           </Txt>
         ) : messages.length === 0 ? (
           <Txt w={700} size={14} lh={1.8} color={colors.text3} center>
-            هنوز پیامی نیست. اولین نفر باش!
+            {t('هنوز پیامی نیست. اولین نفر باش!')}
           </Txt>
         ) : null}
         {messages.map((m, i) => {
@@ -246,12 +253,17 @@ export default function RoomScreen() {
             </Txt>
           </View>
         ) : !signedIn ? (
-          <Button3D label={user ? 'برای نوشتن، حسابت رو به سرور وصل کن' : 'برای نوشتن، وارد حسابت شو'} size={15} height={48} onPress={() => router.push(user ? '/account' : '/login')} />
+          <Button3D
+            label={user ? t('برای نوشتن، حسابت رو به سرور وصل کن') : t('برای نوشتن، وارد حسابت شو')}
+            size={15}
+            height={48}
+            onPress={() => router.push(user ? '/account' : '/login')}
+          />
         ) : !joined ? (
-          <Button3D label="عضو گروه شو" size={16} height={48} onPress={join} />
+          <Button3D label={t('عضو گروه شو')} size={16} height={48} onPress={join} />
         ) : (
           <View style={styles.inputRow}>
-            <Pressable onPress={() => setComposing(true)} accessibilityRole="button" accessibilityLabel="تحلیل با نمودار" hitSlop={4} style={styles.attach}>
+            <Pressable onPress={() => setComposing(true)} accessibilityRole="button" accessibilityLabel={t('تحلیل با نمودار')} hitSlop={4} style={styles.attach}>
               <Icon name="candles" size={21} color={colors.bull} strokeWidth={2.4} />
             </Pressable>
             <TextInput
@@ -260,19 +272,19 @@ export default function RoomScreen() {
                 setText(v);
                 if (error) setError(null);
               }}
-              placeholder="پیام…"
+              placeholder={t('پیام…')}
               placeholderTextColor={colors.faint}
               maxLength={MAX_MESSAGE}
               returnKeyType="send"
               submitBehavior="submit"
               onSubmitEditing={send}
-              style={styles.input}
+              style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
             />
             <Pressable
               onPress={send}
               disabled={sending || !text.trim()}
               accessibilityRole="button"
-              accessibilityLabel="ارسال"
+              accessibilityLabel={t('ارسال')}
               style={[styles.send, (!text.trim() || sending) && styles.sendIdle]}
             >
               <View style={{ transform: [{ scaleX: -1 }] }}>
@@ -287,24 +299,24 @@ export default function RoomScreen() {
         <Pressable style={styles.backdrop} onPress={() => setAction(null)}>
           <View style={styles.dialog}>
             <Txt w={800} size={14} color={colors.text2} numberOfLines={3} center>
-              {action ? `${action.author_name}: ${action.body || 'تحلیل با نمودار'}` : ''}
+              {action ? `${action.author_name}: ${action.body || t('تحلیل با نمودار')}` : ''}
             </Txt>
-            {action && !action.mine ? <Button3D label="گزارش پیام" variant="danger" size={16} onPress={() => act('report')} style={{ alignSelf: 'stretch' }} /> : null}
+            {action && !action.mine ? <Button3D label={t('گزارش پیام')} variant="danger" size={16} onPress={() => act('report')} style={{ alignSelf: 'stretch' }} /> : null}
             {action && !action.mine && action.author_username && signedIn ? (
-              <Button3D label={`بلاک کردن ${action.author_name}`} variant="secondary" size={16} onPress={() => block(action)} style={{ alignSelf: 'stretch' }} />
+              <Button3D label={t('بلاک کردن {name}', { name: action.author_name })} variant="secondary" size={16} onPress={() => block(action)} style={{ alignSelf: 'stretch' }} />
             ) : null}
-            {action && (action.mine || room?.owned || admin) ? <Button3D label="حذف پیام" variant="danger" size={16} onPress={() => act('delete')} style={{ alignSelf: 'stretch' }} /> : null}
+            {action && (action.mine || room?.owned || admin) ? <Button3D label={t('حذف پیام')} variant="danger" size={16} onPress={() => act('delete')} style={{ alignSelf: 'stretch' }} /> : null}
             {action && admin && action.author_id && !action.mine ? (
               <>
                 <Txt w={800} size={12} color={colors.text3} center>
-                  مدیریت
+                  {t('مدیریت')}
                 </Txt>
-                <Button3D label="بستن چت این کاربر (۲۴ ساعت)" variant="secondary" size={15} onPress={() => moderate(action, 'mute_day')} style={{ alignSelf: 'stretch' }} />
-                <Button3D label="بستن چت این کاربر (همیشه)" variant="secondary" size={15} onPress={() => moderate(action, 'mute')} style={{ alignSelf: 'stretch' }} />
-                <Button3D label="مسدود کردن حساب" variant="danger" size={15} onPress={() => { setConfirmBan(action); setAction(null); }} style={{ alignSelf: 'stretch' }} />
+                <Button3D label={t('بستن چت این کاربر (۲۴ ساعت)')} variant="secondary" size={15} onPress={() => moderate(action, 'mute_day')} style={{ alignSelf: 'stretch' }} />
+                <Button3D label={t('بستن چت این کاربر (همیشه)')} variant="secondary" size={15} onPress={() => moderate(action, 'mute')} style={{ alignSelf: 'stretch' }} />
+                <Button3D label={t('مسدود کردن حساب')} variant="danger" size={15} onPress={() => { setConfirmBan(action); setAction(null); }} style={{ alignSelf: 'stretch' }} />
               </>
             ) : null}
-            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setAction(null)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={() => setAction(null)} style={{ alignSelf: 'stretch' }} />
           </View>
         </Pressable>
       </Modal>
@@ -313,13 +325,13 @@ export default function RoomScreen() {
         <Pressable style={styles.backdrop} onPress={() => setConfirmBan(null)}>
           <View style={styles.dialog}>
             <Txt w={900} size={17} center>
-              {`حساب ${confirmBan?.author_name ?? ''} مسدود بشه؟`}
+              {t('حساب {name} مسدود بشه؟', { name: confirmBan?.author_name ?? '' })}
             </Txt>
             <Txt size={13} lh={1.8} color={colors.text2} center>
-              از همه‌ی دستگاه‌ها خارج می‌شه، دیگه نمی‌تونه وارد بشه، همه‌ی پیام‌هاش پاک می‌شه و از لیگ این هفته بیرون می‌ره. از پنل مدیریت می‌شه برش گردوند.
+              {t('از همه‌ی دستگاه‌ها خارج می‌شه، دیگه نمی‌تونه وارد بشه، همه‌ی پیام‌هاش پاک می‌شه و از لیگ این هفته بیرون می‌ره. از پنل مدیریت می‌شه برش گردوند.')}
             </Txt>
-            <Button3D label="مسدود کن" variant="danger" size={16} onPress={() => confirmBan && moderate(confirmBan, 'ban')} style={{ alignSelf: 'stretch' }} />
-            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setConfirmBan(null)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('مسدود کن')} variant="danger" size={16} onPress={() => confirmBan && moderate(confirmBan, 'ban')} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={() => setConfirmBan(null)} style={{ alignSelf: 'stretch' }} />
           </View>
         </Pressable>
       </Modal>
@@ -330,8 +342,8 @@ export default function RoomScreen() {
             <Txt w={900} size={17} center>
               {room?.title ?? ''}
             </Txt>
-            <Button3D label="ترک گروه" variant="danger" size={16} onPress={leave} style={{ alignSelf: 'stretch' }} />
-            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setMenu(false)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('ترک گروه')} variant="danger" size={16} onPress={leave} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={() => setMenu(false)} style={{ alignSelf: 'stretch' }} />
           </View>
         </Pressable>
       </Modal>
@@ -358,7 +370,7 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
       {!m.mine ? (
         <View style={{ width: 32 }}>
           {!grouped ? (
-            <Pressable onPress={openProfile} disabled={!openProfile} accessibilityRole="button" accessibilityLabel={`پروفایل ${m.author_name}`} hitSlop={4}>
+            <Pressable onPress={openProfile} disabled={!openProfile} accessibilityRole="button" accessibilityLabel={t('پروفایل {name}', { name: m.author_name })} hitSlop={4}>
               <Avatar id={m.author_avatar} name={m.author_name} size={32} />
             </Pressable>
           ) : null}
@@ -367,7 +379,7 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
       <Pressable
         onLongPress={onLongPress}
         delayLongPress={350}
-        accessibilityHint="برای گزارش یا حذف، نگه دار"
+        accessibilityHint={t('برای گزارش یا حذف، نگه دار')}
         style={[styles.bubble, { maxWidth: width }, m.mine ? styles.bubbleMine : styles.bubbleOther, m.chart && { width }]}
       >
         {!m.mine && !grouped ? (
@@ -393,7 +405,7 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
             {messageTime(m.created_at)}
           </Txt>
           {m.mine ? (
-            <View style={styles.ticks} accessibilityLabel="فرستاده شد">
+            <View style={styles.ticks} accessibilityLabel={t('فرستاده شد')}>
               <Icon name="check" size={12} color="rgba(241,244,249,0.7)" strokeWidth={3} />
               <View style={{ marginLeft: -7 }}>
                 <Icon name="check" size={12} color="rgba(241,244,249,0.7)" strokeWidth={3} />
@@ -464,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 8,
   },
-  // Right-to-left: others on the right (start), the learner's own messages on the left.
+  // Others at the start (the right in Persian), the learner's own messages at the end.
   rowOther: {
     justifyContent: 'flex-start',
   },
@@ -539,8 +551,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 15,
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   send: {
     width: 46,

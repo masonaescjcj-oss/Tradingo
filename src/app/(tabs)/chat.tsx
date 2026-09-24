@@ -10,6 +10,7 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Hint } from '@/components/sim/ui';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import { CHAT_TOPICS, chatErrorText, hasBlockedContent, type ChatTopic } from '@/lib/chat';
 import { chatAvailable, createRoom, joinRoom, loadRooms, useChat } from '@/lib/chatApi';
 import { useCoach } from '@/lib/coachApi';
@@ -51,10 +52,10 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!focused) return;
     const first = setTimeout(() => tick(), 0);
-    const t = setInterval(() => tick(), ROOMS_POLL_MS);
+    const timer = setInterval(() => tick(), ROOMS_POLL_MS);
     return () => {
       clearTimeout(first);
-      clearInterval(t);
+      clearInterval(timer);
     };
   }, [focused, signedIn]);
 
@@ -64,7 +65,7 @@ export default function ChatScreen() {
 
   const join = async (id: string) => {
     if (!signedIn) {
-      setNotice('برای عضویت توی گروه‌ها وارد حسابت شو.');
+      setNotice(t('برای عضویت توی گروه‌ها وارد حسابت شو.'));
       return;
     }
     const err = await joinRoom(id);
@@ -75,17 +76,17 @@ export default function ChatScreen() {
     <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
-          گفتگو
+          {t('گفتگو')}
         </Txt>
         {available ? (
           <Pressable
-            onPress={() => (signedIn ? setCreating(true) : setNotice('برای ساختن گروه وارد حسابت شو.'))}
+            onPress={() => (signedIn ? setCreating(true) : setNotice(t('برای ساختن گروه وارد حسابت شو.')))}
             accessibilityRole="button"
             style={styles.newGroup}
           >
             <Icon name="plus" size={16} color={colors.bullText} strokeWidth={3} />
             <Txt w={900} size={13.5} color={colors.bullText}>
-              گروه جدید
+              {t('گروه جدید')}
             </Txt>
           </Pressable>
         ) : null}
@@ -111,12 +112,12 @@ export default function ChatScreen() {
           <View style={styles.empty}>
             <Mascot mood="think" size={110} />
             <Txt w={900} size={18} center>
-              گفتگوها به‌زودی
+              {t('گفتگوها به‌زودی')}
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2} center>
               {cloudEnabled
-                ? 'گروه‌های گفتگو هنوز روی سرور فعال نشدن یا الان به سرور وصل نیستیم. کمی بعد دوباره سر بزن.'
-                : 'این نسخه به سرور وصل نیست؛ گفتگوها توی نسخه‌ی آنلاین فعالن.'}
+                ? t('گروه‌های گفتگو هنوز روی سرور فعال نشدن یا الان به سرور وصل نیستیم. کمی بعد دوباره سر بزن.')
+                : t('این نسخه به سرور وصل نیست؛ گفتگوها توی نسخه‌ی آنلاین فعالن.')}
             </Txt>
           </View>
         ) : null}
@@ -124,9 +125,9 @@ export default function ChatScreen() {
         {available && !signedIn ? (
           <View style={styles.signIn}>
             <Txt w={800} size={14} lh={1.8} color={colors.text2}>
-              گروه‌ها رو می‌تونی بخونی. برای عضویت، پیام دادن و گذاشتن تحلیل، وارد حسابت شو.
+              {t('گروه‌ها رو می‌تونی بخونی. برای عضویت، پیام دادن و گذاشتن تحلیل، وارد حسابت شو.')}
             </Txt>
-            <Button3D label={user ? 'اتصال حساب به سرور' : 'ورود یا ثبت‌نام'} size={16} height={48} onPress={signIn} />
+            <Button3D label={user ? t('اتصال حساب به سرور') : t('ورود یا ثبت‌نام')} size={16} height={48} onPress={signIn} />
           </View>
         ) : null}
 
@@ -135,7 +136,7 @@ export default function ChatScreen() {
         {mine.length > 0 ? (
           <View style={styles.section}>
             <Txt w={900} size={16}>
-              گروه‌های من
+              {t('گروه‌های من')}
             </Txt>
             {mine.map((r) => (
               <RoomRow key={r.id} room={r} onPress={() => router.push(`/chat/${r.id}`)} />
@@ -146,7 +147,7 @@ export default function ChatScreen() {
         {others.length > 0 ? (
           <View style={styles.section}>
             <Txt w={900} size={16}>
-              {mine.length > 0 ? 'گروه‌های دیگه' : 'گروه‌ها'}
+              {mine.length > 0 ? t('گروه‌های دیگه') : t('گروه‌ها')}
             </Txt>
             {others.map((r) => (
               <RoomRow key={r.id} room={r} onPress={() => router.push(`/chat/${r.id}`)} onJoin={() => join(r.id)} />
@@ -156,12 +157,14 @@ export default function ChatScreen() {
 
         {available && !loaded ? (
           <Txt w={700} size={13} color={colors.text3} center>
-            در حال گرفتن گروه‌ها…
+            {t('در حال گرفتن گروه‌ها…')}
           </Txt>
         ) : null}
 
         {available ? (
-          <Hint>قانون گروه‌ها: با احترام حرف بزن. لینک، آیدی، شماره تماس و تبلیغ سیگنال ممنوعه. هیچ پیامی توصیه‌ی سرمایه‌گذاری نیست؛ هر تصمیمی مسئولیتش با خودته.</Hint>
+          <Hint>
+            {t('قانون گروه‌ها: با احترام حرف بزن. لینک، آیدی، شماره تماس و تبلیغ سیگنال ممنوعه. هیچ پیامی توصیه‌ی سرمایه‌گذاری نیست؛ هر تصمیمی مسئولیتش با خودته.')}
+          </Hint>
         ) : null}
       </ScrollView>
 
@@ -173,7 +176,7 @@ export default function ChatScreen() {
             </Txt>
             {!signedIn ? (
               <Button3D
-                label={user ? 'اتصال حساب به سرور' : 'ورود یا ثبت‌نام'}
+                label={user ? t('اتصال حساب به سرور') : t('ورود یا ثبت‌نام')}
                 size={16}
                 onPress={() => {
                   setNotice(null);
@@ -182,7 +185,7 @@ export default function ChatScreen() {
                 style={{ alignSelf: 'stretch' }}
               />
             ) : null}
-            <Button3D label="باشه" variant="secondary" size={16} onPress={() => setNotice(null)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('باشه')} variant="secondary" size={16} onPress={() => setNotice(null)} style={{ alignSelf: 'stretch' }} />
           </View>
         </View>
       </Modal>
@@ -209,18 +212,18 @@ function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; on
   const [error, setError] = useState<string | null>(null);
 
   const submit = async () => {
-    const t = title.trim();
-    if (t.length < 3 || t.length > 40) {
-      setError('اسم گروه باید بین ۳ تا ۴۰ حرف باشه.');
+    const name = title.trim();
+    if (name.length < 3 || name.length > 40) {
+      setError(t('اسم گروه باید بین ۳ تا ۴۰ حرف باشه.'));
       return;
     }
-    if (hasBlockedContent(t) || hasBlockedContent(about)) {
+    if (hasBlockedContent(name) || hasBlockedContent(about)) {
       setError(chatErrorText('links'));
       return;
     }
     setBusy(true);
     setError(null);
-    const res = await createRoom(t, about.trim(), topic);
+    const res = await createRoom(name, about.trim(), topic);
     setBusy(false);
     if (!res.ok) {
       setError(chatErrorText(res.error));
@@ -237,39 +240,39 @@ function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; on
         {/* Modals draw under the navigation bar too; the sheet's buttons stay above it (and above the keyboard). */}
         <View style={[styles.sheet, { paddingBottom: 28 + (keyboard.overlap ? 0 : insets.bottom) }]}>
           <Txt w={900} size={19}>
-            گروه جدید
+            {t('گروه جدید')}
           </Txt>
           <TextInput
             value={title}
             onChangeText={setTitle}
-            placeholder="اسم گروه، مثلاً «نوسان‌گیری طلا»"
+            placeholder={t('اسم گروه، مثلاً «نوسان‌گیری طلا»')}
             placeholderTextColor={colors.faint}
             maxLength={40}
-            style={styles.input}
+            style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
           />
           <TextInput
             value={about}
             onChangeText={setAbout}
-            placeholder="درباره‌ی گروه (اختیاری)"
+            placeholder={t('درباره‌ی گروه (اختیاری)')}
             placeholderTextColor={colors.faint}
             maxLength={160}
             multiline
-            style={[styles.input, { minHeight: 70, textAlignVertical: 'top' }]}
+            style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }, { minHeight: 70, textAlignVertical: 'top' }]}
           />
           <Txt w={800} size={13.5} color={colors.text2}>
-            موضوع
+            {t('موضوع')}
           </Txt>
           <View style={styles.topics}>
-            {CHAT_TOPICS.map((t) => (
+            {CHAT_TOPICS.map((item) => (
               <Pressable
-                key={t.id}
-                onPress={() => setTopic(t.id)}
+                key={item.id}
+                onPress={() => setTopic(item.id)}
                 accessibilityRole="radio"
-                accessibilityState={{ checked: topic === t.id }}
-                style={[styles.topic, topic === t.id && styles.topicOn]}
+                accessibilityState={{ checked: topic === item.id }}
+                style={[styles.topic, topic === item.id && styles.topicOn]}
               >
-                <Txt w={800} size={13} color={topic === t.id ? colors.text : colors.text3}>
-                  {t.label}
+                <Txt w={800} size={13} color={topic === item.id ? colors.text : colors.text3}>
+                  {t(item.label)}
                 </Txt>
               </Pressable>
             ))}
@@ -279,8 +282,8 @@ function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; on
               {error}
             </Txt>
           ) : null}
-          <Button3D label={busy ? 'چند لحظه…' : 'ساختن گروه'} onPress={busy ? undefined : submit} />
-          <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={onClose} />
+          <Button3D label={busy ? t('چند لحظه…') : t('ساختن گروه')} onPress={busy ? undefined : submit} />
+          <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={onClose} />
         </View>
       </View>
     </Modal>
@@ -376,8 +379,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 15,
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   topics: {
     flexDirection: 'row',

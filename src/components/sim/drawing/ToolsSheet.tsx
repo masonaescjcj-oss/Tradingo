@@ -3,7 +3,8 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
-import { findTool, searchTools, TOOL_CATEGORIES, TOOLS, type ToolCategory, type ToolDef, type ToolId } from '@/lib/drawings';
+import { isEn, t, textStart } from '@/i18n';
+import { categoryLabel, findTool, searchTools, TOOL_CATEGORIES, toolName, TOOLS, type ToolCategory, type ToolDef, type ToolId } from '@/lib/drawings';
 import { colors, fonts } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -44,18 +45,18 @@ export function ToolsSheet({
 
   const sheetW = Math.min(width, MAX_W);
   const tileW = Math.floor((sheetW - BORDER * 2 - PAD * 2 - GAP * (COLUMNS - 1)) / COLUMNS);
-  const list: ToolDef[] = query.trim() ? searchTools(query) : TOOLS.filter((t) => t.category === category);
+  const list: ToolDef[] = query.trim() ? searchTools(query) : TOOLS.filter((tool) => tool.category === category);
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Pressable style={[StyleSheet.absoluteFill, styles.backdrop]} onPress={onClose} accessibilityLabel="بستن ابزارهای رسم" />
+      <Pressable style={[StyleSheet.absoluteFill, styles.backdrop]} onPress={onClose} accessibilityLabel={t('بستن ابزارهای رسم')} />
       <View style={[styles.sheet, { width: sheetW, maxHeight: Math.max(300, height * 0.86) }]} accessibilityViewIsModal>
         <View style={styles.grabber} />
         <View style={styles.head}>
           <Txt w={900} size={17} style={{ flex: 1 }}>
-            ابزارهای رسم
+            {t('ابزارهای رسم')}
           </Txt>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={8} style={styles.close}>
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={8} style={styles.close}>
             <Icon name="close" size={18} color={colors.text2} strokeWidth={2.6} />
           </Pressable>
         </View>
@@ -65,13 +66,13 @@ export function ToolsSheet({
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="جستجو: فیبوناچی، کانال، Trend…"
+            placeholder={t('جستجو: فیبوناچی، کانال، Trend…')}
             placeholderTextColor={colors.faint}
-            accessibilityLabel="جستجوی ابزار رسم"
-            style={styles.input}
+            accessibilityLabel={t('جستجوی ابزار رسم')}
+            style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
           />
           {query ? (
-            <Pressable onPress={() => setQuery('')} accessibilityRole="button" accessibilityLabel="پاک کردن جستجو" hitSlop={8}>
+            <Pressable onPress={() => setQuery('')} accessibilityRole="button" accessibilityLabel={t('پاک کردن جستجو')} hitSlop={8}>
               <Icon name="close" size={15} color={colors.text3} strokeWidth={2.6} />
             </Pressable>
           ) : null}
@@ -90,7 +91,7 @@ export function ToolsSheet({
                   style={({ pressed }) => [styles.tab, on && styles.tabOn, pressed && { opacity: 0.75 }]}
                 >
                   <Txt w={800} size={12.5} color={on ? colors.skyInk : colors.text2}>
-                    {c.label}
+                    {categoryLabel(c.id)}
                   </Txt>
                 </Pressable>
               );
@@ -99,30 +100,33 @@ export function ToolsSheet({
         )}
 
         <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={styles.grid} keyboardShouldPersistTaps="handled">
-          {list.map((t) => {
-            const on = t.id === active;
+          {list.map((tool) => {
+            const on = tool.id === active;
             return (
               <Pressable
-                key={t.id}
-                onPress={() => onPick(t.id)}
+                key={tool.id}
+                onPress={() => onPick(tool.id)}
                 accessibilityRole="button"
-                accessibilityLabel={`${t.name} (${t.en})`}
+                accessibilityLabel={isEn() ? tool.en : `${tool.name} (${tool.en})`}
                 accessibilityState={{ selected: on }}
                 style={({ pressed }) => [styles.tile, { width: tileW }, on && styles.tileOn, pressed && { opacity: 0.75, transform: [{ scale: 0.97 }] }]}
               >
-                <ToolIcon tool={t.id} color={on ? colors.skyText : colors.text} />
+                <ToolIcon tool={tool.id} color={on ? colors.skyText : colors.text} />
                 <Txt w={800} size={12} center numberOfLines={2} lh={1.35}>
-                  {t.name}
+                  {toolName(tool)}
                 </Txt>
-                <Txt mono w={700} size={9} color={colors.text3} center numberOfLines={1}>
-                  {t.en}
-                </Txt>
+                {/* The English name under the Persian one; in English it would only repeat it. */}
+                {isEn() ? null : (
+                  <Txt mono w={700} size={9} color={colors.text3} center numberOfLines={1}>
+                    {tool.en}
+                  </Txt>
+                )}
               </Pressable>
             );
           })}
           {list.length === 0 ? (
             <Txt w={700} size={13} color={colors.text3} center style={{ width: '100%', paddingVertical: 24 }}>
-              ابزاری با این اسم پیدا نشد.
+              {t('ابزاری با این اسم پیدا نشد.')}
             </Txt>
           ) : null}
         </ScrollView>
@@ -132,7 +136,7 @@ export function ToolsSheet({
             {confirm ? (
               <>
                 <Txt w={800} size={12.5} color={colors.text2} style={{ flex: 1 }}>
-                  {`همه‌ی ${fa(count)} رسم این نماد پاک بشه؟`}
+                  {t('همه‌ی {n} رسم این نماد پاک بشه؟', { n: fa(count), count })}
                 </Txt>
                 <Pressable
                   onPress={() => {
@@ -143,24 +147,24 @@ export function ToolsSheet({
                   style={[styles.footButton, styles.danger]}
                 >
                   <Txt w={900} size={12.5} color={colors.bearInk}>
-                    پاک کن
+                    {t('پاک کن')}
                   </Txt>
                 </Pressable>
                 <Pressable onPress={() => setConfirm(false)} accessibilityRole="button" style={styles.footButton}>
                   <Txt w={900} size={12.5}>
-                    نه
+                    {t('نه')}
                   </Txt>
                 </Pressable>
               </>
             ) : (
               <>
                 <Txt w={700} size={12} color={colors.text3} style={{ flex: 1 }}>
-                  {`${fa(count)} رسم روی این نماد`}
+                  {t('{n} رسم روی این نماد', { n: fa(count), count })}
                 </Txt>
-                <Pressable onPress={() => setConfirm(true)} accessibilityRole="button" accessibilityLabel="حذف همه‌ی رسم‌های این نماد" style={styles.footButton}>
+                <Pressable onPress={() => setConfirm(true)} accessibilityRole="button" accessibilityLabel={t('حذف همه‌ی رسم‌های این نماد')} style={styles.footButton}>
                   <Icon name="trash" size={15} color={colors.bearText} strokeWidth={2.4} />
                   <Txt w={900} size={12.5} color={colors.bearText}>
-                    حذف همه
+                    {t('حذف همه')}
                   </Txt>
                 </Pressable>
               </>
@@ -229,8 +233,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 14,
-    textAlign: 'right',
-    writingDirection: 'rtl',
     outlineWidth: 0,
   },
   tabsScroll: {

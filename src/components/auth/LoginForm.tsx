@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { login } from '@/lib/auth';
 import { loginCountry, loginMethod, normalizeLogin, type LoginMethod } from '@/lib/login';
 import { colors } from '@/theme';
@@ -27,7 +28,7 @@ export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string
       return;
     }
     if (!password) {
-      setError('رمز عبورت رو بنویس.');
+      setError(t('رمز عبورت رو بنویس.'));
       return;
     }
     setBusy(true);
@@ -50,7 +51,7 @@ export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string
       <LoginField
         method={method}
         value={typed[method]}
-        onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))}
+        onChangeText={(text) => setTyped((prev) => ({ ...prev, [method]: text }))}
         country={country}
         onCountry={(iso) => {
           setCountry(iso);
@@ -58,13 +59,13 @@ export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string
         }}
       />
       <AuthField
-        label="رمز عبور"
+        label={t('رمز عبور')}
         icon="lock"
         ltr
         secret
         value={password}
         onChangeText={setPassword}
-        placeholder="رمز عبورت"
+        placeholder={t('رمز عبورت')}
         autoComplete="current-password"
         onSubmitEditing={submit}
       />
@@ -75,7 +76,7 @@ export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string
           </Txt>
         </View>
       ) : null}
-      <Button3D label={busy ? 'چند لحظه…' : 'ورود'} disabled={busy} onPress={submit} />
+      <Button3D label={busy ? t('چند لحظه…') : t('ورود')} disabled={busy} onPress={submit} />
     </View>
   );
 }

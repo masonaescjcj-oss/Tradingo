@@ -10,6 +10,7 @@ import { DuelResultView } from '@/components/duel/DuelResultView';
 import { InviteCard } from '@/components/duel/InviteCard';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { sessionToken } from '@/lib/cloud';
 import { compareDuel, type DuelResult } from '@/lib/duel';
 import { duelErrorText, getDuel, normalizeCode, submitDuel, type DuelInfo } from '@/lib/duelApi';
@@ -68,11 +69,11 @@ export default function DuelCodeScreen() {
 
   let body: ReactNode;
   if (view.at === 'loading') {
-    body = <Center text="در حال باز کردن دوئل…" />;
+    body = <Center text={t('در حال باز کردن دوئل…')} />;
   } else if (view.at === 'error') {
     body = (
       <Message text={duelErrorText(view.error)}>
-        <Button3D label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+        <Button3D label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
       </Message>
     );
   } else if (view.at === 'play' && view.duel.rounds) {
@@ -82,11 +83,11 @@ export default function DuelCodeScreen() {
     const { duel, mine, error } = view;
     body = error ? (
       <Message text={duelErrorText(error)}>
-        {error === 'network' || error === 'server' ? <Button3D label="دوباره امتحان کن" onPress={() => submit(duel, mine)} /> : null}
-        <Button3D variant="secondary" label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+        {error === 'network' || error === 'server' ? <Button3D label={t('دوباره امتحان کن')} onPress={() => submit(duel, mine)} /> : null}
+        <Button3D variant="secondary" label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
       </Message>
     ) : (
-      <Center text="در حال ثبت نتیجه…" />
+      <Center text={t('در حال ثبت نتیجه…')} />
     );
   } else {
     const duel = view.duel;
@@ -94,9 +95,9 @@ export default function DuelCodeScreen() {
     const theirs = duel.role === 'creator' ? duel.opponentResult : duel.role === 'opponent' ? duel.creatorResult : null;
     if (duel.status === 'done' && mine && theirs) {
       body = (
-        <DuelResultView me={mine} them={theirs} opponent={{ name: (duel.role === 'creator' ? duel.opponentName : duel.creatorName) ?? 'حریف' }} reward={reward}>
-          <Button3D label="دوئل جدید با دوست" onPress={() => router.replace('/duel/play?mode=friend')} />
-          <Button3D variant="secondary" label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+        <DuelResultView me={mine} them={theirs} opponent={{ name: (duel.role === 'creator' ? duel.opponentName : duel.creatorName) ?? t('حریف') }} reward={reward}>
+          <Button3D label={t('دوئل جدید با دوست')} onPress={() => router.replace('/duel/play?mode=friend')} />
+          <Button3D variant="secondary" label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
         </DuelResultView>
       );
     } else if (duel.role === 'creator' && duel.status === 'open') {
@@ -108,7 +109,7 @@ export default function DuelCodeScreen() {
     } else if (duel.status === 'expired') {
       body = (
         <Message text={duelErrorText('expired')}>
-          <Button3D label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+          <Button3D label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
         </Message>
       );
     } else if (duel.status === 'open' && duel.rounds) {
@@ -117,20 +118,20 @@ export default function DuelCodeScreen() {
           <View style={styles.invite}>
             <NameDot name={duel.creatorName} size={64} />
             <Txt display size={28} color={colors.gold} center>
-              {`${duel.creatorName} تو رو به دوئل دعوت کرده!`}
+              {t('{name} تو رو به دوئل دعوت کرده!', { name: duel.creatorName })}
             </Txt>
             <Txt w={700} size={14} lh={1.8} color={colors.text2} center>
-              سه راند: سؤال سرعتی، پیش‌بینی نمودار و معامله‌ی ۶۰ ثانیه‌ای. همون چیزی که اون بازی کرده رو تو هم بازی می‌کنی.
+              {t('سه راند: سؤال سرعتی، پیش‌بینی نمودار و معامله‌ی ۶۰ ثانیه‌ای. همون چیزی که اون بازی کرده رو تو هم بازی می‌کنی.')}
             </Txt>
           </View>
           {signedIn ? (
-            <Button3D label="قبول و شروع" onPress={() => setView({ at: 'play', duel })} />
+            <Button3D label={t('قبول و شروع')} onPress={() => setView({ at: 'play', duel })} />
           ) : (
             <>
               <Txt w={700} size={13.5} lh={1.8} color={colors.text3} center>
-                برای ثبت نتیجه باید وارد حسابت بشی.
+                {t('برای ثبت نتیجه باید وارد حسابت بشی.')}
               </Txt>
-              <Button3D label="ورود یا ساخت حساب" onPress={() => router.push(useGame.getState().user ? '/account' : '/login')} />
+              <Button3D label={t('ورود یا ساخت حساب')} onPress={() => router.push(useGame.getState().user ? '/account' : '/login')} />
             </>
           )}
         </View>
@@ -138,7 +139,7 @@ export default function DuelCodeScreen() {
     } else {
       body = (
         <Message text={duelErrorText('taken')}>
-          <Button3D label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+          <Button3D label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
         </Message>
       );
     }
@@ -146,7 +147,7 @@ export default function DuelCodeScreen() {
 
   return (
     <Screen>
-      <BackHeader title="دوئل با دوست" caption={code ? `کد ${code}` : 'دوئل چارتون'} />
+      <BackHeader title={t('دوئل با دوست')} caption={code ? t('کد {code}', { code }) : t('دوئل چارتون')} />
       {body}
     </Screen>
   );

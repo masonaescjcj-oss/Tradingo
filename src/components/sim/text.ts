@@ -1,3 +1,4 @@
+import { byLang, t } from '@/i18n';
 import { findSymbol, type SymbolSpec } from '@/lib/simulator';
 import type { CloseReason, OrderType, PlaceError, Side, TradeEvent } from '@/lib/trading';
 import { fa } from '@/utils/format';
@@ -10,60 +11,63 @@ export function ltr(text: string): string {
   return `\u2066${text}\u2069`;
 }
 
-/** An R multiple such as «+۱٫۵R», kept left-to-right. */
+/** An R multiple such as «+۱٫۵R» (+1.5R in English), kept left-to-right. */
 export function rText(r: number, maxDecimals = 1): string {
   return ltr(`${r >= 0 ? '+' : '−'}${faDec(Math.abs(r), maxDecimals)}R`);
 }
 
-/** A number with Persian digits and decimal separator, e.g. «۲٫۵». */
+/** A number in the app's digits and decimal separator, e.g. «۲٫۵» (2.5 in English). */
 export function faDec(value: number, maxDecimals = 1): string {
-  return fa(String(Number(value.toFixed(maxDecimals)))).replace('.', '٫');
+  return fa(String(Number(value.toFixed(maxDecimals)))).replace('.', byLang('٫', '.')); // i18n-ignore: Persian decimal separator
 }
 
 export function faPct(fraction: number, maxDecimals = 1): string {
-  return `${faDec(fraction * 100, maxDecimals)}٪`;
+  return `${faDec(fraction * 100, maxDecimals)}${byLang('٪', '%')}`; // i18n-ignore: Persian percent sign
 }
 
 /** Human-readable price distance: pips for EUR/USD, dollars otherwise. */
 export function distanceLabel(spec: SymbolSpec, d: number): string {
-  if (spec.id === 'EURUSD') return `${faDec(d / 0.0001, 1)} پیپ`;
-  return `${faDec(d, spec.decimals > 1 ? 2 : 1)} دلار`;
+  if (spec.id === 'EURUSD') return t('{n} پیپ', { n: faDec(d / 0.0001, 1) });
+  return t('{n} دلار', { n: faDec(d, spec.decimals > 1 ? 2 : 1) });
 }
 
-export const sideText = (side: Side) => (side === 'buy' ? 'خرید' : 'فروش');
+/** A trade's entry, as a label. Not through t(): on its own «ورود» means "sign in" in the dictionary. */
+export const entryText = () => byLang('ورود', 'Entry'); // i18n-ignore: see above
+
+export const sideText = (side: Side) => (side === 'buy' ? t('خرید') : t('فروش'));
 
 export function orderText(type: OrderType, side: Side): string {
-  const kind = type === 'market' ? 'مارکت' : type === 'limit' ? 'لیمیت' : 'استاپ';
-  return `${sideText(side)} ${kind}`;
+  const kind = type === 'market' ? t('مارکت') : type === 'limit' ? t('لیمیت') : t('استاپ');
+  return t('{side} {kind}', { side: sideText(side), kind });
 }
 
 export function reasonText(reason: CloseReason): string {
   switch (reason) {
     case 'sl':
-      return 'حد ضرر خورد';
+      return t('حد ضرر خورد');
     case 'tp':
-      return 'حد سود خورد';
+      return t('حد سود خورد');
     case 'liquidation':
-      return 'لیکوئید شد';
+      return t('لیکوئید شد');
     default:
-      return 'دستی بسته شد';
+      return t('دستی بسته شد');
   }
 }
 
 export function placeErrorText(error: PlaceError): string {
   switch (error) {
     case 'margin':
-      return 'مارجین آزاد کافی نیست. حجم رو کم کن یا اهرم رو بیشتر کن.';
+      return t('مارجین آزاد کافی نیست. حجم رو کم کن یا اهرم رو بیشتر کن.');
     case 'size':
-      return 'حجم صفره. با این درصد ریسک و حد ضرر، حجم از حداقل هم کمتر می‌شه.';
+      return t('حجم صفره. با این درصد ریسک و حد ضرر، حجم از حداقل هم کمتر می‌شه.');
     case 'price':
-      return 'قیمت سفارش با نوعش نمی‌خونه؛ یه‌کم فاصله‌ش رو عوض کن.';
+      return t('قیمت سفارش با نوعش نمی‌خونه؛ یه‌کم فاصله‌ش رو عوض کن.');
     case 'sl':
-      return 'حد ضرر باید سمت ضرر معامله باشه.';
+      return t('حد ضرر باید سمت ضرر معامله باشه.');
     case 'tp':
-      return 'حد سود باید سمت سود معامله باشه.';
+      return t('حد سود باید سمت سود معامله باشه.');
     default:
-      return 'این سفارش ثبت نشد.';
+      return t('این سفارش ثبت نشد.');
   }
 }
 
@@ -75,17 +79,17 @@ const label = (symbol: string) => findSymbol(symbol)?.label ?? symbol;
 export function eventNotice(e: TradeEvent): Notice {
   switch (e.kind) {
     case 'opened':
-      return { text: `${sideText(e.position.side)} ${label(e.position.symbol)} باز شد`, tone: 'sky' };
+      return { text: t('{side} {symbol} باز شد', { side: sideText(e.position.side), symbol: label(e.position.symbol) }), tone: 'sky' };
     case 'placed':
-      return { text: `سفارش ${orderText(e.order.type, e.order.side)} ${label(e.order.symbol)} ثبت شد`, tone: 'sky' };
+      return { text: t('سفارش {order} {symbol} ثبت شد', { order: orderText(e.order.type, e.order.side), symbol: label(e.order.symbol) }), tone: 'sky' };
     case 'filled':
-      return { text: `سفارش ${orderText(e.order.type, e.order.side)} ${label(e.order.symbol)} پر شد`, tone: 'gold' };
+      return { text: t('سفارش {order} {symbol} پر شد', { order: orderText(e.order.type, e.order.side), symbol: label(e.order.symbol) }), tone: 'gold' };
     case 'rejected':
-      return { text: `سفارش ${label(e.order.symbol)} لغو شد: مارجین آزاد کافی نبود`, tone: 'bear' };
+      return { text: t('سفارش {symbol} لغو شد: مارجین آزاد کافی نبود', { symbol: label(e.order.symbol) }), tone: 'bear' };
     case 'closed': {
-      const t = e.trade;
-      if (t.reason === 'liquidation') return { text: `${label(t.symbol)} لیکوئید شد!`, amount: t.pnl, tone: 'bear' };
-      return { text: `${label(t.symbol)}: ${reasonText(t.reason)}`, amount: t.pnl, tone: t.pnl >= 0 ? 'bull' : 'bear' };
+      const trade = e.trade;
+      if (trade.reason === 'liquidation') return { text: t('{symbol} لیکوئید شد!', { symbol: label(trade.symbol) }), amount: trade.pnl, tone: 'bear' };
+      return { text: `${label(trade.symbol)}: ${reasonText(trade.reason)}`, amount: trade.pnl, tone: trade.pnl >= 0 ? 'bull' : 'bear' };
     }
   }
 }
@@ -97,5 +101,5 @@ export function pickNotice(events: TradeEvent[]): Notice | null {
     e.kind === 'closed' && e.trade.reason === 'liquidation' ? 5 : e.kind === 'closed' ? 4 : e.kind === 'rejected' ? 3 : e.kind === 'filled' ? 2 : 1;
   const best = events.reduce((a, b) => (rank(b) > rank(a) ? b : a));
   const n = eventNotice(best);
-  return events.length > 1 ? { ...n, text: `${n.text} (+${fa(events.length - 1)} رویداد دیگه)` } : n;
+  return events.length > 1 ? { ...n, text: `${n.text} ${t('(+{n} رویداد دیگه)', { n: fa(events.length - 1), count: events.length - 1 })}` } : n;
 }

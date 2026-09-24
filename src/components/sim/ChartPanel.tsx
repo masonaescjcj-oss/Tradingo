@@ -6,6 +6,7 @@ import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import type { Candle } from '@/content/types';
+import { layoutDir, t, textStart } from '@/i18n';
 import { fitsBudget, type Drawing, type ToolId } from '@/lib/drawings';
 import { TIMEFRAMES, type Timeframe } from '@/lib/marketData';
 import { formatPrice, formatSize, type SymbolSpec } from '@/lib/simulator';
@@ -34,9 +35,9 @@ type Indicator = { key: keyof Omit<SimTools, 'levels' | 'drawings' | 'timeframe'
 const INDICATORS: Indicator[] = [
   { key: 'ma', label: 'MA 9', color: colors.gold, mono: true },
   { key: 'ma2', label: 'MA 21', color: colors.sky, mono: true },
-  { key: 'bands', label: 'بولینگر', color: VIOLET },
+  { key: 'bands', label: 'بولینگر', color: VIOLET }, // i18n-ignore: translated where shown
   { key: 'rsi', label: 'RSI', color: VIOLET, mono: true },
-  { key: 'volume', label: 'حجم', color: colors.text3 },
+  { key: 'volume', label: 'حجم', color: colors.text3 }, // i18n-ignore: translated where shown
 ];
 
 /** Price lines for open positions, pending orders and the learner's own levels. */
@@ -59,13 +60,13 @@ function buildLines(
   const inView = (p: number) => p > lo - span * 0.6 && p < hi + span * 0.6;
 
   levels.forEach((p, i) => {
-    lines.push({ price: p, label: i === selected ? 'سطح انتخاب‌شده' : 'سطح', color: colors.gold, ink: colors.goldInk });
+    lines.push({ price: p, label: i === selected ? t('سطح انتخاب‌شده') : t('سطح'), color: colors.gold, ink: colors.goldInk });
   });
   for (const o of account.orders) {
     if (o.symbol !== spec.id) continue;
     lines.push({
       price: o.price,
-      label: `${o.type === 'limit' ? 'لیمیت' : 'استاپ'} ${o.side === 'buy' ? 'خرید' : 'فروش'}`,
+      label: t('{kind} {side}', { kind: o.type === 'limit' ? t('لیمیت') : t('استاپ'), side: o.side === 'buy' ? t('خرید') : t('فروش') }),
       detail: formatSize(spec, o.size),
       color: VIOLET,
       ink: VIOLET_INK,
@@ -74,20 +75,20 @@ function buildLines(
   for (const p of account.positions) {
     if (p.symbol !== spec.id) continue;
     const pnl = openPnl(spec, p, price);
-    if (p.tp != null) lines.push({ price: p.tp, label: 'حد سود', color: colors.bull, ink: colors.bullInk });
+    if (p.tp != null) lines.push({ price: p.tp, label: t('حد سود'), color: colors.bull, ink: colors.bullInk });
     lines.push({
       price: p.entry,
-      label: p.side === 'buy' ? 'خرید' : 'فروش',
+      label: p.side === 'buy' ? t('خرید') : t('فروش'),
       detail: `${formatSize(spec, p.size)}  ${usd(pnl, true)}`,
       detailColor: pnl >= 0 ? colors.bullText : colors.bearText,
       color: colors.text2,
       ink: colors.bg,
       solid: true,
     });
-    if (p.sl != null) lines.push({ price: p.sl, label: 'حد ضرر', color: colors.bear, ink: colors.bearInk });
+    if (p.sl != null) lines.push({ price: p.sl, label: t('حد ضرر'), color: colors.bear, ink: colors.bearInk });
     // Far-away liquidation levels (low leverage) would only add clutter, so they show when close.
     const liq = liquidationPrice(spec, p);
-    if (inView(liq)) lines.push({ price: liq, label: 'لیکوئید', color: colors.flame, ink: FLAME_INK });
+    if (inView(liq)) lines.push({ price: liq, label: t('لیکوئید'), color: colors.flame, ink: FLAME_INK });
   }
   return lines;
 }
@@ -247,7 +248,7 @@ export function ChartPanel({
                   setTfMenu((m) => !m);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`تایم‌فریم ${timeframe ?? timeframes.value}؛ برای عوض کردن بزن`}
+                accessibilityLabel={t('تایم‌فریم {tf}؛ برای عوض کردن بزن', { tf: timeframe ?? timeframes.value })}
                 hitSlop={6}
                 style={({ pressed }) => [styles.tfButton, pressed && { opacity: 0.7 }]}
               >
@@ -265,8 +266,8 @@ export function ChartPanel({
         countdown={countdown}
         corner={
           fullscreen
-            ? { icon: 'close', label: 'بستن تمام‌صفحه', onPress: closeFull }
-            : { icon: 'expand', label: 'نمایش تمام‌صفحه', onPress: () => setFull(true) }
+            ? { icon: 'close', label: t('بستن تمام‌صفحه'), onPress: closeFull }
+            : { icon: 'expand', label: t('نمایش تمام‌صفحه'), onPress: () => setFull(true) }
         }
         onTitlePress={
           pick
@@ -336,17 +337,17 @@ export function ChartPanel({
           {INDICATORS.map((ind) => (
             <Chip
               key={ind.key}
-              label={ind.label}
+              label={t(ind.label)}
               mono={ind.mono}
               on={tools[ind.key]}
               color={ind.color}
               onPress={() => setTools({ [ind.key]: !tools[ind.key] })}
-              accessibilityLabel={`نمایش ${ind.label}`}
+              accessibilityLabel={t('نمایش {name}', { name: t(ind.label) })}
             >
               <View style={[styles.dot, { backgroundColor: ind.color, opacity: tools[ind.key] ? 1 : 0.35 }]} />
             </Chip>
           ))}
-          <Chip onPress={addLevel} label="سطح" accessibilityLabel="افزودن سطح افقی روی قیمت فعلی">
+          <Chip onPress={addLevel} label={t('سطح')} accessibilityLabel={t('افزودن سطح افقی روی قیمت فعلی')}>
             <Icon name="plus" size={14} color={levels.length >= MAX_LEVELS ? colors.faint : colors.gold} strokeWidth={3} />
           </Chip>
           {levels.map((p, i) => (
@@ -357,25 +358,25 @@ export function ChartPanel({
               on={i === sel}
               color={colors.gold}
               onPress={() => setSelected(i === sel ? null : { symbol: spec.id, index: i })}
-              accessibilityLabel={`انتخاب سطح ${formatPrice(spec, p)}`}
+              accessibilityLabel={t('انتخاب سطح {price}', { price: formatPrice(spec, p) })}
             />
           ))}
           {shareable ? (
-            <Chip onPress={() => setShare(true)} label="اشتراک تحلیل" accessibilityLabel="اشتراک این نمودار و تحلیل در گفتگو">
+            <Chip onPress={() => setShare(true)} label={t('اشتراک تحلیل')} accessibilityLabel={t('اشتراک این نمودار و تحلیل در گفتگو')}>
               <Icon name="chat" size={14} color={colors.skyText} strokeWidth={2.6} />
             </Chip>
           ) : null}
           {sel != null ? (
             <View style={styles.levelActions}>
-              <Chip onPress={() => nudge(1)} accessibilityLabel="بالا بردن سطح">
+              <Chip onPress={() => nudge(1)} accessibilityLabel={t('بالا بردن سطح')}>
                 <Icon name="arrowUp" size={15} color={colors.text} strokeWidth={2.8} />
               </Chip>
-              <Chip onPress={() => nudge(-1)} accessibilityLabel="پایین آوردن سطح">
+              <Chip onPress={() => nudge(-1)} accessibilityLabel={t('پایین آوردن سطح')}>
                 <View style={{ transform: [{ rotate: '180deg' }] }}>
                   <Icon name="arrowUp" size={15} color={colors.text} strokeWidth={2.8} />
                 </View>
               </Chip>
-              <Chip onPress={remove} accessibilityLabel="حذف سطح">
+              <Chip onPress={remove} accessibilityLabel={t('حذف سطح')}>
                 <Icon name="close" size={15} color={colors.bearText} strokeWidth={2.8} />
               </Chip>
             </View>
@@ -383,7 +384,7 @@ export function ChartPanel({
         </View>
         {levels.length === 0 ? (
           <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
-            با «+ سطح» یه خط افقی روی حمایت یا مقاومت بذار. نمودار رو به چپ و راست بکش تا کندل‌های قبلی رو ببینی.
+            {t('با «+ سطح» یه خط افقی روی حمایت یا مقاومت بذار. نمودار رو به چپ و راست بکش تا کندل‌های قبلی رو ببینی.')}
           </Txt>
         ) : null}
         {footer}
@@ -414,7 +415,7 @@ export function ChartPanel({
   );
 }
 
-/** `group` heads the symbol's section of the list (کریپتو, فارکس و طلا). */
+/** `group` heads the symbol's section of the list (crypto, forex and gold), already translated. */
 export type SymbolOption = { id: string; label: string; price: string; change: number; group?: string };
 
 export type TimeframeControl = { value: Timeframe; onChange: (tf: Timeframe) => void; enabled: boolean; note?: string };
@@ -423,9 +424,9 @@ export type TimeframeControl = { value: Timeframe; onChange: (tf: Timeframe) => 
 function TimeframeMenu({ control, width, onPick, onClose }: { control: TimeframeControl; width: number; onPick: (tf: Timeframe) => void; onClose: () => void }) {
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel="بستن تایم‌فریم‌ها" />
+      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel={t('بستن تایم‌فریم‌ها')} />
       <View style={[styles.menu, styles.tfMenu, { width }]}>
-        <View style={styles.tfRow} accessibilityRole="radiogroup" accessibilityLabel="تایم‌فریم">
+        <View style={styles.tfRow} accessibilityRole="radiogroup" accessibilityLabel={t('تایم‌فریم')}>
           {TIMEFRAMES.map(({ id }) => {
             const on = control.enabled && id === control.value;
             const usable = control.enabled || id === 'M1';
@@ -446,8 +447,8 @@ function TimeframeMenu({ control, width, onPick, onClose }: { control: Timeframe
             );
           })}
         </View>
-        <Txt w={700} size={11.5} lh={1.7} color={colors.text3} style={{ direction: 'rtl', textAlign: 'right' }}>
-          {control.note ?? (control.enabled ? 'کندل‌های واقعی هر تایم‌فریم از بایننس؛ آخرین کندل با قیمت زنده جلو می‌ره.' : 'تایم‌فریم‌های بالاتر با قیمت زنده فعال می‌شن؛ «قیمت زنده» رو زیر نمودار روشن کن.')}
+        <Txt w={700} size={11.5} lh={1.7} color={colors.text3} style={{ direction: layoutDir(), textAlign: textStart() }}>
+          {control.note ?? (control.enabled ? t('کندل‌های واقعی هر تایم‌فریم از بایننس؛ آخرین کندل با قیمت زنده جلو می‌ره.') : t('تایم‌فریم‌های بالاتر با قیمت زنده فعال می‌شن؛ «قیمت زنده» رو زیر نمودار روشن کن.'))}
         </Txt>
       </View>
     </View>
@@ -470,8 +471,8 @@ function SymbolMenu({
 }) {
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel="بستن فهرست نمادها" />
-      <View style={[styles.menu, { width }]} accessibilityRole="radiogroup" accessibilityLabel="انتخاب نماد">
+      <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel={t('بستن فهرست نمادها')} />
+      <View style={[styles.menu, { width }]} accessibilityRole="radiogroup" accessibilityLabel={t('انتخاب نماد')}>
         <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuList} showsVerticalScrollIndicator={false}>
           {symbols.map((s, i) => {
             const on = s.id === current;
@@ -479,7 +480,7 @@ function SymbolMenu({
             return (
               <View key={s.id}>
                 {heading ? (
-                  <Txt w={800} size={12} color={colors.text3} style={styles.menuGroup}>
+                  <Txt w={800} size={12} color={colors.text3} style={[styles.menuGroup, { textAlign: textStart() }]}>
                     {heading}
                   </Txt>
                 ) : null}
@@ -535,7 +536,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 8,
     paddingBottom: 4,
-    textAlign: 'right',
   },
   menuRow: {
     flexDirection: 'row',

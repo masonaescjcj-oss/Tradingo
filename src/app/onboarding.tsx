@@ -14,6 +14,7 @@ import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
 import { findCourse, starterCourses, type Course, type Market } from '@/content';
+import { t } from '@/i18n';
 import { resetTo } from '@/lib/nav';
 import { useGame, type Level } from '@/store/game';
 import { colors } from '@/theme';
@@ -23,37 +24,37 @@ type StepId = 'hello' | 'market' | 'reason' | 'level' | 'goal' | 'source' | 'pla
 const STEPS: StepId[] = ['hello', 'market', 'reason', 'level', 'goal', 'source', 'plan', 'signup'];
 
 const REASONS: { id: string; icon: IconName; title: string }[] = [
-  { id: 'income', icon: 'arrowUpRight', title: 'یه درآمد جانبی داشته باشم' },
-  { id: 'savings', icon: 'shield', title: 'پس‌اندازم رو بهتر مدیریت کنم' },
-  { id: 'career', icon: 'trophy', title: 'ترید رو شغل خودم کنم' },
-  { id: 'news', icon: 'layers', title: 'اخبار و بازارها رو بفهمم' },
-  { id: 'curious', icon: 'bulb', title: 'فقط کنجکاوم و می‌خوام یاد بگیرم' },
+  { id: 'income', icon: 'arrowUpRight', title: 'یه درآمد جانبی داشته باشم' }, // i18n-ignore: translated where shown
+  { id: 'savings', icon: 'shield', title: 'پس‌اندازم رو بهتر مدیریت کنم' }, // i18n-ignore: translated where shown
+  { id: 'career', icon: 'trophy', title: 'ترید رو شغل خودم کنم' }, // i18n-ignore: translated where shown
+  { id: 'news', icon: 'layers', title: 'اخبار و بازارها رو بفهمم' }, // i18n-ignore: translated where shown
+  { id: 'curious', icon: 'bulb', title: 'فقط کنجکاوم و می‌خوام یاد بگیرم' }, // i18n-ignore: translated where shown
 ];
 
 const LEVELS: { id: Level; bars: number; title: string; sub: string }[] = [
-  { id: 'new', bars: 1, title: 'تازه‌کارم', sub: 'تا حالا معامله نکردم؛ از صفر شروع می‌کنیم.' },
-  { id: 'some', bars: 2, title: 'یه چیزایی بلدم', sub: 'کندل و حد ضرر رو می‌شناسم؛ با یه آزمون کوتاه مقدمه‌ها رو رد می‌کنی.' },
-  { id: 'pro', bars: 3, title: 'قبلاً ترید کردم', sub: 'معامله‌ی واقعی داشتم؛ با یه آزمون کوتاه از جای درست شروع می‌کنی.' },
+  { id: 'new', bars: 1, title: 'تازه‌کارم', sub: 'تا حالا معامله نکردم؛ از صفر شروع می‌کنیم.' }, // i18n-ignore: translated where shown
+  { id: 'some', bars: 2, title: 'یه چیزایی بلدم', sub: 'کندل و حد ضرر رو می‌شناسم؛ با یه آزمون کوتاه مقدمه‌ها رو رد می‌کنی.' }, // i18n-ignore: translated where shown
+  { id: 'pro', bars: 3, title: 'قبلاً ترید کردم', sub: 'معامله‌ی واقعی داشتم؛ با یه آزمون کوتاه از جای درست شروع می‌کنی.' }, // i18n-ignore: translated where shown
 ];
 
 const GOALS: { xp: number; minutes: number; title: string }[] = [
-  { xp: 10, minutes: 5, title: 'آروم' },
-  { xp: 20, minutes: 10, title: 'معمولی' },
-  { xp: 30, minutes: 15, title: 'جدی' },
-  { xp: 50, minutes: 20, title: 'حرفه‌ای' },
+  { xp: 10, minutes: 5, title: 'آروم' }, // i18n-ignore: translated where shown
+  { xp: 20, minutes: 10, title: 'معمولی' }, // i18n-ignore: translated where shown
+  { xp: 30, minutes: 15, title: 'جدی' }, // i18n-ignore: translated where shown
+  { xp: 50, minutes: 20, title: 'حرفه‌ای' }, // i18n-ignore: translated where shown
 ];
 
-const SOURCES = ['اینستاگرام', 'تلگرام', 'یوتیوب', 'دوستان و آشناها', 'جست‌وجو در گوگل', 'جای دیگه'];
+const SOURCES = ['اینستاگرام', 'تلگرام', 'یوتیوب', 'دوستان و آشناها', 'جست‌وجو در گوگل', 'جای دیگه']; // i18n-ignore: translated where shown
 
 const PROMPTS: Record<StepId, { text: string; mood: MascotMood }> = {
-  hello: { text: 'سلام! من شمعکم.', mood: 'party' },
-  market: { text: 'می‌خوای کدوم بازار رو یاد بگیری؟', mood: 'happy' },
-  reason: { text: 'چرا می‌خوای ترید یاد بگیری؟', mood: 'think' },
-  level: { text: 'چقدر با ترید آشنایی؟', mood: 'think' },
-  goal: { text: 'هدف روزانه‌ت چقدر باشه؟', mood: 'happy' },
-  source: { text: 'از کجا با چارتون آشنا شدی؟', mood: 'happy' },
-  plan: { text: 'مسیرت آماده‌ست!', mood: 'party' },
-  signup: { text: 'پروفایلت رو بساز تا پیشرفتت گم نشه.', mood: 'happy' },
+  hello: { text: 'سلام! من شمعکم.', mood: 'party' }, // i18n-ignore: translated where shown
+  market: { text: 'می‌خوای کدوم بازار رو یاد بگیری؟', mood: 'happy' }, // i18n-ignore: translated where shown
+  reason: { text: 'چرا می‌خوای ترید یاد بگیری؟', mood: 'think' }, // i18n-ignore: translated where shown
+  level: { text: 'چقدر با ترید آشنایی؟', mood: 'think' }, // i18n-ignore: translated where shown
+  goal: { text: 'هدف روزانه‌ت چقدر باشه؟', mood: 'happy' }, // i18n-ignore: translated where shown
+  source: { text: 'از کجا با چارتون آشنا شدی؟', mood: 'happy' }, // i18n-ignore: translated where shown
+  plan: { text: 'مسیرت آماده‌ست!', mood: 'party' }, // i18n-ignore: translated where shown
+  signup: { text: 'پروفایلت رو بساز تا پیشرفتت گم نشه.', mood: 'happy' }, // i18n-ignore: translated where shown
 };
 
 /** Duolingo-style onboarding: a few quick questions, a personal plan, then the profile. */
@@ -90,10 +91,10 @@ export default function Onboarding() {
   return (
     <Screen style={styles.screen}>
       <View style={styles.topRow}>
-        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel="بازگشت" style={styles.back}>
+        <Pressable onPress={back} accessibilityRole="button" accessibilityLabel={t('بازگشت')} style={styles.back}>
           <Icon name="chevronBack" size={26} color={colors.text3} strokeWidth={2.6} />
         </Pressable>
-        <ProgressBar value={index / (STEPS.length - 1)} label={`مرحله‌ی ${fa(index + 1)} از ${fa(STEPS.length)}`} />
+        <ProgressBar value={index / (STEPS.length - 1)} label={t('مرحله‌ی {n} از {total}', { n: fa(index + 1), total: fa(STEPS.length) })} />
       </View>
 
       <KeyboardScroll contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -101,10 +102,10 @@ export default function Onboarding() {
           <View style={styles.hello}>
             <SpeechBubble tail="bottomEnd" background={colors.text} border="#D5DBE6" style={styles.helloBubble}>
               <Txt w={900} size={20} color={colors.bg} center>
-                {prompt.text}
+                {t(prompt.text)}
               </Txt>
               <Txt w={700} size={15} lh={1.8} color="#3A4560" center>
-                فقط چند تا سؤال کوتاه ازت می‌پرسم تا مسیر یادگیریت رو مخصوص خودت بسازم.
+                {t('فقط چند تا سؤال کوتاه ازت می‌پرسم تا مسیر یادگیریت رو مخصوص خودت بسازم.')}
               </Txt>
             </SpeechBubble>
             <Mascot mood="party" size={170} />
@@ -114,7 +115,7 @@ export default function Onboarding() {
             <Mascot mood={prompt.mood} size={84} />
             <SpeechBubble style={{ flex: 1 }}>
               <Txt w={800} size={17} lh={1.7}>
-                {prompt.text}
+                {t(prompt.text)}
               </Txt>
             </SpeechBubble>
           </View>
@@ -131,12 +132,12 @@ export default function Onboarding() {
         {step === 'reason' && (
           <View style={styles.list} accessibilityRole="radiogroup">
             {REASONS.map((r) => (
-              <Choice key={r.id} selected={reason === r.id} onPress={() => setReason(r.id)} label={r.title}>
+              <Choice key={r.id} selected={reason === r.id} onPress={() => setReason(r.id)} label={t(r.title)}>
                 <View style={styles.iconTile}>
                   <Icon name={r.icon} size={22} color={colors.gold} />
                 </View>
                 <Txt w={800} size={16} style={{ flex: 1 }}>
-                  {r.title}
+                  {t(r.title)}
                 </Txt>
               </Choice>
             ))}
@@ -146,14 +147,14 @@ export default function Onboarding() {
         {step === 'level' && (
           <View style={styles.list} accessibilityRole="radiogroup">
             {LEVELS.map((l) => (
-              <Choice key={l.id} selected={level === l.id} onPress={() => setLevel(l.id)} label={l.title}>
+              <Choice key={l.id} selected={level === l.id} onPress={() => setLevel(l.id)} label={t(l.title)}>
                 <Bars count={l.bars} on={level === l.id} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Txt w={900} size={17}>
-                    {l.title}
+                    {t(l.title)}
                   </Txt>
                   <Txt size={13} lh={1.7} color={colors.text2}>
-                    {l.sub}
+                    {t(l.sub)}
                   </Txt>
                 </View>
               </Choice>
@@ -164,17 +165,22 @@ export default function Onboarding() {
         {step === 'goal' && (
           <View style={styles.list} accessibilityRole="radiogroup">
             {GOALS.map((g) => (
-              <Choice key={g.xp} selected={goal === g.xp} onPress={() => setGoal(g.xp)} label={`${g.title}، ${fa(g.minutes)} دقیقه در روز`}>
+              <Choice
+                key={g.xp}
+                selected={goal === g.xp}
+                onPress={() => setGoal(g.xp)}
+                label={t('{title}، {n} دقیقه در روز', { title: t(g.title), n: fa(g.minutes) })}
+              >
                 <Txt w={900} size={17} style={{ flex: 1 }}>
-                  {`${fa(g.minutes)} دقیقه در روز`}
+                  {t('{n} دقیقه در روز', { n: fa(g.minutes) })}
                 </Txt>
                 <Txt w={800} size={14} color={goal === g.xp ? colors.skyText : colors.text3}>
-                  {g.title}
+                  {t(g.title)}
                 </Txt>
               </Choice>
             ))}
             <Txt size={13} lh={1.8} color={colors.text3} center>
-              هر وقت خواستی از پروفایل عوضش کن. کم ولی هر روز، بهتر از زیاد و گاهی.
+              {t('هر وقت خواستی از پروفایل عوضش کن. کم ولی هر روز، بهتر از زیاد و گاهی.')}
             </Txt>
           </View>
         )}
@@ -192,7 +198,7 @@ export default function Onboarding() {
                   style={[styles.chip, on && styles.chipOn]}
                 >
                   <Txt w={800} size={15} color={on ? colors.skyText : colors.text}>
-                    {s}
+                    {t(s)}
                   </Txt>
                 </Pressable>
               );
@@ -211,7 +217,15 @@ export default function Onboarding() {
 
       {step !== 'signup' && (
         <Button3D
-          label={step === 'hello' ? 'بزن بریم' : step === 'plan' ? 'ساخت پروفایل' : step === 'source' && !source ? 'رد کردن' : 'ادامه'}
+          label={
+            step === 'hello'
+              ? t('بزن بریم')
+              : step === 'plan'
+                ? t('ساخت پروفایل')
+                : step === 'source' && !source
+                  ? t('رد کردن')
+                  : t('ادامه')
+          }
           variant={step === 'source' && !source ? 'secondary' : 'primary'}
           disabled={!canContinue}
           onPress={next}
@@ -258,12 +272,18 @@ function Plan({ market, level, goal }: { market: Market; level: Level; goal: num
   return (
     <View style={{ gap: 14 }}>
       <View style={styles.planCard}>
-        <PlanRow icon="target" label="هدف روزانه" value={`${fa(minutes)} دقیقه (${fa(goal)} امتیاز)`} />
-        <PlanRow icon="book" label="هر روز حدوداً" value={`${fa(perDay)} درس کوتاه`} />
-        {start && <PlanRow icon="play" label="شروع از" value={level === 'new' ? start.title : `${start.title}؛ با آزمون پرش مقدمه‌ها رو رد کن`} />}
+        <PlanRow icon="target" label={t('هدف روزانه')} value={t('{minutes} دقیقه ({xp} امتیاز)', { minutes: fa(minutes), xp: fa(goal) })} />
+        <PlanRow icon="book" label={t('هر روز حدوداً')} value={t('{n} درس کوتاه', { n: fa(perDay), count: perDay })} />
+        {start && (
+          <PlanRow
+            icon="play"
+            label={t('شروع از')}
+            value={level === 'new' ? start.title : t('{course}؛ با آزمون پرش مقدمه‌ها رو رد کن', { course: start.title })}
+          />
+        )}
       </View>
       <Txt w={900} size={16}>
-        دوره‌هایی که برات اضافه می‌شن
+        {t('دوره‌هایی که برات اضافه می‌شن')}
       </Txt>
       <View style={styles.planCourses}>
         {courses.map((c) => (
@@ -276,7 +296,7 @@ function Plan({ market, level, goal }: { market: Market; level: Level; goal: num
         ))}
       </View>
       <Txt size={13} lh={1.8} color={colors.text3}>
-        بعداً هر دوره‌ی دیگه‌ای رو خواستی اضافه کن؛ از اندیکاتورها و استراتژی‌ها تا تحلیل پیشرفته و اسمارت مانی.
+        {t('بعداً هر دوره‌ی دیگه‌ای رو خواستی اضافه کن؛ از اندیکاتورها و استراتژی‌ها تا تحلیل پیشرفته و اسمارت مانی.')}
       </Txt>
     </View>
   );

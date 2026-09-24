@@ -1,4 +1,5 @@
 import { courseLessonIds, findCourse, findLesson, findUnitWithCourse, isQuestion, type Step } from '@/content';
+import { t } from '@/i18n';
 import { dueLessons, type Review } from '@/lib/review';
 import type { LessonRecord } from '@/store/game';
 import { bandDecimals } from '@/content/line';
@@ -9,7 +10,7 @@ export type SessionStep = { step: Step; ref: string; topic: string };
 
 export type PracticeMode = 'mixed' | 'mistakes' | 'charts' | 'speed';
 
-/** Question types the chart-reading practice ("شکار الگو") draws from. */
+/** Question types the chart-reading practice ("pattern hunt") draws from. */
 const CHART_TYPES = new Set<Step['type']>(['chart', 'predict', 'tap', 'line']);
 
 export type Session =
@@ -33,10 +34,10 @@ export const MASTER_QUESTIONS = 15;
 export const MASTER_LIVES = 2;
 
 const PRACTICE_TITLES: Record<PracticeMode, string> = {
-  mixed: 'مرور هوشمند',
-  mistakes: 'مرور اشتباه‌ها',
-  charts: 'شکار الگو',
-  speed: 'تمرین سرعتی',
+  mixed: 'مرور هوشمند', // i18n-ignore: translated where used
+  mistakes: 'مرور اشتباه‌ها', // i18n-ignore: translated where used
+  charts: 'شکار الگو', // i18n-ignore: translated where used
+  speed: 'تمرین سرعتی', // i18n-ignore: translated where used
 };
 
 function resolveRef(ref: string): SessionStep | undefined {
@@ -92,15 +93,15 @@ export function buildSession(id: string, state: SessionState): Session | null {
     const steps = shuffle(picked).slice(0, count);
     if (steps.length === 0) return null;
     return testMode === 'master'
-      ? { kind: 'test', mode: 'master', unitId: hit.unit.id, title: `آزمون استادی · ${hit.unit.title}`, steps, lives: MASTER_LIVES }
-      : { kind: 'test', mode: 'jump', unitId: hit.unit.id, title: `آزمون پرش · ${hit.unit.title}`, steps, lives: TEST_LIVES };
+      ? { kind: 'test', mode: 'master', unitId: hit.unit.id, title: t('آزمون استادی · {unit}', { unit: hit.unit.title }), steps, lives: MASTER_LIVES }
+      : { kind: 'test', mode: 'jump', unitId: hit.unit.id, title: t('آزمون پرش · {unit}', { unit: hit.unit.title }), steps, lives: TEST_LIVES };
   }
   if (id.startsWith('practice-')) {
     const mode = id.slice('practice-'.length) as PracticeMode;
     if (!(mode in PRACTICE_TITLES)) return null;
     const steps = practiceSteps(mode, state);
     if (steps.length === 0) return null;
-    return { kind: 'practice', mode, title: PRACTICE_TITLES[mode], steps, timeLimit: mode === 'speed' ? SPEED_SECONDS : undefined };
+    return { kind: 'practice', mode, title: t(PRACTICE_TITLES[mode]), steps, timeLimit: mode === 'speed' ? SPEED_SECONDS : undefined };
   }
   const found = findLesson(id);
   if (!found) return null;
@@ -125,16 +126,16 @@ export function correctAnswerText(step: Step): string | undefined {
     case 'chart':
       return step.options[step.answer].label;
     case 'predict':
-      return step.answer === 'buy' ? 'خرید (Long)' : 'فروش (Short)';
+      return step.answer === 'buy' ? t('خرید (Long)') : t('فروش (Short)');
     case 'truefalse':
-      return step.answer ? 'درسته' : 'غلطه';
+      return step.answer ? t('درسته') : t('غلطه');
     case 'fill':
       return filledSentence(step.sentence, step.answers);
     case 'order':
       return step.items.map((item, i) => `${fa(i + 1)}. ${item}`).join('\n');
     case 'line': {
       const d = bandDecimals(step);
-      return `بین ${formatPrice(step.answer[0], d)} تا ${formatPrice(step.answer[1], d)}`;
+      return t('بین {from} تا {to}', { from: formatPrice(step.answer[0], d), to: formatPrice(step.answer[1], d) });
     }
     default:
       return undefined;

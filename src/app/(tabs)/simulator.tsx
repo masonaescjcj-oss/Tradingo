@@ -16,6 +16,7 @@ import { TradesView } from '@/components/sim/TradesView';
 import { SectionTitle, Segment, simStyles } from '@/components/sim/ui';
 import { midsOf, useMarketFeed } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { symbolsFor } from '@/lib/simulator';
 import { START_BALANCE, useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -26,10 +27,10 @@ type Mode = 'chart' | 'trades' | 'replay' | 'challenges';
 
 // Like MetaTrader: the chart, then the account's trades and history.
 const MODES: { value: Mode; label: string }[] = [
-  { value: 'chart', label: 'نمودار' },
-  { value: 'trades', label: 'معامله‌ها' },
-  { value: 'replay', label: 'بازپخش' },
-  { value: 'challenges', label: 'چالش و آمار' },
+  { value: 'chart', label: 'نمودار' }, // i18n-ignore: translated where shown
+  { value: 'trades', label: 'معامله‌ها' }, // i18n-ignore: translated where shown
+  { value: 'replay', label: 'بازپخش' }, // i18n-ignore: translated where shown
+  { value: 'challenges', label: 'چالش و آمار' }, // i18n-ignore: translated where shown
 ];
 
 export default function SimulatorScreen() {
@@ -58,8 +59,8 @@ export default function SimulatorScreen() {
 
   useEffect(() => {
     if (!notice) return;
-    const t = setTimeout(() => setNotice(null), 3800);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setNotice(null), 3800);
+    return () => clearTimeout(timer);
   }, [notice]);
 
   // The chart runs edge to edge across the column.
@@ -71,7 +72,12 @@ export default function SimulatorScreen() {
   return (
     <Screen bottom={false}>
       <View style={styles.tabs}>
-        <Segment label="بخش شبیه‌ساز" value={mode} onChange={setMode} options={MODES} />
+        <Segment
+          label={t('بخش شبیه‌ساز')}
+          value={mode}
+          onChange={setMode}
+          options={MODES.map((m) => ({ ...m, label: t(m.label) }))}
+        />
       </View>
 
       <ScrollView
@@ -89,7 +95,7 @@ export default function SimulatorScreen() {
         ) : (
           <>
             <ChallengesView onNotice={notify} />
-            <SectionTitle>آمار عملکرد</SectionTitle>
+            <SectionTitle>{t('آمار عملکرد')}</SectionTitle>
             <StatsView width={columnWidth - 32} />
           </>
         )}
@@ -97,7 +103,7 @@ export default function SimulatorScreen() {
           <Pressable onPress={() => setConfirmReset(true)} accessibilityRole="button" hitSlop={6} style={styles.reset}>
             <Icon name="refresh" size={16} color={colors.text3} strokeWidth={2.4} />
             <Txt w={800} size={13} color={colors.text3}>
-              {resetsReplay ? 'شروع دوباره‌ی حساب بازپخش' : 'شروع دوباره‌ی حساب آزمایشی'}
+              {resetsReplay ? t('شروع دوباره‌ی حساب بازپخش') : t('شروع دوباره‌ی حساب آزمایشی')}
             </Txt>
           </Pressable>
         ) : null}
@@ -111,15 +117,17 @@ export default function SimulatorScreen() {
         <View style={styles.backdrop}>
           <View style={styles.dialog}>
             <Txt w={900} size={19} center>
-              {resetsReplay ? 'حساب بازپخش از اول شروع بشه؟' : 'حساب آزمایشی از اول شروع بشه؟'}
+              {resetsReplay ? t('حساب بازپخش از اول شروع بشه؟') : t('حساب آزمایشی از اول شروع بشه؟')}
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2} center>
               {resetsReplay
-                ? `بازپخش فعلی و معامله‌هاش پاک می‌شن و موجودی بازپخش به ${ltr(usd(START_BALANCE))} برمی‌گرده.`
-                : `همه‌ی معامله‌ها و سفارش‌ها بسته می‌شن، موجودی به ${ltr(usd(START_BALANCE))} برمی‌گرده و چالش‌های نیمه‌کاره از اول شروع می‌شن.`}
+                ? t('بازپخش فعلی و معامله‌هاش پاک می‌شن و موجودی بازپخش به {balance} برمی‌گرده.', { balance: ltr(usd(START_BALANCE)) })
+                : t('همه‌ی معامله‌ها و سفارش‌ها بسته می‌شن، موجودی به {balance} برمی‌گرده و چالش‌های نیمه‌کاره از اول شروع می‌شن.', {
+                    balance: ltr(usd(START_BALANCE)),
+                  })}
             </Txt>
             <Button3D
-              label="شروع دوباره"
+              label={t('شروع دوباره')}
               onPress={() => {
                 if (resetsReplay) resetReplay();
                 else resetSim();
@@ -127,7 +135,7 @@ export default function SimulatorScreen() {
               }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Button3D label="بی‌خیال" variant="secondary" size={17} onPress={() => setConfirmReset(false)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} variant="secondary" size={17} onPress={() => setConfirmReset(false)} style={{ alignSelf: 'stretch' }} />
           </View>
         </View>
       </Modal>

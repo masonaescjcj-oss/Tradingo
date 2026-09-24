@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 
+import { t } from '@/i18n';
 import {
   defaultColor,
   drawingHandles,
@@ -96,7 +97,7 @@ export function useDrawingEditor({
   const save = (next: Drawing[]) => {
     if (!onChange) return false;
     const ok = onChange(next) !== false;
-    if (!ok) flash('جای رسم تازه نیست؛ چندتا از رسم‌های قبلی رو پاک کن.');
+    if (!ok) flash(t('جای رسم تازه نیست؛ چندتا از رسم‌های قبلی رو پاک کن.'));
     return ok;
   };
 

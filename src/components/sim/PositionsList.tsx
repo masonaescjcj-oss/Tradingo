@@ -2,13 +2,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { findSymbol, formatPrice, formatSize } from '@/lib/simulator';
 import { LEGACY_LEVERAGE, liquidationPrice, openPnl, positionMargin, type Account, type ClosedTrade, type PendingOrder, type Position } from '@/lib/trading';
 import { useGame, type SimBook } from '@/store/game';
 import { colors } from '@/theme';
 import { fa, usd } from '@/utils/format';
 
-import { orderText, sideText } from './text';
+import { entryText, orderText, sideText } from './text';
 import { Figure, pnlColor, SectionTitle, VIOLET } from './ui';
 
 /** Open positions and pending orders of one account, with close / cancel buttons. */
@@ -28,7 +29,7 @@ export function PositionsList({
   if (account.positions.length === 0 && account.orders.length === 0) return null;
   return (
     <View style={{ gap: 10 }}>
-      {account.positions.length > 0 && <SectionTitle>{`معامله‌های باز (${fa(account.positions.length)})`}</SectionTitle>}
+      {account.positions.length > 0 && <SectionTitle>{t('معامله‌های باز ({n})', { n: fa(account.positions.length) })}</SectionTitle>}
       {account.positions.map((p) => {
         const mid = mids[p.symbol];
         return (
@@ -44,7 +45,7 @@ export function PositionsList({
           />
         );
       })}
-      {account.orders.length > 0 && <SectionTitle>{`سفارش‌های در انتظار (${fa(account.orders.length)})`}</SectionTitle>}
+      {account.orders.length > 0 && <SectionTitle>{t('سفارش‌های در انتظار ({n})', { n: fa(account.orders.length) })}</SectionTitle>}
       {account.orders.map((o) => (
         <OrderCard key={o.id} order={o} mid={mids[o.symbol]} onCancel={() => simCancel(book, o.id)} />
       ))}
@@ -75,16 +76,16 @@ function PositionCard({ position: p, mid, onClose }: { position: Position; mid: 
         </Txt>
       </View>
       <View style={styles.levels}>
-        <Figure label="ورود" value={formatPrice(spec, p.entry)} />
-        <Figure label="حد ضرر" value={p.sl != null ? formatPrice(spec, p.sl) : '—'} color={colors.bearText} />
-        <Figure label="حد سود" value={p.tp != null ? formatPrice(spec, p.tp) : '—'} color={colors.bullText} />
+        <Figure label={entryText()} value={formatPrice(spec, p.entry)} />
+        <Figure label={t('حد ضرر')} value={p.sl != null ? formatPrice(spec, p.sl) : '—'} color={colors.bearText} />
+        <Figure label={t('حد سود')} value={p.tp != null ? formatPrice(spec, p.tp) : '—'} color={colors.bullText} />
       </View>
       <View style={styles.levels}>
-        <Figure label="لیکوئید" value={formatPrice(spec, liquidationPrice(spec, p))} color={colors.flame} />
-        <Figure label="مارجین" value={usd(margin)} />
-        <Figure label="ریسک اولیه" value={p.risk != null ? usd(p.risk) : '—'} />
+        <Figure label={t('لیکوئید')} value={formatPrice(spec, liquidationPrice(spec, p))} color={colors.flame} />
+        <Figure label={t('مارجین')} value={usd(margin)} />
+        <Figure label={t('ریسک اولیه')} value={p.risk != null ? usd(p.risk) : '—'} />
       </View>
-      <Button3D label="بستن معامله" variant="secondary" height={40} radius={12} edge={4} size={14} onPress={onClose} />
+      <Button3D label={t('بستن معامله')} variant="secondary" height={40} radius={12} edge={4} size={14} onPress={onClose} />
     </View>
   );
 }
@@ -105,16 +106,16 @@ function OrderCard({ order: o, mid, onCancel }: { order: PendingOrder; mid: numb
             {`${spec.label} · ${formatSize(spec, o.size)} · ${o.leverage}x`}
           </Txt>
         </View>
-        <Button3D label="لغو" variant="secondary" height={32} radius={10} edge={3} size={13} onPress={onCancel} accessibilityLabel="لغو سفارش" />
+        <Button3D label={t('لغو')} variant="secondary" height={32} radius={10} edge={3} size={13} onPress={onCancel} accessibilityLabel={t('لغو سفارش')} />
       </View>
       <View style={styles.levels}>
-        <Figure label="قیمت سفارش" value={formatPrice(spec, o.price)} color={VIOLET} />
-        <Figure label="حد ضرر" value={o.sl != null ? formatPrice(spec, o.sl) : '—'} color={colors.bearText} />
-        <Figure label="حد سود" value={o.tp != null ? formatPrice(spec, o.tp) : '—'} color={colors.bullText} />
+        <Figure label={t('قیمت سفارش')} value={formatPrice(spec, o.price)} color={VIOLET} />
+        <Figure label={t('حد ضرر')} value={o.sl != null ? formatPrice(spec, o.sl) : '—'} color={colors.bearText} />
+        <Figure label={t('حد سود')} value={o.tp != null ? formatPrice(spec, o.tp) : '—'} color={colors.bullText} />
       </View>
       {mid != null ? (
         <Txt w={700} size={11.5} color={colors.text3}>
-          {`${o.side === 'buy' ? 'وقتی Ask' : 'وقتی Bid'} به ${formatPrice(spec, o.price)} برسه پر می‌شه.`}
+          {o.side === 'buy' ? t('وقتی Ask به {price} برسه پر می‌شه.', { price: formatPrice(spec, o.price) }) : t('وقتی Bid به {price} برسه پر می‌شه.', { price: formatPrice(spec, o.price) })}
         </Txt>
       ) : null}
     </View>

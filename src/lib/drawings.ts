@@ -4,16 +4,18 @@
  * shapes each tool draws in screen space. Pure, so it can be tested; the chart renders
  * the shapes and does the touch handling.
  */
+import { isEn, t } from '@/i18n';
+import { fa } from '@/utils/format';
 
 export type ToolCategory = 'lines' | 'fib' | 'patterns' | 'measure' | 'shapes' | 'notes';
 
 export const TOOL_CATEGORIES: { id: ToolCategory; label: string }[] = [
-  { id: 'lines', label: 'خطوط روند' },
-  { id: 'fib', label: 'فیبوناچی و گن' },
-  { id: 'patterns', label: 'الگوها' },
-  { id: 'measure', label: 'پیش‌بینی و اندازه‌گیری' },
-  { id: 'shapes', label: 'اشکال هندسی' },
-  { id: 'notes', label: 'یادداشت‌گذاری' },
+  { id: 'lines', label: 'خطوط روند' }, // i18n-ignore: translated where shown
+  { id: 'fib', label: 'فیبوناچی و گن' }, // i18n-ignore: translated where shown
+  { id: 'patterns', label: 'الگوها' }, // i18n-ignore: translated where shown
+  { id: 'measure', label: 'پیش‌بینی و اندازه‌گیری' }, // i18n-ignore: translated where shown
+  { id: 'shapes', label: 'اشکال هندسی' }, // i18n-ignore: translated where shown
+  { id: 'notes', label: 'یادداشت‌گذاری' }, // i18n-ignore: translated where shown
 ];
 
 export type ToolId =
@@ -76,49 +78,60 @@ export type ToolDef = {
 };
 
 export const TOOLS: ToolDef[] = [
-  { id: 'trend', category: 'lines', name: 'خط روند', en: 'Trend Line', place: 2 },
-  { id: 'ray', category: 'lines', name: 'پرتو', en: 'Ray', place: 2 },
-  { id: 'info', category: 'lines', name: 'خط اطلاعات', en: 'Info Line', place: 2 },
-  { id: 'extended', category: 'lines', name: 'خط ممتد', en: 'Extended Line', place: 2 },
-  { id: 'angle', category: 'lines', name: 'زاویه‌ی روند', en: 'Trend Angle', place: 2 },
-  { id: 'hline', category: 'lines', name: 'خط افقی', en: 'Horizontal Line', place: 1 },
-  { id: 'hray', category: 'lines', name: 'پرتو افقی', en: 'Horizontal Ray', place: 1 },
-  { id: 'vline', category: 'lines', name: 'خط عمودی', en: 'Vertical Line', place: 1 },
-  { id: 'cross', category: 'lines', name: 'خط متقاطع', en: 'Cross Line', place: 1 },
-  { id: 'channel', category: 'lines', name: 'کانال موازی', en: 'Parallel Channel', place: 3 },
-  { id: 'pitchfork', category: 'lines', name: 'چنگال اندروز', en: 'Pitchfork', place: 3 },
-  { id: 'fibRetracement', category: 'fib', name: 'فیبوناچی اصلاحی', en: 'Fib Retracement', place: 2 },
-  { id: 'fibExtension', category: 'fib', name: 'اکستنشن فیبوناچی', en: 'Trend-Based Fib Extension', place: 3 },
-  { id: 'fibTimeZone', category: 'fib', name: 'زون زمانی فیبوناچی', en: 'Fib Time Zone', place: 2 },
-  { id: 'gannFan', category: 'fib', name: 'فن گن', en: 'Gann Fan', place: 2 },
-  { id: 'xabcd', category: 'patterns', name: 'الگوی XABCD', en: 'XABCD Pattern', place: 5, labels: ['X', 'A', 'B', 'C', 'D'] },
-  { id: 'abcd', category: 'patterns', name: 'الگوی ABCD', en: 'ABCD Pattern', place: 4, labels: ['A', 'B', 'C', 'D'] },
-  { id: 'headShoulders', category: 'patterns', name: 'سر و شانه', en: 'Head and Shoulders', place: 7, labels: ['', 'شانه', '', 'سر', '', 'شانه', ''] },
-  { id: 'trianglePattern', category: 'patterns', name: 'الگوی مثلث', en: 'Triangle Pattern', place: 4, labels: ['A', 'B', 'C', 'D'] },
-  { id: 'elliottImpulse', category: 'patterns', name: 'موج ضربه‌ای الیوت', en: 'Elliott Impulse Wave', place: 6, labels: ['0', '1', '2', '3', '4', '5'] },
-  { id: 'elliottCorrection', category: 'patterns', name: 'موج اصلاحی الیوت', en: 'Elliott Correction Wave', place: 4, labels: ['0', 'A', 'B', 'C'] },
-  { id: 'longPosition', category: 'measure', name: 'پوزیشن خرید', en: 'Long Position', place: 1 },
-  { id: 'shortPosition', category: 'measure', name: 'پوزیشن فروش', en: 'Short Position', place: 1 },
-  { id: 'priceRange', category: 'measure', name: 'محدوده‌ی قیمت', en: 'Price Range', place: 2 },
-  { id: 'dateRange', category: 'measure', name: 'محدوده‌ی زمان', en: 'Date Range', place: 2 },
-  { id: 'datePriceRange', category: 'measure', name: 'زمان و قیمت', en: 'Date and Price Range', place: 2 },
-  { id: 'brush', category: 'shapes', name: 'قلم', en: 'Brush', place: 'brush' },
-  { id: 'highlighter', category: 'shapes', name: 'ماژیک', en: 'Highlighter', place: 'brush' },
-  { id: 'arrow', category: 'shapes', name: 'فلش', en: 'Arrow', place: 2 },
-  { id: 'arrowUp', category: 'shapes', name: 'علامت بالا', en: 'Arrow Marker Up', place: 1 },
-  { id: 'arrowDown', category: 'shapes', name: 'علامت پایین', en: 'Arrow Marker Down', place: 1 },
-  { id: 'rectangle', category: 'shapes', name: 'مستطیل', en: 'Rectangle', place: 2 },
-  { id: 'circle', category: 'shapes', name: 'دایره', en: 'Circle', place: 2 },
-  { id: 'ellipse', category: 'shapes', name: 'بیضی', en: 'Ellipse', place: 2 },
-  { id: 'triangle', category: 'shapes', name: 'مثلث', en: 'Triangle', place: 3 },
-  { id: 'path', category: 'shapes', name: 'مسیر', en: 'Path', place: 'multi' },
-  { id: 'polyline', category: 'shapes', name: 'چندخطی', en: 'Polyline', place: 'multi' },
-  { id: 'text', category: 'notes', name: 'متن', en: 'Text', place: 1, text: true },
-  { id: 'note', category: 'notes', name: 'یادداشت', en: 'Note', place: 1, text: true },
-  { id: 'callout', category: 'notes', name: 'کال‌اوت', en: 'Callout', place: 1, text: true },
-  { id: 'priceLabel', category: 'notes', name: 'برچسب قیمت', en: 'Price Label', place: 1 },
-  { id: 'flag', category: 'notes', name: 'پرچم', en: 'Flag Mark', place: 1 },
+  { id: 'trend', category: 'lines', name: 'خط روند', en: 'Trend Line', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'ray', category: 'lines', name: 'پرتو', en: 'Ray', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'info', category: 'lines', name: 'خط اطلاعات', en: 'Info Line', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'extended', category: 'lines', name: 'خط ممتد', en: 'Extended Line', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'angle', category: 'lines', name: 'زاویه‌ی روند', en: 'Trend Angle', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'hline', category: 'lines', name: 'خط افقی', en: 'Horizontal Line', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'hray', category: 'lines', name: 'پرتو افقی', en: 'Horizontal Ray', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'vline', category: 'lines', name: 'خط عمودی', en: 'Vertical Line', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'cross', category: 'lines', name: 'خط متقاطع', en: 'Cross Line', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'channel', category: 'lines', name: 'کانال موازی', en: 'Parallel Channel', place: 3 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'pitchfork', category: 'lines', name: 'چنگال اندروز', en: 'Pitchfork', place: 3 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'fibRetracement', category: 'fib', name: 'فیبوناچی اصلاحی', en: 'Fib Retracement', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'fibExtension', category: 'fib', name: 'اکستنشن فیبوناچی', en: 'Trend-Based Fib Extension', place: 3 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'fibTimeZone', category: 'fib', name: 'زون زمانی فیبوناچی', en: 'Fib Time Zone', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'gannFan', category: 'fib', name: 'فن گن', en: 'Gann Fan', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'xabcd', category: 'patterns', name: 'الگوی XABCD', en: 'XABCD Pattern', place: 5, labels: ['X', 'A', 'B', 'C', 'D'] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'abcd', category: 'patterns', name: 'الگوی ABCD', en: 'ABCD Pattern', place: 4, labels: ['A', 'B', 'C', 'D'] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'headShoulders', category: 'patterns', name: 'سر و شانه', en: 'Head and Shoulders', place: 7, labels: ['', 'شانه', '', 'سر', '', 'شانه', ''] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'trianglePattern', category: 'patterns', name: 'الگوی مثلث', en: 'Triangle Pattern', place: 4, labels: ['A', 'B', 'C', 'D'] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'elliottImpulse', category: 'patterns', name: 'موج ضربه‌ای الیوت', en: 'Elliott Impulse Wave', place: 6, labels: ['0', '1', '2', '3', '4', '5'] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'elliottCorrection', category: 'patterns', name: 'موج اصلاحی الیوت', en: 'Elliott Correction Wave', place: 4, labels: ['0', 'A', 'B', 'C'] }, // i18n-ignore: translated where shown (toolName)
+  { id: 'longPosition', category: 'measure', name: 'پوزیشن خرید', en: 'Long Position', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'shortPosition', category: 'measure', name: 'پوزیشن فروش', en: 'Short Position', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'priceRange', category: 'measure', name: 'محدوده‌ی قیمت', en: 'Price Range', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'dateRange', category: 'measure', name: 'محدوده‌ی زمان', en: 'Date Range', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'datePriceRange', category: 'measure', name: 'زمان و قیمت', en: 'Date and Price Range', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'brush', category: 'shapes', name: 'قلم', en: 'Brush', place: 'brush' }, // i18n-ignore: translated where shown (toolName)
+  { id: 'highlighter', category: 'shapes', name: 'ماژیک', en: 'Highlighter', place: 'brush' }, // i18n-ignore: translated where shown (toolName)
+  { id: 'arrow', category: 'shapes', name: 'فلش', en: 'Arrow', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'arrowUp', category: 'shapes', name: 'علامت بالا', en: 'Arrow Marker Up', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'arrowDown', category: 'shapes', name: 'علامت پایین', en: 'Arrow Marker Down', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'rectangle', category: 'shapes', name: 'مستطیل', en: 'Rectangle', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'circle', category: 'shapes', name: 'دایره', en: 'Circle', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'ellipse', category: 'shapes', name: 'بیضی', en: 'Ellipse', place: 2 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'triangle', category: 'shapes', name: 'مثلث', en: 'Triangle', place: 3 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'path', category: 'shapes', name: 'مسیر', en: 'Path', place: 'multi' }, // i18n-ignore: translated where shown (toolName)
+  { id: 'polyline', category: 'shapes', name: 'چندخطی', en: 'Polyline', place: 'multi' }, // i18n-ignore: translated where shown (toolName)
+  { id: 'text', category: 'notes', name: 'متن', en: 'Text', place: 1, text: true }, // i18n-ignore: translated where shown (toolName)
+  { id: 'note', category: 'notes', name: 'یادداشت', en: 'Note', place: 1, text: true }, // i18n-ignore: translated where shown (toolName)
+  { id: 'callout', category: 'notes', name: 'کال‌اوت', en: 'Callout', place: 1, text: true }, // i18n-ignore: translated where shown (toolName)
+  { id: 'priceLabel', category: 'notes', name: 'برچسب قیمت', en: 'Price Label', place: 1 }, // i18n-ignore: translated where shown (toolName)
+  { id: 'flag', category: 'notes', name: 'پرچم', en: 'Flag Mark', place: 1 }, // i18n-ignore: translated where shown (toolName)
 ];
+
+/** A tool's name in the app's language. */
+export function toolName(def: ToolDef): string {
+  return isEn() ? def.en : def.name;
+}
+
+/** A tool category's name in the app's language. */
+export function categoryLabel(id: ToolCategory): string {
+  const label = TOOL_CATEGORIES.find((c) => c.id === id)?.label;
+  return label ? t(label) : id;
+}
 
 export function findTool(id: string): ToolDef | undefined {
   return TOOLS.find((t) => t.id === id);
@@ -274,7 +287,10 @@ export function distToSegment(px: number, py: number, x1: number, y1: number, x2
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 const pctText = (from: number, to: number) => `${to >= from ? '+' : ''}${round2(((to - from) / from) * 100)}%`;
-const barsText = (n: number) => `${Math.round(Math.abs(n))} کندل`;
+const barsText = (n: number) => {
+  const bars = Math.round(Math.abs(n));
+  return t('{n} کندل', { n: bars, count: bars });
+};
 
 /** Default stop and target of a long/short position tool: one and two stop distances. */
 export function positionLevels(long: boolean, entry: number, stopDistance: number): { tp: number; sl: number } {
@@ -482,7 +498,7 @@ export function drawingShapes(d: Drawing, m: DrawMap): Shape[] {
         const label = def.labels?.[i];
         if (!label) return;
         const up = i === 0 ? q.y < (P[1]?.y ?? q.y) : q.y < P[i - 1].y;
-        out.push({ kind: 'label', x: q.x, y: up ? q.y - 20 : q.y + 4, text: label, align: 'center', box: true, size: 11 });
+        out.push({ kind: 'label', x: q.x, y: up ? q.y - 20 : q.y + 4, text: t(label), align: 'center', box: true, size: 11 });
       });
       break;
     }
@@ -490,7 +506,7 @@ export function drawingShapes(d: Drawing, m: DrawMap): Shape[] {
     case 'shortPosition':
       if (b && c) {
         const long = d.tool === 'longPosition';
-        const [e, t, s] = d.points;
+        const [e, tg, s] = d.points;
         const x0 = a.x;
         const x1 = Math.max(b.x, x0 + 30);
         const ye = a.y;
@@ -499,14 +515,14 @@ export function drawingShapes(d: Drawing, m: DrawMap): Shape[] {
         out.push({ kind: 'rect', x: x0, y: Math.min(ye, yt), w: x1 - x0, h: Math.abs(yt - ye), fillOpacity: 0.2, color: '#2BD47D' });
         out.push({ kind: 'rect', x: x0, y: Math.min(ye, ys), w: x1 - x0, h: Math.abs(ys - ye), fillOpacity: 0.2, color: '#FF5A6E' });
         line({ x: x0, y: ye }, { x: x1, y: ye }, { width: 1.4, color: '#F1F4F9' });
-        const reward = Math.abs(t.p - e.p);
+        const reward = Math.abs(tg.p - e.p);
         const risk = Math.abs(e.p - s.p);
         const rr = risk ? round2(reward / risk) : 0;
         // Target and stop read just outside the box, centred on the part of it in view.
         const mid = (Math.max(0, x0) + Math.min(m.right, x1)) / 2;
-        out.push({ kind: 'label', x: mid, y: yt + (yt < ye ? -19 : 3), align: 'center', mono: true, size: 10, box: true, color: '#2BD47D', text: `${m.fmt(t.p)} (${pctText(e.p, t.p)})  R:R ${rr}` });
+        out.push({ kind: 'label', x: mid, y: yt + (yt < ye ? -19 : 3), align: 'center', mono: true, size: 10, box: true, color: '#2BD47D', text: `${m.fmt(tg.p)} (${pctText(e.p, tg.p)})  R:R ${rr}` });
         out.push({ kind: 'label', x: mid, y: ys + (ys < ye ? -19 : 3), align: 'center', mono: true, size: 10, box: true, color: '#FF5A6E', text: `${m.fmt(s.p)} (${pctText(e.p, s.p)})` });
-        out.push({ kind: 'label', x: x0 + 3, y: ye + (yt < ye ? 3 : -17), mono: true, size: 10, text: `${long ? 'خرید' : 'فروش'} ${m.fmt(e.p)}` });
+        out.push({ kind: 'label', x: x0 + 3, y: ye + (yt < ye ? 3 : -17), mono: true, size: 10, text: `${long ? t('خرید') : t('فروش')} ${m.fmt(e.p)}` });
       }
       break;
     case 'priceRange':
@@ -558,15 +574,15 @@ export function drawingShapes(d: Drawing, m: DrawMap): Shape[] {
       out.push({ kind: 'poly', points: P.map((q) => [q.x, q.y]), width: 2, arrow: d.tool === 'path' && P.length > 1 });
       break;
     case 'text':
-      out.push({ kind: 'label', x: a.x, y: a.y - 10, text: d.text || 'متن', size: 14 });
+      out.push({ kind: 'label', x: a.x, y: a.y - 10, text: d.text || t('متن'), size: 14 });
       break;
     case 'note':
       out.push({ kind: 'marker', x: a.x, y: a.y, marker: 'pin' });
-      out.push({ kind: 'label', x: a.x, y: a.y - 44, text: d.text || 'یادداشت', align: 'center', box: true, size: 12 });
+      out.push({ kind: 'label', x: a.x, y: a.y - 44, text: d.text || t('یادداشت'), align: 'center', box: true, size: 12 });
       break;
     case 'callout':
       line(a, { x: a.x + 24, y: a.y - 24 });
-      out.push({ kind: 'label', x: a.x + 24, y: a.y - 44, text: d.text || 'کال‌اوت', box: true, size: 12 });
+      out.push({ kind: 'label', x: a.x + 24, y: a.y - 44, text: d.text || t('کال‌اوت'), box: true, size: 12 });
       break;
     case 'priceLabel':
       line(a, { x: a.x + 18, y: a.y - 18 });
@@ -702,14 +718,13 @@ export function fitsBudget(all: Record<string, Drawing[]>, symbol: string, next:
 
 /** What to do next while placing a tool, e.g. "tap point 2 of 3". */
 export function placeHint(def: ToolDef, placed: number): string {
-  const fa = (n: number) => String(n).replace(/\d/g, (ch) => '۰۱۲۳۴۵۶۷۸۹'[Number(ch)]);
-  if (def.place === 'brush') return 'انگشتت رو روی نمودار بکش';
-  if (def.place === 'multi') return placed === 0 ? 'نقطه‌ی اول رو بزن' : 'نقطه‌ی بعدی رو بزن؛ آخرش «تمام»';
-  if (def.place === 1) return 'جای رسم رو روی نمودار بزن';
+  if (def.place === 'brush') return t('انگشتت رو روی نمودار بکش');
+  if (def.place === 'multi') return placed === 0 ? t('نقطه‌ی اول رو بزن') : t('نقطه‌ی بعدی رو بزن؛ آخرش «تمام»');
+  if (def.place === 1) return t('جای رسم رو روی نمودار بزن');
   const label = def.labels?.[placed];
-  if (label && /^[A-Z0-9]$/.test(label)) return `نقطه‌ی ${label} رو بزن (${fa(placed + 1)} از ${fa(def.place)})`;
-  if (placed === 0 && def.place === 2) return 'نقطه‌ی اول رو بزن، یا از اول تا آخر بکش';
-  return `نقطه‌ی ${fa(placed + 1)} از ${fa(def.place)} رو بزن`;
+  if (label && /^[A-Z0-9]$/.test(label)) return t('نقطه‌ی {label} رو بزن ({n} از {total})', { label, n: fa(placed + 1), total: fa(def.place) });
+  if (placed === 0 && def.place === 2) return t('نقطه‌ی اول رو بزن، یا از اول تا آخر بکش');
+  return t('نقطه‌ی {n} از {total} رو بزن', { n: fa(placed + 1), total: fa(def.place) });
 }
 
 let counter = 0;

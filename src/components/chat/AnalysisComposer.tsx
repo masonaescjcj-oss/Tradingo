@@ -6,9 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { ProChart, type ProLine } from '@/components/sim/ProChart';
+import { entryText } from '@/components/sim/text';
 import { Row, Segment, Stepper, Toggle } from '@/components/sim/ui';
 import { seedSeries, useFeedSnapshot, type Series } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import { buildChart, chatErrorText, MAX_MESSAGE, messageProblem, type ChatMessage } from '@/lib/chat';
 import { chatAvailable, loadRooms, sendMessage, useChat } from '@/lib/chatApi';
 import { useCloud } from '@/lib/cloud';
@@ -98,8 +100,8 @@ export function AnalysisComposer({
 
   useEffect(() => {
     if (!visible) return;
-    const t = setTimeout(() => check(), 0);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => check(), 0);
+    return () => clearTimeout(timer);
   }, [visible]);
 
   const pickSymbol = (id: string) => {
@@ -117,20 +119,20 @@ export function AnalysisComposer({
       ? null
       : useSl && (lv.sl - lv.entry) * dir >= 0
         ? side === 'buy'
-          ? 'حد ضرر خرید باید پایین‌تر از ورود باشه.'
-          : 'حد ضرر فروش باید بالاتر از ورود باشه.'
+          ? t('حد ضرر خرید باید پایین‌تر از ورود باشه.')
+          : t('حد ضرر فروش باید بالاتر از ورود باشه.')
         : useTp && (lv.tp - lv.entry) * dir <= 0
           ? side === 'buy'
-            ? 'حد سود خرید باید بالاتر از ورود باشه.'
-            : 'حد سود فروش باید پایین‌تر از ورود باشه.'
+            ? t('حد سود خرید باید بالاتر از ورود باشه.')
+            : t('حد سود فروش باید پایین‌تر از ورود باشه.')
           : null;
   const rr = directional && useSl && useTp && !problem ? Math.abs(lv.tp - lv.entry) / Math.abs(lv.entry - lv.sl) : null;
 
-  const lines: ProLine[] = mine.map((p) => ({ price: p, label: 'سطح', color: colors.gold, ink: colors.goldInk }));
+  const lines: ProLine[] = mine.map((p) => ({ price: p, label: t('سطح'), color: colors.gold, ink: colors.goldInk }));
   if (directional) {
-    if (useTp) lines.push({ price: lv.tp, label: 'حد سود', color: colors.bull, ink: colors.bullInk });
-    lines.push({ price: lv.entry, label: side === 'buy' ? 'ورود خرید' : 'ورود فروش', color: colors.text2, ink: colors.bg, solid: true });
-    if (useSl) lines.push({ price: lv.sl, label: 'حد ضرر', color: colors.bear, ink: colors.bearInk });
+    if (useTp) lines.push({ price: lv.tp, label: t('حد سود'), color: colors.bull, ink: colors.bullInk });
+    lines.push({ price: lv.entry, label: side === 'buy' ? t('ورود خرید') : t('ورود فروش'), color: colors.text2, ink: colors.bg, solid: true });
+    if (useSl) lines.push({ price: lv.sl, label: t('حد ضرر'), color: colors.bear, ink: colors.bearInk });
   }
 
   const target = room ?? picked ?? rooms[0]?.id ?? null;
@@ -180,9 +182,9 @@ export function AnalysisComposer({
       <View style={[styles.screen, { paddingTop: Math.max(insets.top, 10) }]}>
         <View style={styles.top}>
           <Txt w={900} size={18} style={{ flex: 1 }}>
-            تحلیل جدید
+            {t('تحلیل جدید')}
           </Txt>
-          <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={8} style={styles.close}>
+          <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={8} style={styles.close}>
             <Icon name="close" size={22} color={colors.text} strokeWidth={2.6} />
           </Pressable>
         </View>
@@ -222,27 +224,27 @@ export function AnalysisComposer({
             {sentTo ? (
               <View style={{ gap: 12 }}>
                 <Txt w={900} size={16} color={colors.bullText}>
-                  تحلیلت فرستاده شد!
+                  {t('تحلیلت فرستاده شد!')}
                 </Txt>
                 <Button3D
-                  label="دیدن توی گروه"
+                  label={t('دیدن توی گروه')}
                   onPress={() => {
                     close();
                     router.push(`/chat/${sentTo}`);
                   }}
                 />
-                <Button3D label="بستن" variant="secondary" size={16} onPress={close} />
+                <Button3D label={t('بستن')} variant="secondary" size={16} onPress={close} />
               </View>
             ) : (
               <>
                 <Segment
-                  label="جهت تحلیل"
+                  label={t('جهت تحلیل')}
                   value={side}
                   onChange={pickSide}
                   options={[
-                    { value: 'buy', label: 'خرید' },
-                    { value: 'sell', label: 'فروش' },
-                    { value: 'none', label: 'فقط نظر' },
+                    { value: 'buy', label: t('خرید') },
+                    { value: 'sell', label: t('فروش') },
+                    { value: 'none', label: t('فقط نظر') },
                   ]}
                 />
 
@@ -250,15 +252,15 @@ export function AnalysisComposer({
                   <View style={styles.levels}>
                     <Row>
                       <Txt w={800} size={14}>
-                        ورود
+                        {entryText()}
                       </Txt>
-                      <Stepper label="قیمت ورود" value={fmt(lv.entry)} onMinus={() => nudge('entry', -1)} onPlus={() => nudge('entry', 1)} />
+                      <Stepper label={t('قیمت ورود')} value={fmt(lv.entry)} onMinus={() => nudge('entry', -1)} onPlus={() => nudge('entry', 1)} />
                     </Row>
-                    <LevelRow label="حد ضرر" tone={colors.bearText} on={useSl} onToggle={() => setUseSl((v) => !v)} value={fmt(lv.sl)} onMinus={() => nudge('sl', -1)} onPlus={() => nudge('sl', 1)} />
-                    <LevelRow label="حد سود" tone={colors.bullText} on={useTp} onToggle={() => setUseTp((v) => !v)} value={fmt(lv.tp)} onMinus={() => nudge('tp', -1)} onPlus={() => nudge('tp', 1)} />
+                    <LevelRow label={t('حد ضرر')} tone={colors.bearText} on={useSl} onToggle={() => setUseSl((v) => !v)} value={fmt(lv.sl)} onMinus={() => nudge('sl', -1)} onPlus={() => nudge('sl', 1)} />
+                    <LevelRow label={t('حد سود')} tone={colors.bullText} on={useTp} onToggle={() => setUseTp((v) => !v)} value={fmt(lv.tp)} onMinus={() => nudge('tp', -1)} onPlus={() => nudge('tp', 1)} />
                     {rr != null ? (
                       <Txt w={800} size={12.5} color={colors.gold}>
-                        {`ریسک به ریوارد: ۱ به ${fa(rr.toFixed(1))}`}
+                        {t('ریسک به ریوارد: ۱ به {n}', { n: fa(rr.toFixed(1)) })}
                       </Txt>
                     ) : null}
                     {problem ? (
@@ -275,22 +277,22 @@ export function AnalysisComposer({
                     setNote(v);
                     if (error) setError(null);
                   }}
-                  placeholder="تحلیلت رو بنویس: چرا این جهت؟ کجا اشتباه از آب درمیاد؟"
+                  placeholder={t('تحلیلت رو بنویس: چرا این جهت؟ کجا اشتباه از آب درمیاد؟')}
                   placeholderTextColor={colors.faint}
                   multiline
                   numberOfLines={3}
                   maxLength={MAX_MESSAGE}
-                  style={styles.note}
+                  style={[styles.note, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
                 />
 
                 {!room && signedIn && available ? (
                   <View style={{ gap: 8 }}>
                     <Txt w={800} size={13.5} color={colors.text2}>
-                      کدوم گروه؟
+                      {t('کدوم گروه؟')}
                     </Txt>
                     {rooms.length === 0 ? (
                       <Txt size={13.5} lh={1.8} color={colors.text3}>
-                        هنوز عضو هیچ گروهی نیستی. از تب «گفتگو» توی یه گروه عضو شو.
+                        {t('هنوز عضو هیچ گروهی نیستی. از تب «گفتگو» توی یه گروه عضو شو.')}
                       </Txt>
                     ) : (
                       <View style={styles.rooms}>
@@ -320,11 +322,11 @@ export function AnalysisComposer({
 
                 {available === false ? (
                   <Txt size={14} lh={1.8} color={colors.text2}>
-                    گفتگوها هنوز روی سرور فعال نشدن یا الان به سرور وصل نیستیم.
+                    {t('گفتگوها هنوز روی سرور فعال نشدن یا الان به سرور وصل نیستیم.')}
                   </Txt>
                 ) : !signedIn ? (
                   <Button3D
-                    label={user ? 'برای فرستادن، حسابت رو به سرور وصل کن' : 'برای فرستادن، وارد حسابت شو'}
+                    label={user ? t('برای فرستادن، حسابت رو به سرور وصل کن') : t('برای فرستادن، وارد حسابت شو')}
                     size={16}
                     onPress={() => {
                       close();
@@ -332,7 +334,7 @@ export function AnalysisComposer({
                     }}
                   />
                 ) : (
-                  <Button3D label={busy ? 'چند لحظه…' : 'فرستادن تحلیل'} variant={target ? 'primary' : 'disabled'} onPress={send} />
+                  <Button3D label={busy ? t('چند لحظه…') : t('فرستادن تحلیل')} variant={target ? 'primary' : 'disabled'} onPress={send} />
                 )}
               </>
             )}
@@ -372,7 +374,7 @@ function LevelRow({
         <Stepper label={label} value={value} onMinus={onMinus} onPlus={onPlus} />
       ) : (
         <Txt w={700} size={12} color={colors.text3}>
-          بدون {label}
+          {t('بدون {label}', { label })}
         </Txt>
       )}
     </Row>
@@ -450,8 +452,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 15,
-    textAlign: 'right',
-    writingDirection: 'rtl',
     textAlignVertical: 'top',
   },
   rooms: {

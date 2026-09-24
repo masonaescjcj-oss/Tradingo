@@ -5,6 +5,7 @@ import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { REPLAY_SPEEDS, REPLAY_TOTAL, replayFinished, replayView } from '@/lib/replay';
 import { findSymbol, type SymbolSpec } from '@/lib/simulator';
 import { emptyAccount, summarize, type ClosedTrade, type PlaceError, type TradeEvent } from '@/lib/trading';
@@ -80,13 +81,13 @@ export function ReplayView({
       <>
         <Card>
           <Txt w={900} size={18}>
-            بازپخش بازار
+            {t('بازپخش بازار')}
           </Txt>
           <Txt size={13.5} lh={1.85} color={colors.text2}>
-            یه تاریخچه‌ی قیمت ساخته می‌شه و نمودار یه جای تصادفی ازش متوقف می‌شه. آینده رو نمی‌بینی؛ کندل به کندل جلو می‌ری، تحلیل می‌کنی و معامله می‌کنی. نتیجه‌ها توی یه حساب جدا ثبت می‌شه و به موجودی شبیه‌ساز زنده کاری نداره.
+            {t('یه تاریخچه‌ی قیمت ساخته می‌شه و نمودار یه جای تصادفی ازش متوقف می‌شه. آینده رو نمی‌بینی؛ کندل به کندل جلو می‌ری، تحلیل می‌کنی و معامله می‌کنی. نتیجه‌ها توی یه حساب جدا ثبت می‌شه و به موجودی شبیه‌ساز زنده کاری نداره.')}
           </Txt>
           <Txt w={800} size={13.5} color={colors.text2}>
-            نماد رو انتخاب کن
+            {t('نماد رو انتخاب کن')}
           </Txt>
           <View style={styles.symbols}>
             {specs.map((s) => (
@@ -103,10 +104,10 @@ export function ReplayView({
               </Pressable>
             ))}
           </View>
-          <Button3D label="شروع بازپخش" onPress={() => start(symbolId)} />
+          <Button3D label={t('شروع بازپخش')} onPress={() => start(symbolId)} />
         </Card>
-        <Hint>بازپخش جای خوبیه برای تمرین سفارش‌های لیمیت و استاپ و حد ضرر، بدون اینکه منتظر بازار بمونی. قیمت‌ها ساختگی‌ان ولی رفتارشون شبیه بازار واقعیه: روند، رنج و نوسان.</Hint>
-        <HistoryList book="replay" history={account.history} limit={5} title="معامله‌های بازپخش" />
+        <Hint>{t('بازپخش جای خوبیه برای تمرین سفارش‌های لیمیت و استاپ و حد ضرر، بدون اینکه منتظر بازار بمونی. قیمت‌ها ساختگی‌ان ولی رفتارشون شبیه بازار واقعیه: روند، رنج و نوسان.')}</Hint>
+        <HistoryList book="replay" history={account.history} limit={5} title={t('معامله‌های بازپخش')} />
       </>
     );
   }
@@ -117,15 +118,15 @@ export function ReplayView({
   const played = session.cursor - session.start;
   const total = REPLAY_TOTAL - session.start;
   const sessionResult = summary.equity - session.startBalance;
-  const onClosed = (t: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade: t }));
+  const onClosed = (trade: ClosedTrade) => onNotice(eventNotice({ kind: 'closed', trade }));
   const onResult = (r: { error?: PlaceError; event?: TradeEvent }) =>
-    onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: 'ثبت شد', tone: 'sky' });
+    onNotice(r.error ? { text: placeErrorText(r.error), tone: 'bear' } : r.event ? eventNotice(r.event) : { text: t('ثبت شد'), tone: 'sky' });
 
   const badge = (
     <View style={styles.badge}>
       <Icon name="clock" size={12} color={colors.gold} strokeWidth={2.6} />
       <Txt w={800} size={11} color={colors.gold}>
-        بازپخش
+        {t('بازپخش')}
       </Txt>
     </View>
   );
@@ -134,39 +135,39 @@ export function ReplayView({
     <Card>
       <Row>
         <Txt w={800} size={13.5}>
-          {`کندل ${fa(played)} از ${fa(total)}`}
+          {t('کندل {n} از {total}', { n: fa(played), total: fa(total) })}
         </Txt>
         <View style={styles.result}>
           <Txt w={700} size={11.5} color={colors.text2}>
-            این بازپخش
+            {t('این بازپخش')}
           </Txt>
           <Txt mono w={800} size={13} color={pnlColor(sessionResult)}>
             {usd(sessionResult, true)}
           </Txt>
         </View>
       </Row>
-      <ProgressBar value={played / total} height={10} color={colors.gold} label="پیشرفت بازپخش" />
+      <ProgressBar value={played / total} height={10} color={colors.gold} label={t('پیشرفت بازپخش')} />
       {finished ? (
         <>
           <Txt w={800} size={14} lh={1.8} color={colors.gold}>
-            {`بازپخش تموم شد! نتیجه: ${ltr(usd(sessionResult, true))}. معامله‌های باز با آخرین قیمت بسته می‌شن.`}
+            {t('بازپخش تموم شد! نتیجه: {result}. معامله‌های باز با آخرین قیمت بسته می‌شن.', { result: ltr(usd(sessionResult, true)) })}
           </Txt>
           <Button3D
-            label="بازپخش جدید"
+            label={t('بازپخش جدید')}
             onPress={() => start(spec.id)}
           />
         </>
       ) : (
         <>
           <View style={styles.controls}>
-            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(1)} accessibilityLabel="یک کندل جلو">
+            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(1)} accessibilityLabel={t('یک کندل جلو')}>
               <Txt w={900} size={14}>
-                +۱ کندل
+                {t('+۱ کندل')}
               </Txt>
             </Button3D>
-            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(10)} accessibilityLabel="ده کندل جلو">
+            <Button3D variant="secondary" height={44} radius={12} edge={4} style={{ flex: 1 }} onPress={() => step(10)} accessibilityLabel={t('ده کندل جلو')}>
               <Txt w={900} size={14}>
-                +۱۰ کندل
+                {t('+۱۰ کندل')}
               </Txt>
             </Button3D>
             <Button3D
@@ -176,27 +177,27 @@ export function ReplayView({
               edge={4}
               style={{ flex: 1.2 }}
               onPress={() => setPlaying((p) => !p)}
-              accessibilityLabel={playing ? 'توقف پخش' : 'پخش خودکار'}
+              accessibilityLabel={playing ? t('توقف پخش') : t('پخش خودکار')}
             >
               <View style={styles.playLabel}>
                 {playing ? <PauseGlyph /> : <Icon name="play" size={16} color={colors.bullInk} strokeWidth={2.6} />}
                 <Txt w={900} size={14} color={playing ? colors.goldInk : colors.bullInk}>
-                  {playing ? 'توقف' : 'پخش'}
+                  {playing ? t('توقف') : t('پخش')}
                 </Txt>
               </View>
             </Button3D>
           </View>
           <Row>
             <Txt w={800} size={13} color={colors.text2}>
-              سرعت پخش
+              {t('سرعت پخش')}
             </Txt>
             <View style={{ width: 170 }}>
               <Segment
-                label="سرعت پخش"
+                label={t('سرعت پخش')}
                 value={speed}
                 onChange={setSpeed}
                 small
-                options={REPLAY_SPEEDS.map((s) => ({ value: s, label: `${fa(s)}×`, hint: `${fa(s)} کندل در ثانیه` }))}
+                options={REPLAY_SPEEDS.map((s) => ({ value: s, label: `${fa(s)}×`, hint: t('{n} کندل در ثانیه', { n: fa(s), count: s }) }))}
               />
             </View>
           </Row>
@@ -221,7 +222,7 @@ export function ReplayView({
         viewport={viewport}
       />
 
-      <AccountBar summary={summary} startBalance={START_BALANCE} title="ارزش حساب بازپخش" onInfo={onInfo} />
+      <AccountBar summary={summary} startBalance={START_BALANCE} title={t('ارزش حساب بازپخش')} onInfo={onInfo} />
 
       {!finished && (
         <OrderTicket
@@ -236,11 +237,11 @@ export function ReplayView({
       )}
 
       <PositionsList book="replay" account={account} mids={mids} onClosed={onClosed} />
-      <HistoryList book="replay" history={account.history} limit={5} title="معامله‌های بازپخش" />
+      <HistoryList book="replay" history={account.history} limit={5} title={t('معامله‌های بازپخش')} />
 
       <Button3D
         variant="secondary"
-        label="پایان این بازپخش"
+        label={t('پایان این بازپخش')}
         height={44}
         size={15}
         onPress={() => {

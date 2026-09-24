@@ -21,6 +21,7 @@ import { TrueFalseQuestion } from '@/components/lesson/TrueFalseQuestion';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { isQuestion } from '@/content';
+import { t } from '@/i18n';
 import { sessionMilestone } from '@/lib/milestones';
 import { streakRepair } from '@/lib/progress';
 import type { QuestLog } from '@/lib/quests';
@@ -153,24 +154,28 @@ function LessonPlayer({ session }: { session: Session }) {
       title: isTest
         ? passed
           ? session.mode === 'master'
-            ? 'استاد این واحد شدی!'
-            : 'قبول شدی!'
-          : 'این بار نشد'
+            ? t('استاد این واحد شدی!')
+            : t('قبول شدی!')
+          : t('این بار نشد')
         : timeUp
-          ? 'وقت تموم شد!'
+          ? t('وقت تموم شد!')
           : isLesson
-            ? 'درس تموم شد!'
-            : 'تمرین تموم شد!',
+            ? t('درس تموم شد!')
+            : t('تمرین تموم شد!'),
       subtitle: isTest
         ? passed
           ? session.mode === 'master'
-            ? 'تاج این واحد مال تو شد و ۲۰ سکه جایزه گرفتی.'
-            : 'این واحد و واحدهای قبلش برات باز شدن.'
+            ? t('تاج این واحد مال تو شد و ۲۰ سکه جایزه گرفتی.')
+            : t('این واحد و واحدهای قبلش برات باز شدن.')
           : session.mode === 'master'
-            ? 'یه کم مرور کن و دوباره امتحان کن؛ آزمون استادی سخت‌تره.'
-            : 'اشکالی نداره؛ درس‌ها رو یکی‌یکی جلو برو و دوباره امتحان کن.'
+            ? t('یه کم مرور کن و دوباره امتحان کن؛ آزمون استادی سخت‌تره.')
+            : t('اشکالی نداره؛ درس‌ها رو یکی‌یکی جلو برو و دوباره امتحان کن.')
         : timeLimit
-          ? `${fa(correctCount.current)} جواب درست توی ${fa(timeLimit)} ثانیه`
+          ? t('{n} جواب درست توی {seconds} ثانیه', {
+              n: fa(correctCount.current),
+              seconds: fa(timeLimit),
+              count: correctCount.current,
+            })
           : isLesson
             ? `${session.title} · ${current.topic}`
             : session.title,
@@ -192,8 +197,8 @@ function LessonPlayer({ session }: { session: Session }) {
   // The speed round's clock only runs while a question is on screen.
   useEffect(() => {
     if (!timeLimit || phase !== 'answer') return;
-    const t = setInterval(() => setSecondsLeft((s) => (s ?? 0) - 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setSecondsLeft((s) => (s ?? 0) - 1), 1000);
+    return () => clearInterval(timer);
   }, [timeLimit, phase]);
 
   const timeUp = timeLimit != null && secondsLeft != null && secondsLeft <= 0;
@@ -299,9 +304,9 @@ function LessonPlayer({ session }: { session: Session }) {
       {step.type !== 'match' && (
         <View style={[styles.bottom, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           {step.type === 'learn' ? (
-            <Button3D label="فهمیدم، ادامه" onPress={continueLearn} />
+            <Button3D label={t('فهمیدم، ادامه')} onPress={continueLearn} />
           ) : (
-            <Button3D label="بررسی" disabled={answer === null || revealed} onPress={() => check(answer === true)} />
+            <Button3D label={t('بررسی')} disabled={answer === null || revealed} onPress={() => check(answer === true)} />
           )}
         </View>
       )}
@@ -323,14 +328,14 @@ function LessonPlayer({ session }: { session: Session }) {
           <View style={styles.dialog}>
             <Mascot mood="sad" size={96} />
             <Txt w={900} size={20} center>
-              مطمئنی می‌خوای بری؟
+              {t('مطمئنی می‌خوای بری؟')}
             </Txt>
             <Txt size={15} color={colors.text2} center>
-              {isLesson ? 'پیشرفت این درس ذخیره نمی‌شه.' : 'امتیاز این تمرین حساب نمی‌شه.'}
+              {isLesson ? t('پیشرفت این درس ذخیره نمی‌شه.') : t('امتیاز این تمرین حساب نمی‌شه.')}
             </Txt>
-            <Button3D label="ادامه می‌دم" onPress={() => setConfirmExit(false)} style={styles.dialogBtn} />
+            <Button3D label={t('ادامه می‌دم')} onPress={() => setConfirmExit(false)} style={styles.dialogBtn} />
             <Button3D
-              label="خروج"
+              label={t('خروج')}
               variant="secondary"
               size={17}
               onPress={() => {
@@ -348,21 +353,21 @@ function LessonPlayer({ session }: { session: Session }) {
           <View style={styles.dialog}>
             <Mascot mood="sad" size={96} />
             <Txt w={900} size={20} center>
-              قلب‌هات تموم شد!
+              {t('قلب‌هات تموم شد!')}
             </Txt>
             <Txt size={15} lh={1.8} color={colors.text2} center>
-              هر ۳۰ دقیقه یه قلب برمی‌گرده. می‌تونی با سکه پرشون کنی یا با تمرین کردن قلب بگیری.
+              {t('هر ۳۰ دقیقه یه قلب برمی‌گرده. می‌تونی با سکه پرشون کنی یا با تمرین کردن قلب بگیری.')}
             </Txt>
             <Button3D
-              label={`پر کردن قلب‌ها (${fa(HEART_REFILL_COST)} سکه)`}
+              label={t('پر کردن قلب‌ها ({n} سکه)', { n: fa(HEART_REFILL_COST), count: HEART_REFILL_COST })}
               variant="gold"
               size={16}
               disabled={coins < HEART_REFILL_COST}
               onPress={() => useGame.getState().refillHearts()}
               style={styles.dialogBtn}
             />
-            <Button3D label="تمرین کن و قلب بگیر" size={16} onPress={() => router.replace('/lesson/practice-mixed')} style={styles.dialogBtn} />
-            <Button3D label="خروج" variant="secondary" size={16} onPress={leave} style={styles.dialogBtn} />
+            <Button3D label={t('تمرین کن و قلب بگیر')} size={16} onPress={() => router.replace('/lesson/practice-mixed')} style={styles.dialogBtn} />
+            <Button3D label={t('خروج')} variant="secondary" size={16} onPress={leave} style={styles.dialogBtn} />
           </View>
         </View>
       </Modal>
@@ -376,12 +381,12 @@ function EmptySession() {
     <View style={[styles.screen, styles.empty, { paddingTop: Math.max(insets.top, 16) }]}>
       <Mascot mood="think" size={120} />
       <Txt w={900} size={19} center>
-        فعلاً سؤالی برای این تمرین نیست
+        {t('فعلاً سؤالی برای این تمرین نیست')}
       </Txt>
       <Txt size={15} lh={1.8} color={colors.text2} center>
-        چند تا درس رو تموم کن یا اول چند تا اشتباه داشته باش تا اینجا چیزی برای مرور باشه.
+        {t('چند تا درس رو تموم کن یا اول چند تا اشتباه داشته باش تا اینجا چیزی برای مرور باشه.')}
       </Txt>
-      <Button3D label="برگرد" onPress={leave} style={{ alignSelf: 'stretch' }} />
+      <Button3D label={t('برگرد')} onPress={leave} style={{ alignSelf: 'stretch' }} />
     </View>
   );
 }

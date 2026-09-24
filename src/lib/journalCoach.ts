@@ -3,6 +3,7 @@
  * money (no stop-loss, oversized risk, revenge trades, cutting winners early…) and the ones
  * worth keeping, each with the unit that teaches the fix. Pure: history in, advice out.
  */
+import { t } from '@/i18n';
 import { fa, usd } from '@/utils/format';
 
 import { findSymbol } from './simulator';
@@ -29,18 +30,19 @@ export const REVENGE_MS = 2 * 60_000;
 /** Share of the balance above which a single trade's risk is too big. */
 export const MAX_RISK_SHARE = 0.03;
 
-const pct = (x: number) => `${fa(Math.round(x * 100))}٪`;
-/** Dollars kept left-to-right inside Persian sentences. */
+const pct = (x: number) => t('{n}٪', { n: fa(Math.round(x * 100)) });
+/** Dollars kept left-to-right inside the sentences. */
 const money = (x: number, signed = false) => `\u2066${usd(x, signed)}\u2069`;
 const avg = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
 
-/** «۴۵ ثانیه»، «۳ دقیقه»، «۲ ساعت» or «۱ روز». */
+/** "45 seconds", "3 minutes", "2 hours" or "1 day", in the app's language. */
 export function faSpan(ms: number): string {
   const s = Math.max(1, Math.round(ms / 1000));
-  if (s < 60) return `${fa(s)} ثانیه`;
-  if (s < 3600) return `${fa(Math.round(s / 60))} دقیقه`;
-  if (s < 86_400) return `${fa(Math.round(s / 3600))} ساعت`;
-  return `${fa(Math.round(s / 86_400))} روز`;
+  const vars = (n: number) => ({ n: fa(n), count: n });
+  if (s < 60) return t('{n} ثانیه', vars(s));
+  if (s < 3600) return t('{n} دقیقه', vars(Math.round(s / 60)));
+  if (s < 86_400) return t('{n} ساعت', vars(Math.round(s / 3600)));
+  return t('{n} روز', vars(Math.round(s / 86_400)));
 }
 
 /** Most trades opened within any `windowMs` stretch. */
@@ -71,8 +73,11 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'liquidation',
       tone: 'warn',
       weight: 100,
-      title: 'لیکوئید شدی',
-      body: `${fa(liquidated)} معامله‌ت با لیکوئید بسته شد و کل وجه تضمینش از دست رفت. اهرم رو پایین بیار و حد ضرری بذار که قبل از قیمت لیکوئید فعال بشه.`,
+      title: t('لیکوئید شدی'),
+      body: t('{n} معامله‌ت با لیکوئید بسته شد و کل وجه تضمینش از دست رفت. اهرم رو پایین بیار و حد ضرری بذار که قبل از قیمت لیکوئید فعال بشه.', {
+        n: fa(liquidated),
+        count: liquidated,
+      }),
       unitId: 'leverage-u2',
     });
   }
@@ -84,12 +89,16 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'no-stops',
       tone: 'warn',
       weight: 90,
-      title: 'معامله بدون حد ضرر',
-      body: `${pct(noStop / count)} معامله‌هات (${fa(noStop)} از ${fa(count)}) حد ضرر نداشتن. بدون حد ضرر، یه حرکت بد می‌تونه سود چند معامله‌ی خوب رو پاک کنه. قبل از ورود، جای خروجت رو مشخص کن.`,
+      title: t('معامله بدون حد ضرر'),
+      body: t('{pct} معامله‌هات ({n} از {total}) حد ضرر نداشتن. بدون حد ضرر، یه حرکت بد می‌تونه سود چند معامله‌ی خوب رو پاک کنه. قبل از ورود، جای خروجت رو مشخص کن.', {
+        pct: pct(noStop / count),
+        n: fa(noStop),
+        total: fa(count),
+      }),
       unitId: 'orders-u1',
     });
   } else if (enough && noStop === 0) {
-    out.push({ id: 'all-stops', tone: 'good', weight: 20, title: 'همیشه حد ضرر داری', body: 'همه‌ی معامله‌هات حد ضرر داشتن. این مهم‌ترین عادت یه تریدره؛ نگهش دار.' });
+    out.push({ id: 'all-stops', tone: 'good', weight: 20, title: t('همیشه حد ضرر داری'), body: t('همه‌ی معامله‌هات حد ضرر داشتن. این مهم‌ترین عادت یه تریدره؛ نگهش دار.') });
   }
 
   // Risk per trade, against the balance before each trade.
@@ -103,8 +112,13 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'big-risk',
       tone: 'warn',
       weight: 85,
-      title: 'ریسک هر معامله زیاده',
-      body: `توی ${fa(oversized.length)} معامله بیشتر از ${pct(MAX_RISK_SHARE)} حسابت رو ریسک کردی (بیشترینش ${pct(Math.max(...oversized))}). حرفه‌ای‌ها معمولاً ۱ تا ۲ درصد ریسک می‌کنن تا چند ضرر پشت سر هم حساب رو از پا درنیاره.`,
+      title: t('ریسک هر معامله زیاده'),
+      body: t('توی {n} معامله بیشتر از {limit} حسابت رو ریسک کردی (بیشترینش {max}). حرفه‌ای‌ها معمولاً ۱ تا ۲ درصد ریسک می‌کنن تا چند ضرر پشت سر هم حساب رو از پا درنیاره.', {
+        n: fa(oversized.length),
+        count: oversized.length,
+        limit: pct(MAX_RISK_SHARE),
+        max: pct(Math.max(...oversized)),
+      }),
       unitId: 'risk',
     });
   }
@@ -119,8 +133,14 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
         id: 'leverage',
         tone: 'warn',
         weight: 80,
-        title: 'اهرم خیلی بالا',
-        body: `میانگین اهرمت ${fa(Math.round(mean))}x بوده${top >= 50 ? ` و تا ${fa(top)}x هم رفتی` : ''}. با اهرم بالا، یه حرکت کوچیک خلاف جهت کافیه تا بخش بزرگی از حساب بره یا لیکوئید بشی.`,
+        title: t('اهرم خیلی بالا'),
+        body:
+          top >= 50
+            ? t('میانگین اهرمت {mean}x بوده و تا {top}x هم رفتی. با اهرم بالا، یه حرکت کوچیک خلاف جهت کافیه تا بخش بزرگی از حساب بره یا لیکوئید بشی.', {
+                mean: fa(Math.round(mean)),
+                top: fa(top),
+              })
+            : t('میانگین اهرمت {mean}x بوده. با اهرم بالا، یه حرکت کوچیک خلاف جهت کافیه تا بخش بزرگی از حساب بره یا لیکوئید بشی.', { mean: fa(Math.round(mean)) }),
         unitId: 'leverage-u3',
       });
     }
@@ -133,8 +153,8 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'drawdown',
       tone: 'warn',
       weight: 65,
-      title: 'افت سرمایه‌ی سنگین',
-      body: `حسابت از سقفش ${pct(dd)} افت کرده. برای برگشتن به سقف حالا ${pct(dd / (1 - dd))} سود لازمه؛ ضرر رو باید کوچیک نگه داشت.`,
+      title: t('افت سرمایه‌ی سنگین'),
+      body: t('حسابت از سقفش {dd} افت کرده. برای برگشتن به سقف حالا {need} سود لازمه؛ ضرر رو باید کوچیک نگه داشت.', { dd: pct(dd), need: pct(dd / (1 - dd)) }),
       unitId: 'risk-u2',
     });
   }
@@ -150,12 +170,23 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
         id: 'payoff',
         tone: 'warn',
         weight: 75,
-        title: 'ضررهات از سودهات بزرگ‌ترن',
-        body: `میانگین ضررت ${money(avgLoss)} و میانگین سودت ${money(avgWin)}ه. با این نسبت باید دست‌کم ${pct(breakEven)} معامله‌هات سودده باشن تا سر به سر بشی؛ الان ${pct(winRate)}ه. حد سود رو حداقل دو برابر فاصله‌ی حد ضرر بذار.`,
+        title: t('ضررهات از سودهات بزرگ‌ترن'),
+        body: t('میانگین ضررت {loss} و میانگین سودت {win}ه. با این نسبت باید دست‌کم {breakEven} معامله‌هات سودده باشن تا سر به سر بشی؛ الان {winRate}ه. حد سود رو حداقل دو برابر فاصله‌ی حد ضرر بذار.', {
+          loss: money(avgLoss),
+          win: money(avgWin),
+          breakEven: pct(breakEven),
+          winRate: pct(winRate),
+        }),
         unitId: 'risk-u2',
       });
     } else if (avgWin >= avgLoss * 1.5) {
-      out.push({ id: 'good-payoff', tone: 'good', weight: 15, title: 'سودهات بزرگ‌تر از ضررهاتن', body: `میانگین سودت ${money(avgWin)} و میانگین ضررت ${money(avgLoss)}ه. با این نسبت، حتی با درصد برد متوسط هم سودده می‌مونی.` });
+      out.push({
+        id: 'good-payoff',
+        tone: 'good',
+        weight: 15,
+        title: t('سودهات بزرگ‌تر از ضررهاتن'),
+        body: t('میانگین سودت {win} و میانگین ضررت {loss}ه. با این نسبت، حتی با درصد برد متوسط هم سودده می‌مونی.', { win: money(avgWin), loss: money(avgLoss) }),
+      });
     }
   }
 
@@ -167,8 +198,11 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'revenge',
       tone: 'warn',
       weight: 70,
-      title: 'معامله‌ی انتقامی',
-      body: `${fa(revenge)} بار کمتر از دو دقیقه بعد از یه ضرر، دوباره وارد معامله شدی. ورود سریع بعد از ضرر معمولاً از روی عصبانیته، نه تحلیل. بعد از هر ضرر یه مکث کوتاه بکن و دوباره ستاپ رو چک کن.`,
+      title: t('معامله‌ی انتقامی'),
+      body: t('{n} بار کمتر از دو دقیقه بعد از یه ضرر، دوباره وارد معامله شدی. ورود سریع بعد از ضرر معمولاً از روی عصبانیته، نه تحلیل. بعد از هر ضرر یه مکث کوتاه بکن و دوباره ستاپ رو چک کن.', {
+        n: fa(revenge),
+        count: revenge,
+      }),
       unitId: 'psychology',
     });
   }
@@ -182,8 +216,11 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
         id: 'hold-losers',
         tone: 'tip',
         weight: 60,
-        title: 'ضرر رو نگه می‌داری، سود رو زود می‌بندی',
-        body: `معامله‌های ضررده‌ت به‌طور متوسط ${faSpan(lossSpan)} باز موندن ولی سودده‌ها فقط ${faSpan(winSpan)}. این همون سوگیری معروفه: امید به برگشت ضرر و ترس از پس دادن سود. بذار حد ضرر و حد سود تصمیم بگیرن.`,
+        title: t('ضرر رو نگه می‌داری، سود رو زود می‌بندی'),
+        body: t('معامله‌های ضررده‌ت به‌طور متوسط {loss} باز موندن ولی سودده‌ها فقط {win}. این همون سوگیری معروفه: امید به برگشت ضرر و ترس از پس دادن سود. بذار حد ضرر و حد سود تصمیم بگیرن.', {
+          loss: faSpan(lossSpan),
+          win: faSpan(winSpan),
+        }),
         unitId: 'psychology-u2',
       });
     }
@@ -196,8 +233,8 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'overtrading',
       tone: 'tip',
       weight: 55,
-      title: 'پرمعاملگی',
-      body: `یه بار توی یک ساعت ${fa(busiest)} معامله باز کردی. تعداد زیاد معامله معمولاً یعنی ورود بدون ستاپ مشخص و هزینه‌ی کارمزد بیشتر. برای خودت سقف معامله‌ی روزانه بذار.`,
+      title: t('پرمعاملگی'),
+      body: t('یه بار توی یک ساعت {n} معامله باز کردی. تعداد زیاد معامله معمولاً یعنی ورود بدون ستاپ مشخص و هزینه‌ی کارمزد بیشتر. برای خودت سقف معامله‌ی روزانه بذار.', { n: fa(busiest) }),
       unitId: 'psychology-u3',
     });
   }
@@ -209,13 +246,16 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
     const netLong = longs.reduce((s, t) => s + t.pnl, 0);
     const netShort = shorts.reduce((s, t) => s + t.pnl, 0);
     if (netLong * netShort < 0) {
-      const [good, bad, goodNet, badNet] = netLong > 0 ? ['خرید', 'فروش', netLong, netShort] : ['فروش', 'خرید', netShort, netLong];
+      const buysWin = netLong > 0;
+      const nets = { good: money(buysWin ? netLong : netShort, true), bad: money(buysWin ? netShort : netLong, true) };
       out.push({
         id: 'side',
         tone: 'tip',
         weight: 45,
-        title: `معامله‌های ${bad}ت ضررده‌ان`,
-        body: `معامله‌های ${good}ت ${money(goodNet, true)} سود دادن ولی ${bad}ها ${money(badNet, true)}. شاید خلاف روند وارد می‌شی؛ قبل از ${bad} روند تایم‌فریم بالاتر رو چک کن.`,
+        title: buysWin ? t('معامله‌های فروشت ضررده‌ان') : t('معامله‌های خریدت ضررده‌ان'),
+        body: buysWin
+          ? t('معامله‌های خریدت {good} سود دادن ولی فروشها {bad}. شاید خلاف روند وارد می‌شی؛ قبل از فروش روند تایم‌فریم بالاتر رو چک کن.', nets)
+          : t('معامله‌های فروشت {good} سود دادن ولی خریدها {bad}. شاید خلاف روند وارد می‌شی؛ قبل از خرید روند تایم‌فریم بالاتر رو چک کن.', nets),
         unitId: 'trend',
       });
     }
@@ -235,8 +275,13 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'symbols',
       tone: 'tip',
       weight: 40,
-      title: 'روی نماد بهترت تمرکز کن',
-      body: `بیشترین سودت از ${label(best[0])} بوده (${money(best[1].net, true)}) و بیشترین ضررت از ${label(worst[0])} (${money(worst[1].net, true)}). بازاری که بهتر می‌شناسی‌ش رو جدی‌تر بگیر.`,
+      title: t('روی نماد بهترت تمرکز کن'),
+      body: t('بیشترین سودت از {best} بوده ({bestNet}) و بیشترین ضررت از {worst} ({worstNet}). بازاری که بهتر می‌شناسی‌ش رو جدی‌تر بگیر.', {
+        best: label(best[0]),
+        bestNet: money(best[1].net, true),
+        worst: label(worst[0]),
+        worstNet: money(worst[1].net, true),
+      }),
       unitId: 'trading-system-u2',
     });
   }
@@ -248,8 +293,8 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
       id: 'notes',
       tone: 'tip',
       weight: 30,
-      title: 'برای معامله‌هات یادداشت بنویس',
-      body: `فقط ${fa(noted)} معامله از ${fa(count)} یادداشت داره. نوشتن دلیل ورود و حس‌وحالت، بهترین راه پیدا کردن اشتباه‌های تکراریه.`,
+      title: t('برای معامله‌هات یادداشت بنویس'),
+      body: t('فقط {n} معامله از {total} یادداشت داره. نوشتن دلیل ورود و حس‌وحالت، بهترین راه پیدا کردن اشتباه‌های تکراریه.', { n: fa(noted), total: fa(count), count: noted }),
       unitId: 'trading-system-u2',
     });
   }
@@ -260,7 +305,13 @@ export function coachInsights(historyNewestFirst: ClosedTrade[], endBalance: num
     const grossLoss = -losses.reduce((s, t) => s + t.pnl, 0);
     const pf = grossLoss > 0 ? grossWin / grossLoss : Infinity;
     if (pf >= 1.5 && wins.length / count >= 0.5) {
-      out.push({ id: 'strong', tone: 'good', weight: 25, title: 'عملکردت خوبه', body: `درصد بردت ${pct(wins.length / count)}ه و سودهات بیشتر از ضررهاتن. حالا همین قانون‌ها رو توی بازپخش بازار و چالش‌ها محک بزن.` });
+      out.push({
+        id: 'strong',
+        tone: 'good',
+        weight: 25,
+        title: t('عملکردت خوبه'),
+        body: t('درصد بردت {winRate}ه و سودهات بیشتر از ضررهاتن. حالا همین قانون‌ها رو توی بازپخش بازار و چالش‌ها محک بزن.', { winRate: pct(wins.length / count) }),
+      });
     }
   }
 

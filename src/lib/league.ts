@@ -1,36 +1,43 @@
+import { t } from '@/i18n';
 import { weekStart } from '@/utils/date';
 import { createRng, hashString, shuffle } from '@/utils/random';
 
 export const LEAGUES = [
-  { name: 'میگو', color: '#FF8A7A', ink: '#3A0E08' },
-  { name: 'خرچنگ', color: '#FF9433', ink: '#3A1C00' },
-  { name: 'دلفین', color: '#5AB0FF', ink: '#07233F' },
-  { name: 'کوسه', color: '#A78BFA', ink: '#1E1240' },
-  { name: 'نهنگ', color: '#FFC53D', ink: '#3B2A00' },
+  { name: 'میگو', color: '#FF8A7A', ink: '#3A0E08' }, // i18n-ignore: translated where shown (leagueName)
+  { name: 'خرچنگ', color: '#FF9433', ink: '#3A1C00' }, // i18n-ignore: translated where shown (leagueName)
+  { name: 'دلفین', color: '#5AB0FF', ink: '#07233F' }, // i18n-ignore: translated where shown (leagueName)
+  { name: 'کوسه', color: '#A78BFA', ink: '#1E1240' }, // i18n-ignore: translated where shown (leagueName)
+  { name: 'نهنگ', color: '#FFC53D', ink: '#3B2A00' }, // i18n-ignore: translated where shown (leagueName)
 ] as const;
+
+/** A league's name in the app's language (Shrimp, Crab, Dolphin, Shark, Whale). */
+export function leagueName(league: number): string {
+  const l = LEAGUES[league];
+  return l ? t(l.name) : '';
+}
 
 export const BOARD_SIZE = 15;
 export const PROMOTE_COUNT = 5;
 export const DEMOTE_COUNT = 3;
 
 const BOT_NAMES = [
-  'سارا م.',
+  'سارا م.', // i18n-ignore: translated when the board is built
   'NimaFX',
-  'مهسا',
-  'کیان',
-  'رضا ت.',
+  'مهسا', // i18n-ignore: translated when the board is built
+  'کیان', // i18n-ignore: translated when the board is built
+  'رضا ت.', // i18n-ignore: translated when the board is built
   'BTC_Hodl',
-  'نگار',
-  'امیر',
+  'نگار', // i18n-ignore: translated when the board is built
+  'امیر', // i18n-ignore: translated when the board is built
   'Pips_Queen',
-  'شیوا',
-  'بردیا',
+  'شیوا', // i18n-ignore: translated when the board is built
+  'بردیا', // i18n-ignore: translated when the board is built
   'Mehdi.trd',
-  'الناز',
-  'پویا',
+  'الناز', // i18n-ignore: translated when the board is built
+  'پویا', // i18n-ignore: translated when the board is built
   'Candle_Kid',
-  'فرزانه',
-  'آرمان',
+  'فرزانه', // i18n-ignore: translated when the board is built
+  'آرمان', // i18n-ignore: translated when the board is built
   'Zahra_FX',
 ];
 
@@ -84,7 +91,7 @@ export function buildBoard(
     const target = (60 + rng() * 1100) * scale;
     const pace = 0.7 + rng() * 0.8;
     const xp = Math.round(target * Math.pow(progress, pace));
-    return { name, xp, isUser: false, avatar: AVATAR_COLORS[hashString(name) % AVATAR_COLORS.length] };
+    return { name: t(name), xp, isUser: false, avatar: AVATAR_COLORS[hashString(name) % AVATAR_COLORS.length] };
   });
   for (const p of real) {
     rows.push({ name: p.name, xp: p.xp, isUser: false, isReal: true, avatar: AVATAR_COLORS[hashString(p.name) % AVATAR_COLORS.length] });

@@ -6,6 +6,7 @@ import { Hexagon } from '@/components/Hexagon';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { fetchLeagueBoard, useCloud } from '@/lib/cloud';
 import { BOARD_SIZE, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, buildBoard, weekEndsIn, weekProgress } from '@/lib/league';
 import { useGame } from '@/store/game';
@@ -59,23 +60,25 @@ export default function LeagueScreen() {
     <Screen>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.back}>
+          <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'))} accessibilityRole="button" accessibilityLabel={t('برگشت')} hitSlop={8} style={styles.back}>
             <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
           </Pressable>
           <Txt display size={32} style={{ lineHeight: 44 }}>
-            لیگ
+            {t('لیگ')}
           </Txt>
         </View>
         <View style={styles.timer}>
           <Icon name="clock" size={16} color={colors.gold} strokeWidth={2.6} />
           <Txt w={800} size={13} color={colors.gold}>
-            {ends.days > 0 ? `${fa(ends.days)} روز و ${fa(ends.hours)} ساعت مونده` : `${fa(ends.hours)} ساعت مونده`}
+            {ends.days > 0
+              ? t('{days} روز و {hours} ساعت مونده', { days: fa(ends.days), hours: fa(ends.hours) })
+              : t('{hours} ساعت مونده', { hours: fa(ends.hours) })}
           </Txt>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.tiers} accessibilityLabel="سطح‌های لیگ">
+        <View style={styles.tiers} accessibilityLabel={t('سطح‌های لیگ')}>
           {LEAGUES.map((l, i) => {
             const isCurrent = i === league;
             const reached = i <= league;
@@ -91,7 +94,7 @@ export default function LeagueScreen() {
                   )}
                 </Hexagon>
                 <Txt w={isCurrent ? 900 : 800} size={isCurrent ? 12 : 11} color={isCurrent ? l.color : reached ? colors.text2 : colors.muted}>
-                  {l.name}
+                  {t(l.name)}
                 </Txt>
               </View>
             );
@@ -100,16 +103,18 @@ export default function LeagueScreen() {
 
         <View style={{ alignItems: 'center', gap: 2 }}>
           <Txt display size={30} style={{ lineHeight: 42 }}>
-            {`لیگ ${current.name}`}
+            {t('لیگ {name}', { name: t(current.name) })}
           </Txt>
           <Txt size={14} color={colors.text2} center>
             {top
-              ? `لیگ آخری! ${fa(BOARD_SIZE - DEMOTE_COUNT)} نفر اول اینجا می‌مونن.`
-              : `${fa(PROMOTE_COUNT)} نفر اول به لیگ ${LEAGUES[league + 1].name} صعود می‌کنن`}
+              ? t('لیگ آخری! {n} نفر اول اینجا می‌مونن.', { n: fa(BOARD_SIZE - DEMOTE_COUNT) })
+              : t('{n} نفر اول به لیگ {league} صعود می‌کنن', { n: fa(PROMOTE_COUNT), league: t(LEAGUES[league + 1].name) })}
           </Txt>
           {lastChange && lastChange.change !== 0 && (
             <Txt w={800} size={13} color={lastChange.change > 0 ? colors.bullText : colors.bearText} center>
-              {lastChange.change > 0 ? `هفته‌ی قبل با رتبه‌ی ${fa(lastChange.rank)} صعود کردی!` : `هفته‌ی قبل با رتبه‌ی ${fa(lastChange.rank)} سقوط کردی.`}
+              {lastChange.change > 0
+                ? t('هفته‌ی قبل با رتبه‌ی {rank} صعود کردی!', { rank: fa(lastChange.rank) })
+                : t('هفته‌ی قبل با رتبه‌ی {rank} سقوط کردی.', { rank: fa(lastChange.rank) })}
             </Txt>
           )}
         </View>
@@ -139,20 +144,20 @@ export default function LeagueScreen() {
                     </Txt>
                   </View>
                   <Txt w={row.isUser ? 900 : 800} size={15} color={row.isUser ? colors.bullText : colors.text} style={{ flex: 1 }} numberOfLines={1}>
-                    {row.isUser ? `${row.name} (تو)` : row.name}
+                    {row.isUser ? t('{name} (تو)', { name: row.name }) : row.name}
                   </Txt>
                   <Txt w={800} size={14} color={row.isUser ? colors.bullText : colors.text2}>
                     {`${faNum(row.xp)} XP`}
                   </Txt>
                 </View>
-                {promoteLine && <ZoneLine label="منطقه‌ی صعود" color={colors.bull} line={colors.bullSheetLine} up />}
-                {demoteLine && <ZoneLine label="منطقه‌ی سقوط" color={colors.bearText} line={colors.bearSheetLine} />}
+                {promoteLine && <ZoneLine label={t('منطقه‌ی صعود')} color={colors.bull} line={colors.bullSheetLine} up />}
+                {demoteLine && <ZoneLine label={t('منطقه‌ی سقوط')} color={colors.bearText} line={colors.bearSheetLine} />}
               </View>
             );
           })}
         </View>
         <Txt size={12} color={colors.text3} center>
-          بقیه‌ی شرکت‌کننده‌های لیگ، تریدرهای شبیه‌سازی‌شده‌ان.
+          {t('بقیه‌ی شرکت‌کننده‌های لیگ، تریدرهای شبیه‌سازی‌شده‌ان.')}
         </Txt>
       </ScrollView>
     </Screen>

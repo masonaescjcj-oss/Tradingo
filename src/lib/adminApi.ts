@@ -4,6 +4,7 @@
  * whether to show the panel. Nobody becomes an admin from the app itself: the owner's email or
  * number is listed on the server, and other admins are made from the panel.
  */
+import { t } from '@/i18n';
 import { fa } from '@/utils/format';
 
 import { callRpc, serverVersion, sessionToken, type RpcResult } from './cloud';
@@ -167,10 +168,10 @@ export async function fetchAiReports(): Promise<RpcResult<AiReport[]>> {
 export const markAiReportDone = (id: number) => call<{ ok: boolean }>('tradingo_admin_ai_report_done', { p_report: id });
 
 export const AI_REPORT_REASON: Record<AiReport['reason'], string> = {
-  wrong: 'اشتباه یا گمراه‌کننده',
-  advice: 'توصیه‌ی خرید و فروش',
-  offensive: 'نامناسب یا توهین‌آمیز',
-  other: 'دلیل دیگه',
+  wrong: 'اشتباه یا گمراه‌کننده', // i18n-ignore: translated where shown
+  advice: 'توصیه‌ی خرید و فروش', // i18n-ignore: translated where shown
+  offensive: 'نامناسب یا توهین‌آمیز', // i18n-ignore: translated where shown
+  other: 'دلیل دیگه', // i18n-ignore: translated where shown
 };
 
 export type AiSettingsInput = { key: string; clearKey: boolean; provider: 'anthropic' | 'openai'; model: string; baseUrl: string; dailyLimit: number | null };
@@ -186,49 +187,51 @@ export const saveAiSettings = (s: AiSettingsInput) =>
   });
 
 const ERRORS: Record<string, string> = {
-  forbidden: 'این بخش فقط برای مدیرهاست.',
-  self: 'این کار رو روی حساب خودت نمی‌تونی انجام بدی.',
-  admin_target: 'اول باید دسترسی مدیریِ این حساب رو برداری.',
-  not_found: 'پیدا نشد؛ شاید قبلاً حذف شده.',
-  invalid_key: 'کلید درست به نظر نمی‌رسه (بین ۱۰ تا ۴۰۰ کاراکتر، بدون فاصله).',
-  invalid_model: 'اسم مدل درست نیست.',
-  invalid_base_url: 'آدرس API باید با https:// شروع بشه.',
-  openai_needs_model_and_url: 'برای سرویس سازگار با OpenAI، اسم مدل و آدرس API لازمه.',
-  invalid_limit: 'سقف روزانه باید بین ۱ تا ۱۰۰۰ باشه.',
-  invalid_provider: 'سرویس انتخاب‌شده درست نیست.',
-  official_room: 'گروه‌های رسمی حذف نمی‌شن؛ پیام‌هاشون رو مدیریت کن.',
-  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
-  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
+  forbidden: 'این بخش فقط برای مدیرهاست.', // i18n-ignore: translated where shown
+  self: 'این کار رو روی حساب خودت نمی‌تونی انجام بدی.', // i18n-ignore: translated where shown
+  admin_target: 'اول باید دسترسی مدیریِ این حساب رو برداری.', // i18n-ignore: translated where shown
+  not_found: 'پیدا نشد؛ شاید قبلاً حذف شده.', // i18n-ignore: translated where shown
+  invalid_key: 'کلید درست به نظر نمی‌رسه (بین ۱۰ تا ۴۰۰ کاراکتر، بدون فاصله).', // i18n-ignore: translated where shown
+  invalid_model: 'اسم مدل درست نیست.', // i18n-ignore: translated where shown
+  invalid_base_url: 'آدرس API باید با https:// شروع بشه.', // i18n-ignore: translated where shown
+  openai_needs_model_and_url: 'برای سرویس سازگار با OpenAI، اسم مدل و آدرس API لازمه.', // i18n-ignore: translated where shown
+  invalid_limit: 'سقف روزانه باید بین ۱ تا ۱۰۰۰ باشه.', // i18n-ignore: translated where shown
+  invalid_provider: 'سرویس انتخاب‌شده درست نیست.', // i18n-ignore: translated where shown
+  official_room: 'گروه‌های رسمی حذف نمی‌شن؛ پیام‌هاشون رو مدیریت کن.', // i18n-ignore: translated where shown
+  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.', // i18n-ignore: translated where shown
+  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.', // i18n-ignore: translated where shown
 };
 
 export function adminErrorText(kind: string): string {
-  return ERRORS[kind] ?? 'انجام نشد؛ دوباره امتحان کن.';
+  return ERRORS[kind] ? t(ERRORS[kind]) : t('انجام نشد؛ دوباره امتحان کن.');
 }
 
-/** A log line in Persian: «مدیر» + this. */
+/** What each logged action says after the admin's name; {name} is the account acted on. */
+const LOG_LINES: Record<string, string> = {
+  ban: '{name} رو مسدود کرد', // i18n-ignore: translated where shown
+  unban: 'مسدودی {name} رو برداشت', // i18n-ignore: translated where shown
+  mute: 'چت {name} رو بست', // i18n-ignore: translated where shown
+  unmute: 'چت {name} رو باز کرد', // i18n-ignore: translated where shown
+  purge: 'پیام‌های {name} رو پاک کرد', // i18n-ignore: translated where shown
+  make_admin: '{name} رو مدیر کرد', // i18n-ignore: translated where shown
+  remove_admin: 'دسترسی مدیری {name} رو برداشت', // i18n-ignore: translated where shown
+  delete_message: 'یه پیام از {name} رو حذف کرد', // i18n-ignore: translated where shown
+  keep_message: 'گزارش پیام {name} رو رد کرد', // i18n-ignore: translated where shown
+  ai_settings: 'تنظیمات هوش مصنوعی رو عوض کرد', // i18n-ignore: translated where shown
+  owner_admin: 'با حساب مالک وارد شد و مدیر شد', // i18n-ignore: translated where shown
+  delete_room: 'یه گروه از {name} رو حذف کرد', // i18n-ignore: translated where shown
+  ai_report_done: 'گزارش {name} درباره‌ی جواب هوش مصنوعی رو بررسی کرد', // i18n-ignore: translated where shown
+};
+
+/** A log line, shown after the admin's name ("<admin> banned <account>"). */
 export function logText(action: string, target: string | null): string {
-  const t = target ?? 'یه حساب حذف‌شده';
-  const lines: Record<string, string> = {
-    ban: `${t} رو مسدود کرد`,
-    unban: `مسدودی ${t} رو برداشت`,
-    mute: `چت ${t} رو بست`,
-    unmute: `چت ${t} رو باز کرد`,
-    purge: `پیام‌های ${t} رو پاک کرد`,
-    make_admin: `${t} رو مدیر کرد`,
-    remove_admin: `دسترسی مدیری ${t} رو برداشت`,
-    delete_message: `یه پیام از ${t} رو حذف کرد`,
-    keep_message: `گزارش پیام ${t} رو رد کرد`,
-    ai_settings: 'تنظیمات هوش مصنوعی رو عوض کرد',
-    owner_admin: 'با حساب مالک وارد شد و مدیر شد',
-    delete_room: `یه گروه از ${t} رو حذف کرد`,
-    ai_report_done: `گزارش ${t} درباره‌ی جواب هوش مصنوعی رو بررسی کرد`,
-  };
-  return lines[action] ?? action;
+  const line = LOG_LINES[action];
+  return line ? t(line, { name: target ?? t('یه حساب حذف‌شده') }) : action;
 }
 
-/** The note under a log line, with a mute's length in Persian ("24h" → «۲۴ ساعت»). */
+/** The note under a log line, with a mute's length in words ("24h" → "24 hours"). */
 export function logDetail(action: string, detail: string | null): string {
   if (!detail) return '';
   if (action !== 'mute') return detail;
-  return detail.replace(/^forever/, 'همیشه').replace(/^(\d+)h/, (_, h: string) => `${fa(Number(h))} ساعت`);
+  return detail.replace(/^forever/, t('همیشه')).replace(/^(\d+)h/, (_, h: string) => t('{n} ساعت', { n: fa(Number(h)), count: Number(h) }));
 }

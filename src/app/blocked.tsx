@@ -8,6 +8,7 @@ import { Button3D } from '@/components/Button3D';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { blockUser, fetchBlocked, profileErrorText, type BlockedUser } from '@/lib/profileApi';
 import { colors } from '@/theme';
 
@@ -38,10 +39,10 @@ export default function BlockedScreen() {
 
   return (
     <Screen>
-      <BackHeader caption="حساب کاربری" title="کاربرهای بلاک‌شده" />
+      <BackHeader caption={t('حساب کاربری')} title={t('کاربرهای بلاک‌شده')} />
       <ScrollView contentContainerStyle={styles.content}>
         <Txt size={13.5} lh={1.9} color={colors.text2}>
-          پیام‌های کسایی که بلاک کردی توی گروه‌ها برات نشون داده نمی‌شه. اون‌ها نمی‌فهمن که بلاکشون کردی.
+          {t('پیام‌های کسایی که بلاک کردی توی گروه‌ها برات نشون داده نمی‌شه. اون‌ها نمی‌فهمن که بلاکشون کردی.')}
         </Txt>
         {error ? (
           <Txt w={700} size={13} color={colors.bearText}>
@@ -52,7 +53,7 @@ export default function BlockedScreen() {
           <View style={styles.empty}>
             <Mascot mood="happy" size={90} />
             <Txt w={700} size={14} color={colors.text2} center>
-              کسی رو بلاک نکردی.
+              {t('کسی رو بلاک نکردی.')}
             </Txt>
           </View>
         ) : null}
@@ -69,7 +70,7 @@ export default function BlockedScreen() {
                 </Txt>
               </View>
             </Pressable>
-            <Button3D label="رفع بلاک" variant="secondary" size={14} height={40} onPress={() => unblock(u)} />
+            <Button3D label={t('رفع بلاک')} variant="secondary" size={14} height={40} onPress={() => unblock(u)} />
           </View>
         ))}
       </ScrollView>

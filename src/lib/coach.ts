@@ -3,10 +3,11 @@
  * conversation helpers. Pure, so it can be tested.
  */
 import { courseLessonIds, findCourse, findLesson } from '@/content';
+import { isEn, t } from '@/i18n';
 import type { GameData } from '@/store/game';
 import { dayKey } from '@/utils/date';
 
-import { LEAGUES } from './league';
+import { leagueName } from './league';
 import { currentStreak, heartsNow, todaysXp } from './progress';
 import { questProgress, questsFor } from './quests';
 import { findSymbol, formatPrice } from './simulator';
@@ -49,6 +50,10 @@ function courseState(courseId: string, completed: GameData['completed']) {
   };
 }
 
+/** Ends the context in English: the coach is otherwise told to answer in Persian. */
+const ENGLISH_REPLY =
+  'IMPORTANT: The learner is using the app in English. Ignore the instruction to answer in Persian: reply only in clear, friendly, simple English (you are still Shamak), with Latin digits.';
+
 /**
  * Everything the coach may use, as compact JSON: profile, course progress, recent
  * mistakes, and the simulator account with positions, orders, trades and stats.
@@ -75,7 +80,7 @@ export function coachContext(g: GameData, mids: Record<string, number> | null, n
       todayXp: todaysXp(g),
       dailyGoalXp: g.dailyGoal,
       weeklyXp: g.weeklyXp,
-      league: LEAGUES[g.league]?.name,
+      league: leagueName(g.league),
       hearts: heartsNow(g, now).hearts,
       coins: g.coins,
       streakFreezes: g.freezes ?? 0,
@@ -154,13 +159,15 @@ export function coachContext(g: GameData, mids: Record<string, number> | null, n
       : undefined,
   };
 
+  const tail = isEn() ? `\n\n${ENGLISH_REPLY}` : '';
+  const limit = MAX_CONTEXT - tail.length;
   let text = JSON.stringify(data);
   // Very long journals: drop the oldest trades until it fits.
-  while (text.length > MAX_CONTEXT && data.simulator.recentClosedTrades.length > 0) {
+  while (text.length > limit && data.simulator.recentClosedTrades.length > 0) {
     data.simulator.recentClosedTrades.pop();
     text = JSON.stringify(data);
   }
-  return text.slice(0, MAX_CONTEXT);
+  return text.slice(0, limit) + tail;
 }
 
 /** The turns sent with a new question: the latest earlier ones, oldest first. */
@@ -178,20 +185,25 @@ export function cleanReply(text: string): string {
 }
 
 export const COACH_SUGGESTIONS = [
-  'معامله‌هام رو بررسی کن؛ کجا اشتباه می‌کنم؟',
-  'الان کجای دوره‌ام و قدم بعدی چیه؟',
-  'ریسک پوزیشن‌های بازم چقدره؟',
-  'از اشتباه‌های اخیرم تو درس‌ها چی بفهمم؟',
+  'معامله‌هام رو بررسی کن؛ کجا اشتباه می‌کنم؟', // i18n-ignore: translated where shown (coachSuggestions)
+  'الان کجای دوره‌ام و قدم بعدی چیه؟', // i18n-ignore: translated where shown (coachSuggestions)
+  'ریسک پوزیشن‌های بازم چقدره؟', // i18n-ignore: translated where shown (coachSuggestions)
+  'از اشتباه‌های اخیرم تو درس‌ها چی بفهمم؟', // i18n-ignore: translated where shown (coachSuggestions)
 ];
 
+/** The example questions in the app's language (they're also what gets asked when tapped). */
+export function coachSuggestions(): string[] {
+  return COACH_SUGGESTIONS.map((q) => t(q));
+}
+
 const ERRORS: Record<string, string> = {
-  limit: 'امروز سهم پیام‌هات با دستیار تموم شد؛ فردا دوباره بپرس.',
-  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
-  not_configured: 'دستیار هوش مصنوعی هنوز روی سرور راه‌اندازی نشده؛ به‌زودی فعال می‌شه.',
-  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره بپرس.',
-  ai: 'دستیار الان جواب نداد؛ چند لحظه‌ی دیگه دوباره بپرس.',
+  limit: 'امروز سهم پیام‌هات با دستیار تموم شد؛ فردا دوباره بپرس.', // i18n-ignore: translated where shown
+  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.', // i18n-ignore: translated where shown
+  not_configured: 'دستیار هوش مصنوعی هنوز روی سرور راه‌اندازی نشده؛ به‌زودی فعال می‌شه.', // i18n-ignore: translated where shown
+  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره بپرس.', // i18n-ignore: translated where shown
+  ai: 'دستیار الان جواب نداد؛ چند لحظه‌ی دیگه دوباره بپرس.', // i18n-ignore: translated where shown
 };
 
 export function coachErrorText(kind: string): string {
-  return ERRORS[kind] ?? 'یه مشکلی پیش اومد؛ دوباره امتحان کن.';
+  return ERRORS[kind] ? t(ERRORS[kind]) : t('یه مشکلی پیش اومد؛ دوباره امتحان کن.');
 }

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'rea
 
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 import type { Tone } from './text';
@@ -82,13 +83,13 @@ export function Stepper({
 }) {
   return (
     <View style={[styles.stepper, disabled && { opacity: 0.45 }]}>
-      <Pressable onPress={onMinus} disabled={disabled} accessibilityRole="button" accessibilityLabel={`کم کردن ${label}`} style={styles.stepBtn}>
+      <Pressable onPress={onMinus} disabled={disabled} accessibilityRole="button" accessibilityLabel={t('کم کردن {label}', { label })} style={styles.stepBtn}>
         <Icon name="minus" size={16} color={colors.text} strokeWidth={3} />
       </Pressable>
       <Txt w={900} size={13.5} center style={{ minWidth: 78 }}>
         {value}
       </Txt>
-      <Pressable onPress={onPlus} disabled={disabled} accessibilityRole="button" accessibilityLabel={`زیاد کردن ${label}`} style={styles.stepBtn}>
+      <Pressable onPress={onPlus} disabled={disabled} accessibilityRole="button" accessibilityLabel={t('زیاد کردن {label}', { label })} style={styles.stepBtn}>
         <Icon name="plus" size={16} color={colors.text} strokeWidth={3} />
       </Pressable>
     </View>

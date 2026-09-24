@@ -13,6 +13,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse } from '@/content';
+import { dateLocale, t } from '@/i18n';
 import { useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
 import { blockUser, fetchProfile, profileErrorText, type PublicProfile } from '@/lib/profileApi';
@@ -38,12 +39,12 @@ export default function ProfileScreen() {
   const p = state.profile;
   return (
     <Screen>
-      <BackHeader caption="چارتون" title="پروفایل" />
+      <BackHeader caption={t('چارتون')} title={t('پروفایل')} />
       {!p ? (
         <View style={styles.center}>
           <Mascot mood="think" size={100} />
           <Txt w={700} size={15} lh={1.9} color={colors.text2} center>
-            {state.error ?? 'چند لحظه…'}
+            {state.error ?? t('چند لحظه…')}
           </Txt>
         </View>
       ) : (
@@ -65,13 +66,17 @@ function ProfileBody({ profile: p, onChange }: { profile: PublicProfile; onChang
     setBusy(false);
     if (!res.ok) return setNote(profileErrorText(res.error));
     onChange({ ...p, blocked: res.value.blocked });
-    setNote(res.value.blocked ? 'بلاک شد؛ پیام‌هاش دیگه توی گروه‌ها برات نشون داده نمی‌شه.' : 'از بلاک دراومد؛ پیام‌هاش دوباره نشون داده می‌شه.');
+    setNote(
+      res.value.blocked
+        ? t('بلاک شد؛ پیام‌هاش دیگه توی گروه‌ها برات نشون داده نمی‌شه.')
+        : t('از بلاک دراومد؛ پیام‌هاش دوباره نشون داده می‌شه.'),
+    );
   };
 
   const completed = Object.fromEntries(p.completed.map((id) => [id, true]));
   const courses = p.enrolled.flatMap((id) => findCourse(id) ?? []);
   const league = LEAGUES[p.league];
-  const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long' }) : '';
+  const joined = p.createdAt ? new Date(p.createdAt).toLocaleDateString(dateLocale(), { year: 'numeric', month: 'long' }) : '';
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -86,25 +91,25 @@ function ProfileBody({ profile: p, onChange }: { profile: PublicProfile; onChang
           </Txt>
           {joined ? (
             <Txt size={12.5} color={colors.text3} center>
-              {`عضو چارتون از ${joined}`}
+              {t('عضو چارتون از {date}', { date: joined })}
             </Txt>
           ) : null}
         </View>
       </View>
 
       <View style={styles.stats}>
-        <Stat icon={<FlameIcon size={26} />} value={fa(p.streak)} label="روز پیاپی" />
-        <Stat icon={<BoltIcon size={26} />} value={faNum(p.xp)} label="کل امتیاز" />
-        <Stat icon={<Icon name="book" size={26} color={colors.bull} />} value={fa(p.completed.length)} label="درس تموم‌شده" />
-        <Stat icon={<Hexagon size={24} color={league.color} />} value={league.name} label="لیگ" />
-        <Stat icon={<Icon name="trophy" size={26} color={colors.gold} />} value={fa(p.bestStreak)} label="بهترین رکورد" />
-        <Stat icon={<Icon name="swords" size={26} color={colors.sky} />} value={fa(p.duelWins)} label="برد دوئل" />
+        <Stat icon={<FlameIcon size={26} />} value={fa(p.streak)} label={t('روز پیاپی')} />
+        <Stat icon={<BoltIcon size={26} />} value={faNum(p.xp)} label={t('کل امتیاز')} />
+        <Stat icon={<Icon name="book" size={26} color={colors.bull} />} value={fa(p.completed.length)} label={t('درس تموم‌شده')} />
+        <Stat icon={<Hexagon size={24} color={league.color} />} value={t(league.name)} label={t('لیگ')} />
+        <Stat icon={<Icon name="trophy" size={26} color={colors.gold} />} value={fa(p.bestStreak)} label={t('بهترین رکورد')} />
+        <Stat icon={<Icon name="swords" size={26} color={colors.sky} />} value={fa(p.duelWins)} label={t('برد دوئل')} />
       </View>
 
       {courses.length ? (
         <View style={styles.card}>
           <Txt w={900} size={16}>
-            دوره‌ها
+            {t('دوره‌ها')}
           </Txt>
           {courses.map((c) => {
             const prog = courseProgress(c, completed);
@@ -118,7 +123,7 @@ function ProfileBody({ profile: p, onChange }: { profile: PublicProfile; onChang
                       {c.title}
                     </Txt>
                     <Txt w={800} size={12} color={finished ? colors.bullText : colors.text3}>
-                      {finished ? 'تموم شده' : `${fa(prog.done)} از ${fa(prog.total)}`}
+                      {finished ? t('تموم شده') : t('{done} از {total}', { done: fa(prog.done), total: fa(prog.total) })}
                     </Txt>
                   </View>
                   <ProgressBar value={prog.total ? prog.done / prog.total : 0} height={8} color={finished ? colors.gold : colors.bull} />
@@ -129,10 +134,10 @@ function ProfileBody({ profile: p, onChange }: { profile: PublicProfile; onChang
         </View>
       ) : null}
 
-      {p.mine ? <Button3D label="ویرایش پروفایل" variant="secondary" size={16} onPress={() => router.push('/(tabs)/profile')} /> : null}
+      {p.mine ? <Button3D label={t('ویرایش پروفایل')} variant="secondary" size={16} onPress={() => router.push('/(tabs)/profile')} /> : null}
       {!p.mine && signedIn ? (
         <Button3D
-          label={busy ? 'چند لحظه…' : p.blocked ? `رفع بلاک ${p.name}` : `بلاک کردن ${p.name}`}
+          label={busy ? t('چند لحظه…') : p.blocked ? t('رفع بلاک {name}', { name: p.name }) : t('بلاک کردن {name}', { name: p.name })}
           variant={p.blocked ? 'secondary' : 'danger'}
           size={15}
           disabled={busy}

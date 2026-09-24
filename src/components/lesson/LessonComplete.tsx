@@ -11,6 +11,7 @@ import { Mascot } from '@/components/Mascot';
 import { QuestList } from '@/components/QuestsCard';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { questChestId, questProgress, questsDone, questsFor, type QuestLog } from '@/lib/quests';
 import type { ShareCard } from '@/lib/shareCard';
 import { currentStreak, useGame } from '@/store/game';
@@ -69,10 +70,10 @@ function QuestStep({ day, log, before, onContinue }: { day: string; log: QuestLo
         <View style={styles.top}>
           <Mascot mood={allDone ? 'party' : 'happy'} size={130} />
           <Txt display size={36} color={colors.gold} style={styles.title}>
-            {allDone ? 'همه‌ی مأموریت‌ها انجام شد!' : 'مأموریت‌های امروز'}
+            {allDone ? t('همه‌ی مأموریت‌ها انجام شد!') : t('مأموریت‌های امروز')}
           </Txt>
           <Txt w={700} size={14.5} color={colors.text2} center>
-            {allDone ? 'صندوق جایزه‌ی امروز مال توئه.' : `${fa(done)} از ${fa(quests.length)} انجام شد. ادامه بده!`}
+            {allDone ? t('صندوق جایزه‌ی امروز مال توئه.') : t('{done} از {total} انجام شد. ادامه بده!', { done: fa(done), total: fa(quests.length) })}
           </Txt>
         </View>
         <View style={styles.questCard}>
@@ -82,14 +83,14 @@ function QuestStep({ day, log, before, onContinue }: { day: string; log: QuestLo
           <View style={styles.chestRow}>
             <Chest tier="rare" size={70} />
             <Txt w={800} size={14} lh={1.6} color={colors.text} style={{ flex: 1 }}>
-              صندوق مأموریت‌ها آماده‌ی باز شدنه!
+              {t('صندوق مأموریت‌ها آماده‌ی باز شدنه!')}
             </Txt>
           </View>
         ) : null}
       </ScrollView>
       <View style={{ gap: 10 }}>
-        {chestReady ? <Button3D variant="gold" label="باز کردن صندوق" onPress={() => router.replace(`/chest/${questChestId(day)}`)} /> : null}
-        <Button3D label="ادامه" variant={chestReady ? 'secondary' : 'primary'} onPress={onContinue} />
+        {chestReady ? <Button3D variant="gold" label={t('باز کردن صندوق')} onPress={() => router.replace(`/chest/${questChestId(day)}`)} /> : null}
+        <Button3D label={t('ادامه')} variant={chestReady ? 'secondary' : 'primary'} onPress={onContinue} />
       </View>
       {justFinished ? <Confetti /> : null}
     </View>
@@ -134,23 +135,23 @@ function Summary({
             <View style={styles.goal}>
               <Icon name="target" size={18} color={colors.goldInk} strokeWidth={2.8} />
               <Txt w={900} size={14} color={colors.goldInk}>
-                هدف امروزت کامل شد!
+                {t('هدف امروزت کامل شد!')}
               </Txt>
             </View>
           )}
         </View>
 
         <View style={styles.stats}>
-          <Stat label={boosted ? 'امتیاز ×۲' : 'امتیاز'} color={colors.gold} ink={colors.goldInk} icon={<BoltIcon size={20} />} value={`+${fa(xp)}`} />
+          <Stat label={boosted ? t('امتیاز ×۲') : t('امتیاز')} color={colors.gold} ink={colors.goldInk} icon={<BoltIcon size={20} />} value={`+${fa(xp)}`} />
           <Stat
-            label="دقت"
+            label={t('دقت')}
             color={colors.bull}
             ink={colors.bullInk}
             icon={<Icon name="target" size={20} color={colors.bull} strokeWidth={2.6} />}
-            value={`${fa(Math.round(accuracy * 100))}٪`}
+            value={t('{n}٪', { n: fa(Math.round(accuracy * 100)) })}
           />
           <Stat
-            label="زمان"
+            label={t('زمان')}
             color={colors.sky}
             ink={colors.skyInk}
             icon={<Icon name="clock" size={20} color={colors.sky} strokeWidth={2.6} />}
@@ -163,20 +164,20 @@ function Summary({
             <FlameIcon size={36} />
             <View style={{ flex: 1, gap: 2 }}>
               <Txt w={900} size={17} color={colors.flame}>
-                {`${fa(streak)} روز پشت سر هم!`}
+                {t('{n} روز پشت سر هم!', { n: fa(streak), count: streak })}
               </Txt>
               <Txt size={13} color="#D8C3A0">
-                {coins > 0 ? `+${fa(coins)} سکه گرفتی. فردا هم بیا تا شعله‌ت خاموش نشه.` : 'فردا هم بیا تا شعله‌ت خاموش نشه.'}
+                {coins > 0 ? t('+{n} سکه گرفتی. فردا هم بیا تا شعله‌ت خاموش نشه.', { n: fa(coins), count: coins }) : t('فردا هم بیا تا شعله‌ت خاموش نشه.')}
               </Txt>
             </View>
           </View>
           {repairable ? (
             <Pressable onPress={() => router.push('/streak')} accessibilityRole="button" style={styles.repair}>
               <Txt w={800} size={13} lh={1.6} color={colors.text} style={{ flex: 1 }}>
-                {`شعله‌ت خاموش شده بود، ولی می‌تونی ترمیمش کنی تا به ${fa(repairable)} روز برگرده.`}
+                {t('شعله‌ت خاموش شده بود، ولی می‌تونی ترمیمش کنی تا به {n} روز برگرده.', { n: fa(repairable), count: repairable })}
               </Txt>
               <Txt w={900} size={13} color={colors.flame}>
-                ترمیم
+                {t('ترمیم')}
               </Txt>
             </Pressable>
           ) : null}
@@ -189,7 +190,7 @@ function Summary({
               return (
                 <View key={d} style={styles.day}>
                   <Txt w={800} size={11} color={isToday ? colors.gold : active ? '#D8C3A0' : '#8C7B5C'}>
-                    {d}
+                    {t(d)}
                   </Txt>
                   <View style={[styles.dayDot, active ? styles.dayOn : frozen ? styles.dayFrozen : styles.dayOff, isToday && active && styles.dayToday]}>
                     {active && <Icon name="check" size={14} color="#3A1C00" strokeWidth={3.6} />}
@@ -203,16 +204,16 @@ function Summary({
       </ScrollView>
       <View style={{ gap: 10 }}>
         {share ? (
-          <Button3D variant="secondary" onPress={() => setCard(share)} accessibilityLabel={`اشتراک‌گذاری: ${share.kicker}`}>
+          <Button3D variant="secondary" onPress={() => setCard(share)} accessibilityLabel={t('اشتراک‌گذاری: {what}', { what: share.kicker })}>
             <View style={styles.shareRow}>
               <Icon name="share" size={18} color={colors.text} strokeWidth={2.6} />
               <Txt w={900} size={16}>
-                {`اشتراک‌گذاری: ${share.kicker}`}
+                {t('اشتراک‌گذاری: {what}', { what: share.kicker })}
               </Txt>
             </View>
           </Button3D>
         ) : null}
-        <Button3D label="ادامه" onPress={onContinue} />
+        <Button3D label={t('ادامه')} onPress={onContinue} />
       </View>
       {celebrate && <Confetti />}
       <ShareSheet card={card} onClose={() => setCard(null)} />

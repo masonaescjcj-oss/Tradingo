@@ -6,6 +6,7 @@ import { LearnCard } from '@/components/lesson/LearnCard';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { findUnit, type LearnStep } from '@/content';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
@@ -20,17 +21,17 @@ export default function GuideScreen() {
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
           accessibilityRole="button"
-          accessibilityLabel="بازگشت"
+          accessibilityLabel={t('بازگشت')}
           style={styles.back}
         >
           <Icon name="chevronBack" size={26} color={colors.text3} strokeWidth={2.6} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Txt w={800} size={13} color={colors.text3}>
-            راهنمای واحد
+            {t('راهنمای واحد')}
           </Txt>
           <Txt w={900} size={20}>
-            {unit?.title ?? 'پیدا نشد'}
+            {unit?.title ?? t('پیدا نشد')}
           </Txt>
         </View>
       </View>
@@ -42,7 +43,7 @@ export default function GuideScreen() {
               <View style={styles.lessonHead}>
                 <View style={[styles.lessonNum, { backgroundColor: unit.color }]}>
                   <Txt w={900} size={12} color={unit.ink}>
-                    {`درس ${fa(i + 1)}`}
+                    {t('درس {n}', { n: fa(i + 1) })}
                   </Txt>
                 </View>
                 <Txt w={900} size={18}>

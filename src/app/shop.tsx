@@ -6,6 +6,7 @@ import { Button3D } from '@/components/Button3D';
 import { BoltIcon, CoinIcon, FlameIcon, HeartIcon, Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { useNow } from '@/components/useNow';
 import { MAX_FREEZES, streakRepair } from '@/lib/progress';
 import { boostLeftMs, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
@@ -15,24 +16,24 @@ import { colors } from '@/theme';
 import { fa, faNum } from '@/utils/format';
 
 const RESULT_TEXT: Record<Exclude<BuyResult, 'ok'>, string> = {
-  coins: 'سکه‌ت کافی نیست. با درس، مأموریت و صندوق سکه جمع کن.',
-  full: 'فعلاً جا نداری؛ اول از قبلی‌ها استفاده کن.',
-  unavailable: 'الان چیزی برای ترمیم نیست.',
+  coins: 'سکه‌ت کافی نیست. با درس، مأموریت و صندوق سکه جمع کن.', // i18n-ignore: translated where shown
+  full: 'فعلاً جا نداری؛ اول از قبلی‌ها استفاده کن.', // i18n-ignore: translated where shown
+  unavailable: 'الان چیزی برای ترمیم نیست.', // i18n-ignore: translated where shown
 };
 
 const DONE_TEXT: Record<ShopItemId, string> = {
-  freeze: 'یخ شعله اضافه شد! اگه یه روز نیای، شعله‌ت می‌مونه.',
-  repair: 'شعله‌ت دوباره روشن شد!',
-  boost: 'امتیاز دو برابر روشن شد. برو درس بخون!',
-  hearts: 'قلب‌هات پر شد!',
+  freeze: 'یخ شعله اضافه شد! اگه یه روز نیای، شعله‌ت می‌مونه.', // i18n-ignore: translated where shown
+  repair: 'شعله‌ت دوباره روشن شد!', // i18n-ignore: translated where shown
+  boost: 'امتیاز دو برابر روشن شد. برو درس بخون!', // i18n-ignore: translated where shown
+  hearts: 'قلب‌هات پر شد!', // i18n-ignore: translated where shown
 };
 
 const EARN: { text: string; amount: string }[] = [
-  { text: 'تموم کردن درس تازه', amount: '۱۰ تا ۱۵' },
-  { text: 'رسیدن به هدف روزانه', amount: '۲۰' },
-  { text: 'صندوق‌های مسیر و مأموریت‌ها', amount: '۲۰ تا ۱۵۰' },
-  { text: 'قبولی آزمون استادی', amount: '۲۰' },
-  { text: 'چالش‌های شبیه‌ساز', amount: 'تا ۱۰۰' },
+  { text: 'تموم کردن درس تازه', amount: '۱۰ تا ۱۵' }, // i18n-ignore: translated where shown
+  { text: 'رسیدن به هدف روزانه', amount: '۲۰' }, // i18n-ignore: translated where shown
+  { text: 'صندوق‌های مسیر و مأموریت‌ها', amount: '۲۰ تا ۱۵۰' }, // i18n-ignore: translated where shown
+  { text: 'قبولی آزمون استادی', amount: '۲۰' }, // i18n-ignore: translated where shown
+  { text: 'چالش‌های شبیه‌ساز', amount: 'تا ۱۰۰' }, // i18n-ignore: translated where shown
 ];
 
 /** The coin shop: streak freezes and repair, double XP, and a heart refill. */
@@ -51,16 +52,16 @@ export default function ShopScreen() {
     const result = buy(id);
     if (result === 'ok') playSfx('chest');
     else playSfx('wrong');
-    setNotice(result === 'ok' ? { text: DONE_TEXT[id], good: true } : { text: RESULT_TEXT[result], good: false });
+    setNotice(result === 'ok' ? { text: t(DONE_TEXT[id]), good: true } : { text: t(RESULT_TEXT[result]), good: false });
   };
 
   return (
     <Screen>
       <BackHeader
-        caption="سکه‌هات رو خرج کن"
-        title="فروشگاه"
+        caption={t('سکه‌هات رو خرج کن')}
+        title={t('فروشگاه')}
         right={
-          <View style={styles.balance} accessible accessibilityLabel={`${faNum(game.coins)} سکه داری`}>
+          <View style={styles.balance} accessible accessibilityLabel={t('{n} سکه داری', { n: faNum(game.coins), count: game.coins })}>
             <CoinIcon size={20} />
             <Txt w={900} size={16} color={colors.gold}>
               {faNum(game.coins)}
@@ -77,13 +78,13 @@ export default function ShopScreen() {
           </View>
         ) : null}
 
-        <Section title="شعله">
+        <Section title={t('شعله')}>
           {repair ? (
             <Item
               icon={<FlameIcon size={30} />}
               tint={colors.flame}
-              title="ترمیم شعله"
-              text={`شعله‌ت خاموش شده، ولی هنوز دیر نیست. با ترمیم به ${fa(repair.streak)} روز برمی‌گرده.`}
+              title={t('ترمیم شعله')}
+              text={t('شعله‌ت خاموش شده، ولی هنوز دیر نیست. با ترمیم به {n} روز برمی‌گرده.', { n: fa(repair.streak), count: repair.streak })}
               price={PRICES.repair}
               onBuy={() => purchase('repair')}
               highlight
@@ -92,8 +93,8 @@ export default function ShopScreen() {
           <Item
             icon={<Icon name="snow" size={28} color={colors.sky} strokeWidth={2.4} />}
             tint={colors.sky}
-            title="یخ شعله"
-            text="اگه یه روز نتونستی بیای، شعله‌ت خاموش نمی‌شه. خودش خودکار استفاده می‌شه."
+            title={t('یخ شعله')}
+            text={t('اگه یه روز نتونستی بیای، شعله‌ت خاموش نمی‌شه. خودش خودکار استفاده می‌شه.')}
             price={PRICES.freeze}
             onBuy={() => purchase('freeze')}
             disabled={freezes >= MAX_FREEZES}
@@ -105,25 +106,25 @@ export default function ShopScreen() {
                   </View>
                 ))}
                 <Txt w={800} size={12} color={colors.text3}>
-                  {freezes >= MAX_FREEZES ? 'پره' : `${fa(freezes)} از ${fa(MAX_FREEZES)}`}
+                  {freezes >= MAX_FREEZES ? t('پره') : t('{done} از {total}', { done: fa(freezes), total: fa(MAX_FREEZES) })}
                 </Txt>
               </View>
             }
           />
         </Section>
 
-        <Section title="قدرت‌ها">
+        <Section title={t('قدرت‌ها')}>
           <Item
             icon={<BoltIcon size={28} />}
             tint={colors.gold}
-            title="امتیاز دو برابر"
-            text="۱۵ دقیقه هر درس، تمرین و آزمون دو برابر امتیاز می‌ده. برای بالا رفتن توی لیگ عالیه."
+            title={t('امتیاز دو برابر')}
+            text={t('۱۵ دقیقه هر درس، تمرین و آزمون دو برابر امتیاز می‌ده. برای بالا رفتن توی لیگ عالیه.')}
             price={PRICES.boost}
             onBuy={() => purchase('boost')}
             extra={
               boostMin > 0 ? (
                 <Txt w={800} size={12} color={colors.gold}>
-                  {`روشنه؛ ${fa(boostMin)} دقیقه مونده. دوباره بخری، ۱۵ دقیقه اضافه می‌شه.`}
+                  {t('روشنه؛ {n} دقیقه مونده. دوباره بخری، ۱۵ دقیقه اضافه می‌شه.', { n: fa(boostMin), count: boostMin })}
                 </Txt>
               ) : null
             }
@@ -131,31 +132,31 @@ export default function ShopScreen() {
           <Item
             icon={<HeartIcon size={28} />}
             tint={colors.bear}
-            title="پر کردن قلب‌ها"
-            text="همه‌ی قلب‌هات یه‌جا پر می‌شن تا بدون صبر درس بعدی رو شروع کنی."
+            title={t('پر کردن قلب‌ها')}
+            text={t('همه‌ی قلب‌هات یه‌جا پر می‌شن تا بدون صبر درس بعدی رو شروع کنی.')}
             price={PRICES.hearts}
             onBuy={() => purchase('hearts')}
             disabled={heartsFull}
             extra={
               heartsFull ? (
                 <Txt w={800} size={12} color={colors.text3}>
-                  قلب‌هات پره
+                  {t('قلب‌هات پره')}
                 </Txt>
               ) : null
             }
           />
         </Section>
 
-        <Section title="سکه از کجا بیارم؟">
+        <Section title={t('سکه از کجا بیارم؟')}>
           <View style={styles.earn}>
             {EARN.map((e) => (
               <View key={e.text} style={styles.earnRow}>
                 <Txt w={700} size={13.5} color={colors.text2} style={{ flex: 1 }}>
-                  {e.text}
+                  {t(e.text)}
                 </Txt>
                 <CoinIcon size={16} />
                 <Txt w={900} size={13.5} color={colors.gold}>
-                  {e.amount}
+                  {t(e.amount)}
                 </Txt>
               </View>
             ))}
@@ -210,7 +211,7 @@ function Item({
         </Txt>
         {extra}
       </View>
-      <Button3D variant={disabled ? 'disabled' : 'gold'} disabled={disabled} height={40} radius={12} edge={4} onPress={onBuy} accessibilityLabel={`خرید ${title}، ${fa(price)} سکه`}>
+      <Button3D variant={disabled ? 'disabled' : 'gold'} disabled={disabled} height={40} radius={12} edge={4} onPress={onBuy} accessibilityLabel={t('خرید {item}، {n} سکه', { item: title, n: fa(price), count: price })}>
         <View style={styles.price}>
           <CoinIcon size={16} />
           <Txt w={900} size={15} color={disabled ? '#6D7894' : colors.goldInk}>

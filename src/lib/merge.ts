@@ -44,7 +44,7 @@ export function mergeProgress(local: GameData, remote: GameData): GameData {
   return {
     ...base,
     onboarded: local.onboarded || remote.onboarded,
-    name: local.name !== 'تریدر' ? local.name : remote.name,
+    name: local.name !== 'تریدر' ? local.name : remote.name, // i18n-ignore: the default name, kept as data
     xp: Math.max(local.xp, remote.xp),
     coins: Math.max(local.coins, remote.coins),
     streak: localNewerDay ? local.streak : remote.streak,

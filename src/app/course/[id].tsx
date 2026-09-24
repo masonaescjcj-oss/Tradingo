@@ -10,6 +10,7 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { CATEGORIES, LEVEL_LABEL, courseProgress, findCourse, isQuestion } from '@/content';
+import { t } from '@/i18n';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -27,11 +28,11 @@ export default function CourseScreen() {
   if (!course) {
     return (
       <Screen>
-        <BackHeader title="دوره پیدا نشد" />
+        <BackHeader title={t('دوره پیدا نشد')} />
         <View style={styles.missing}>
           <Mascot mood="think" size={120} />
           <Txt w={800} size={16} color={colors.text2} center>
-            این دوره وجود نداره یا حذف شده.
+            {t('این دوره وجود نداره یا حذف شده.')}
           </Txt>
         </View>
       </Screen>
@@ -51,7 +52,7 @@ export default function CourseScreen() {
 
   return (
     <Screen>
-      <BackHeader caption={category?.title} title={course.title} />
+      <BackHeader caption={category ? t(category.title) : undefined} title={course.title} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.hero, { backgroundColor: course.color, borderBottomColor: course.edge }]}>
           <CourseBadge course={{ ...course, color: 'rgba(255,255,255,0.28)', edge: 'rgba(0,0,0,0.18)' }} size={84} />
@@ -66,10 +67,10 @@ export default function CourseScreen() {
         </View>
 
         <View style={styles.stats}>
-          <Stat label="سطح" value={LEVEL_LABEL[course.level]} color={LEVEL_COLOR[course.level]} />
-          <Stat label="واحد" value={fa(course.units.length)} />
-          <Stat label="درس" value={fa(lessons.length)} />
-          <Stat label="سؤال" value={fa(questions)} />
+          <Stat label={t('سطح')} value={t(LEVEL_LABEL[course.level])} color={LEVEL_COLOR[course.level]} />
+          <Stat label={t('واحد')} value={fa(course.units.length)} />
+          <Stat label={t('درس')} value={fa(lessons.length)} />
+          <Stat label={t('سؤال')} value={fa(questions)} />
         </View>
 
         <Txt size={15} lh={1.9} color={colors.text2}>
@@ -79,7 +80,7 @@ export default function CourseScreen() {
         {isEnrolled && progress.done > 0 && (
           <View style={styles.progressRow}>
             <Txt w={800} size={13} color={colors.text2}>
-              {`پیشرفت تو: ${fa(progress.done)} از ${fa(progress.total)} درس`}
+              {t('پیشرفت تو: {done} از {total} درس', { done: fa(progress.done), total: fa(progress.total) })}
             </Txt>
             <View style={styles.track}>
               <View style={[styles.fill, { width: `${(progress.done / progress.total) * 100}%`, backgroundColor: course.color }]} />
@@ -88,7 +89,7 @@ export default function CourseScreen() {
         )}
 
         <Txt w={900} size={18} style={{ marginTop: 4 }}>
-          توی این دوره چی یاد می‌گیری؟
+          {t('توی این دوره چی یاد می‌گیری؟')}
         </Txt>
         {course.units.map((unit, u) => (
           <View key={unit.id} style={styles.unit}>
@@ -120,9 +121,12 @@ export default function CourseScreen() {
       </ScrollView>
 
       <View style={[styles.bottom, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <Button3D label={isEnrolled ? (progress.done > 0 ? 'ادامه‌ی یادگیری' : 'شروع یادگیری') : 'افزودن و شروع دوره'} onPress={start} />
+        <Button3D
+          label={isEnrolled ? (progress.done > 0 ? t('ادامه‌ی یادگیری') : t('شروع یادگیری')) : t('افزودن و شروع دوره')}
+          onPress={start}
+        />
         {isEnrolled && enrolled.length > 1 && (
-          <Button3D label="حذف از دوره‌های من" variant="secondary" size={15} onPress={() => leaveCourse(course.id)} />
+          <Button3D label={t('حذف از دوره‌های من')} variant="secondary" size={15} onPress={() => leaveCourse(course.id)} />
         )}
       </View>
     </Screen>

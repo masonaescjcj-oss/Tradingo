@@ -7,18 +7,19 @@ import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { useNow } from '@/components/useNow';
+import { t } from '@/i18n';
 import { applyUpdate, promptInstall } from '@/lib/pwa';
 import { showInstallNudge, useInstallNudge, usePwa, type InstallMode } from '@/lib/pwaState';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
-const OFFLINE_NOTE = 'بعد از نصب، درس‌ها و شبیه‌ساز بدون اینترنت هم باز می‌شن؛ لیگ، دوئل با دوست و گفتگو اینترنت لازم دارن.';
+const OFFLINE_NOTE = 'بعد از نصب، درس‌ها و شبیه‌ساز بدون اینترنت هم باز می‌شن؛ لیگ، دوئل با دوست و گفتگو اینترنت لازم دارن.'; // i18n-ignore: translated where shown
 
 const HINT: Record<Exclude<InstallMode, null>, string> = {
-  prompt: 'مثل یه اپ جدا باز می‌شه و بدون اینترنت هم کار می‌کنه.',
-  ios: 'با دکمه‌ی اشتراک سافاری به صفحه‌ی اصلی اضافه‌ش کن.',
-  manual: 'از منوی مرورگر «نصب برنامه» رو بزن.',
+  prompt: 'مثل یه اپ جدا باز می‌شه و بدون اینترنت هم کار می‌کنه.', // i18n-ignore: translated where shown
+  ios: 'با دکمه‌ی اشتراک سافاری به صفحه‌ی اصلی اضافه‌ش کن.', // i18n-ignore: translated where shown
+  manual: 'از منوی مرورگر «نصب برنامه» رو بزن.', // i18n-ignore: translated where shown
 };
 
 /** Installs through the browser's prompt, or opens the steps where there's no prompt. */
@@ -44,10 +45,10 @@ export function InstallRow() {
         <Icon name="phone" size={22} color={colors.bull} />
         <View style={{ flex: 1, gap: 2 }}>
           <Txt w={800} size={14}>
-            نصب اپ چارتون
+            {t('نصب اپ چارتون')}
           </Txt>
           <Txt w={500} size={12} lh={1.6} color={colors.text3}>
-            {HINT[mode]}
+            {t(HINT[mode])}
           </Txt>
         </View>
         <Icon name="chevronBack" size={18} color={colors.text3} />
@@ -71,14 +72,14 @@ export function InstallBanner() {
       <Mascot mood="happy" size={38} />
       <View style={{ flex: 1, gap: 1 }}>
         <Txt w={900} size={14}>
-          چارتون رو نصب کن
+          {t('چارتون رو نصب کن')}
         </Txt>
         <Txt w={500} size={11.5} lh={1.6} color={colors.text2} numberOfLines={2}>
-          {mode ? HINT[mode] : ''}
+          {mode ? t(HINT[mode]) : ''}
         </Txt>
       </View>
-      <Button3D label="نصب" height={38} radius={11} edge={3} size={14} onPress={install} style={{ minWidth: 64 }} />
-      <Pressable onPress={() => dismiss(Date.now())} accessibilityRole="button" accessibilityLabel="بعداً" hitSlop={10}>
+      <Button3D label={t('نصب')} height={38} radius={11} edge={3} size={14} onPress={install} style={{ minWidth: 64 }} />
+      <Pressable onPress={() => dismiss(Date.now())} accessibilityRole="button" accessibilityLabel={t('بعداً')} hitSlop={10}>
         <Icon name="close" size={18} color={colors.text3} />
       </Pressable>
       {sheet}
@@ -90,15 +91,23 @@ export function InstallBanner() {
 function InstallHelp({ mode, visible, onClose }: { mode: InstallMode; visible: boolean; onClose: () => void }) {
   const steps =
     mode === 'ios'
-      ? ['توی سافاری، دکمه‌ی اشتراک رو بزن (مربعی که فلش رو به بالا داره).', '«Add to Home Screen» یا «افزودن به صفحه‌ی اصلی» رو انتخاب کن.', '«Add» یا «افزودن» رو بزن؛ شمعک روی صفحه‌ی اصلی گوشیت میاد.']
-      : ['منوی مرورگر (سه نقطه‌ی بالا یا پایین صفحه) رو باز کن.', '«Install app»، «نصب برنامه» یا «Add to Home screen» رو بزن.', 'تأیید کن تا آیکون چارتون روی گوشیت بیاد.'];
+      ? [
+          t('توی سافاری، دکمه‌ی اشتراک رو بزن (مربعی که فلش رو به بالا داره).'),
+          t('«Add to Home Screen» یا «افزودن به صفحه‌ی اصلی» رو انتخاب کن.'),
+          t('«Add» یا «افزودن» رو بزن؛ شمعک روی صفحه‌ی اصلی گوشیت میاد.'),
+        ]
+      : [
+          t('منوی مرورگر (سه نقطه‌ی بالا یا پایین صفحه) رو باز کن.'),
+          t('«Install app»، «نصب برنامه» یا «Add to Home screen» رو بزن.'),
+          t('تأیید کن تا آیکون چارتون روی گوشیت بیاد.'),
+        ];
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.dialog} accessibilityViewIsModal>
           <Mascot mood="party" size={84} />
           <Txt w={900} size={18} center>
-            چارتون رو به صفحه‌ی اصلی اضافه کن
+            {t('چارتون رو به صفحه‌ی اصلی اضافه کن')}
           </Txt>
           <View style={{ gap: 12, alignSelf: 'stretch' }}>
             {steps.map((s, i) => (
@@ -116,9 +125,9 @@ function InstallHelp({ mode, visible, onClose }: { mode: InstallMode; visible: b
             ))}
           </View>
           <Txt w={500} size={12.5} lh={1.8} color={colors.text3} center>
-            {OFFLINE_NOTE}
+            {t(OFFLINE_NOTE)}
           </Txt>
-          <Button3D label="فهمیدم" onPress={onClose} style={{ alignSelf: 'stretch' }} />
+          <Button3D label={t('فهمیدم')} onPress={onClose} style={{ alignSelf: 'stretch' }} />
         </View>
       </View>
     </Modal>
@@ -135,10 +144,10 @@ export function UpdateBanner() {
     <View style={[styles.update, { top: insets.top + 10 }]} accessibilityLiveRegion="polite">
       <Icon name="refresh" size={20} color={colors.sky} />
       <Txt w={800} size={13.5} style={{ flex: 1 }}>
-        نسخه‌ی تازه‌ی چارتون آماده‌ست
+        {t('نسخه‌ی تازه‌ی چارتون آماده‌ست')}
       </Txt>
-      <Button3D label="به‌روزرسانی" height={36} radius={10} edge={3} size={13.5} onPress={applyUpdate} />
-      <Pressable onPress={() => setHidden(true)} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={8}>
+      <Button3D label={t('به‌روزرسانی')} height={36} radius={10} edge={3} size={13.5} onPress={applyUpdate} />
+      <Pressable onPress={() => setHidden(true)} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={8}>
         <Icon name="close" size={18} color={colors.text3} />
       </Pressable>
     </View>

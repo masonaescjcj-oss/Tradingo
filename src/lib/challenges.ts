@@ -1,4 +1,5 @@
 /** Trading challenges for the simulator: rules, rewards and progress. Pure. */
+import { isEn, t } from '@/i18n';
 import { fa } from '@/utils/format';
 
 import { maxDrawdown } from './stats';
@@ -20,7 +21,7 @@ export type ChallengeRecord = { startedAt: number; startBalance: number; complet
 export type ChallengeStatus = {
   /** 0–1 */
   progress: number;
-  /** Short progress text, e.g. «۲ از ۵». */
+  /** Short progress text, e.g. "2 of 5". */
   label: string;
   done: boolean;
   /** The attempt broke a rule; start again to retry. */
@@ -30,43 +31,43 @@ export type ChallengeStatus = {
 export const CHALLENGES: Challenge[] = [
   {
     id: 'stops5',
-    title: '۵ معامله با حد ضرر',
-    rules: '۵ تا معامله ببند که همه‌شون از اول حد ضرر داشتن. سود یا ضررش مهم نیست؛ عادتش مهمه.',
+    title: '۵ معامله با حد ضرر', // i18n-ignore: translated where shown
+    rules: '۵ تا معامله ببند که همه‌شون از اول حد ضرر داشتن. سود یا ضررش مهم نیست؛ عادتش مهمه.', // i18n-ignore: translated where shown
     xp: 20,
     coins: 25,
   },
   {
     id: 'rr2',
-    title: 'ریسک به ریوارد ۱ به ۲',
-    rules: 'یه معامله باز کن که حد سودش حداقل دو برابرِ فاصله‌ی حد ضررش باشه و بذار به حد سود برسه.',
+    title: 'ریسک به ریوارد ۱ به ۲', // i18n-ignore: translated where shown
+    rules: 'یه معامله باز کن که حد سودش حداقل دو برابرِ فاصله‌ی حد ضررش باشه و بذار به حد سود برسه.', // i18n-ignore: translated where shown
     xp: 30,
     coins: 40,
   },
   {
     id: 'pending',
-    title: 'سفارش در قیمت بهتر',
-    rules: 'یه سفارش لیمیت یا استاپ بذار، صبر کن پر بشه و معامله رو با سود ببند.',
+    title: 'سفارش در قیمت بهتر', // i18n-ignore: translated where shown
+    rules: 'یه سفارش لیمیت یا استاپ بذار، صبر کن پر بشه و معامله رو با سود ببند.', // i18n-ignore: translated where shown
     xp: 20,
     coins: 30,
   },
   {
     id: 'streak3',
-    title: '۳ معامله‌ی سودده پشت‌سرهم',
-    rules: '۳ تا معامله‌ی پشت‌سرهم با سود ببند. یه ضرر وسطش شمارش رو صفر می‌کنه.',
+    title: '۳ معامله‌ی سودده پشت‌سرهم', // i18n-ignore: translated where shown
+    rules: '۳ تا معامله‌ی پشت‌سرهم با سود ببند. یه ضرر وسطش شمارش رو صفر می‌کنه.', // i18n-ignore: translated where shown
     xp: 30,
     coins: 40,
   },
   {
     id: 'noLiq10',
-    title: '۱۰ معامله بدون لیکوئید',
-    rules: '۱۰ تا معامله ببند بدون اینکه حتی یکی‌شون لیکوئید بشه. اگه لیکوئید بشی، چالش از اول شروع می‌شه.',
+    title: '۱۰ معامله بدون لیکوئید', // i18n-ignore: translated where shown
+    rules: '۱۰ تا معامله ببند بدون اینکه حتی یکی‌شون لیکوئید بشه. اگه لیکوئید بشی، چالش از اول شروع می‌شه.', // i18n-ignore: translated where shown
     xp: 40,
     coins: 50,
   },
   {
     id: 'profit10',
-    title: '۱۰٪ سود بدون افت بیشتر از ۵٪',
-    rules: 'موجودیت رو ۱۰٪ بالا ببر، بدون اینکه موجودی از بالاترین نقطه‌ش بیشتر از ۵٪ پایین بیاد. معامله‌های بسته‌شده حساب می‌شن.',
+    title: '۱۰٪ سود بدون افت بیشتر از ۵٪', // i18n-ignore: translated where shown
+    rules: 'موجودیت رو ۱۰٪ بالا ببر، بدون اینکه موجودی از بالاترین نقطه‌ش بیشتر از ۵٪ پایین بیاد. معامله‌های بسته‌شده حساب می‌شن.', // i18n-ignore: translated where shown
     xp: 60,
     coins: 100,
   },
@@ -76,8 +77,11 @@ export function findChallenge(id: string): Challenge | undefined {
   return CHALLENGES.find((c) => c.id === id);
 }
 
-const count = (n: number, of: number) => `${fa(Math.min(n, of))} از ${fa(of)}`;
-const pct = (v: number) => `${fa((v * 100).toFixed(1).replace(/\.0$/, ''))}٪`.replace('.', '٫');
+const count = (n: number, of: number) => t('{n} از {total}', { n: fa(Math.min(n, of)), total: fa(of) });
+const pct = (v: number) => {
+  const n = fa((v * 100).toFixed(1).replace(/\.0$/, ''));
+  return t('{n}٪', { n: isEn() ? n : n.replace('.', '٫') }); // i18n-ignore: the Persian decimal mark
+};
 
 /** Trades closed since the challenge started, oldest first. */
 function tradesSince(historyNewestFirst: ClosedTrade[], startedAt: number): ClosedTrade[] {
@@ -92,8 +96,8 @@ export function plannedRR(t: Pick<ClosedTrade, 'entry' | 'sl' | 'tp'>): number |
 }
 
 export function evaluateChallenge(c: Challenge, record: ChallengeRecord | undefined, historyNewestFirst: ClosedTrade[]): ChallengeStatus {
-  if (record?.completedAt != null) return { progress: 1, label: 'انجام شد', done: true, failed: false };
-  if (!record) return { progress: 0, label: 'شروع نشده', done: false, failed: false };
+  if (record?.completedAt != null) return { progress: 1, label: t('انجام شد'), done: true, failed: false };
+  if (!record) return { progress: 0, label: t('شروع نشده'), done: false, failed: false };
   const trades = tradesSince(historyNewestFirst, record.startedAt);
 
   switch (c.id) {
@@ -119,8 +123,8 @@ export function evaluateChallenge(c: Challenge, record: ChallengeRecord | undefi
     }
     case 'noLiq10': {
       let n = 0;
-      for (const t of trades) {
-        if (t.reason === 'liquidation') return { progress: n / 10, label: 'لیکوئید شدی', done: false, failed: true };
+      for (const trade of trades) {
+        if (trade.reason === 'liquidation') return { progress: n / 10, label: t('لیکوئید شدی'), done: false, failed: true };
         n += 1;
         if (n >= 10) return { progress: 1, label: count(10, 10), done: true, failed: false };
       }
@@ -129,16 +133,16 @@ export function evaluateChallenge(c: Challenge, record: ChallengeRecord | undefi
     case 'profit10': {
       const start = record.startBalance;
       const curve = [start];
-      for (const t of trades) {
-        curve.push(curve[curve.length - 1] + t.pnl);
+      for (const trade of trades) {
+        curve.push(curve[curve.length - 1] + trade.pnl);
         const dd = maxDrawdown(curve).pct;
         const gain = (curve[curve.length - 1] - start) / start;
-        if (dd >= 0.05) return { progress: Math.max(0, gain) / 0.1, label: `افت ${pct(dd)}`, done: false, failed: true };
-        if (gain >= 0.1) return { progress: 1, label: `سود ${pct(gain)}`, done: true, failed: false };
+        if (dd >= 0.05) return { progress: Math.max(0, gain) / 0.1, label: t('افت {dd}', { dd: pct(dd) }), done: false, failed: true };
+        if (gain >= 0.1) return { progress: 1, label: t('سود {gain}', { gain: pct(gain) }), done: true, failed: false };
       }
       const gain = (curve[curve.length - 1] - start) / start;
       const dd = maxDrawdown(curve).pct;
-      return { progress: Math.max(0, Math.min(1, gain / 0.1)), label: `سود ${pct(Math.max(0, gain))} · افت ${pct(dd)}`, done: false, failed: false };
+      return { progress: Math.max(0, Math.min(1, gain / 0.1)), label: t('سود {gain} · افت {dd}', { gain: pct(Math.max(0, gain)), dd: pct(dd) }), done: false, failed: false };
     }
   }
 }

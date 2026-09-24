@@ -11,6 +11,7 @@
  */
 import { allCourses } from '@/content';
 import type { Candle } from '@/content/types';
+import { t } from '@/i18n';
 import { fa } from '@/utils/format';
 import { createRng, hashString, shuffle } from '@/utils/random';
 
@@ -30,10 +31,29 @@ export const TRADE_LEVERAGE = 10;
 export const STOP_ATR = 2;
 
 export type RoundKey = 'quiz' | 'chart' | 'trade';
+/** Titles stay Persian (translated where shown); hints are read in the app's language. */
 export const ROUNDS: { key: RoundKey; title: string; hint: string }[] = [
-  { key: 'quiz', title: 'سؤال سرعتی', hint: `${fa(QUIZ_COUNT)} سؤال از درس‌ها؛ درست و سریع جواب بده.` },
-  { key: 'chart', title: 'ادامه‌ی نمودار', hint: `یه نمودار واقعی؛ حدس بزن قیمت ${fa(CHART_AHEAD)} کندل بعد کجاست.` },
-  { key: 'trade', title: 'معامله‌ی ۶۰ ثانیه‌ای', hint: 'نمودار جلو می‌ره؛ با ۱۰۰۰ دلار خرید و فروش کن.' },
+  {
+    key: 'quiz',
+    title: 'سؤال سرعتی', // i18n-ignore: translated where shown
+    get hint() {
+      return t('{n} سؤال از درس‌ها؛ درست و سریع جواب بده.', { n: fa(QUIZ_COUNT), count: QUIZ_COUNT });
+    },
+  },
+  {
+    key: 'chart',
+    title: 'ادامه‌ی نمودار', // i18n-ignore: translated where shown
+    get hint() {
+      return t('یه نمودار واقعی؛ حدس بزن قیمت {n} کندل بعد کجاست.', { n: fa(CHART_AHEAD), count: CHART_AHEAD });
+    },
+  },
+  {
+    key: 'trade',
+    title: 'معامله‌ی ۶۰ ثانیه‌ای', // i18n-ignore: translated where shown
+    get hint() {
+      return t('نمودار جلو می‌ره؛ با ۱۰۰۰ دلار خرید و فروش کن.');
+    },
+  },
 ];
 
 export type DuelQuestion =
@@ -261,9 +281,9 @@ export function tradeResult(trade: DuelChart, s: TradeState): DuelResult['trade'
 export type BotLevel = 'easy' | 'normal' | 'hard';
 
 export const BOT_LEVELS: { level: BotLevel; label: string; hint: string }[] = [
-  { level: 'easy', label: 'آسون', hint: 'شمعک تازه‌کاره' },
-  { level: 'normal', label: 'معمولی', hint: 'یه حریف جدی' },
-  { level: 'hard', label: 'سخت', hint: 'شمعک حرفه‌ای' },
+  { level: 'easy', label: 'آسون', hint: 'شمعک تازه‌کاره' }, // i18n-ignore: translated where shown
+  { level: 'normal', label: 'معمولی', hint: 'یه حریف جدی' }, // i18n-ignore: translated where shown
+  { level: 'hard', label: 'سخت', hint: 'شمعک حرفه‌ای' }, // i18n-ignore: translated where shown
 ];
 
 const BOT_ACCURACY: Record<BotLevel, number> = { easy: 0.5, normal: 0.72, hard: 0.88 };

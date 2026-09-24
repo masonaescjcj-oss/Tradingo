@@ -5,6 +5,8 @@
  */
 import { Platform } from 'react-native';
 
+import { t } from '@/i18n';
+
 import { callRpc, serverVersion, sessionToken, type RpcResult } from './cloud';
 import { parseResult, parseRounds, type DuelResult, type DuelRounds } from './duel';
 import { APP_ORIGIN } from './proxy';
@@ -123,22 +125,22 @@ export async function myDuels(): Promise<RpcResult<DuelSummary[]>> {
 export function duelErrorText(error: string): string {
   switch (error) {
     case 'session':
-      return 'برای دوئل با دوستت باید وارد حسابت بشی.';
+      return t('برای دوئل با دوستت باید وارد حسابت بشی.');
     case 'not_found':
-      return 'دوئلی با این کد پیدا نشد. کد رو دوباره نگاه کن.';
+      return t('دوئلی با این کد پیدا نشد. کد رو دوباره نگاه کن.');
     case 'taken':
-      return 'یکی دیگه زودتر این دوئل رو بازی کرده.';
+      return t('یکی دیگه زودتر این دوئل رو بازی کرده.');
     case 'own':
-      return 'این دوئل رو خودت ساختی؛ لینکش رو برای یه دوست بفرست.';
+      return t('این دوئل رو خودت ساختی؛ لینکش رو برای یه دوست بفرست.');
     case 'expired':
-      return 'این دوئل قدیمی شده و دیگه باز نیست.';
+      return t('این دوئل قدیمی شده و دیگه باز نیست.');
     case 'rate':
-      return 'امروز دوئل زیادی ساختی؛ فردا دوباره امتحان کن.';
+      return t('امروز دوئل زیادی ساختی؛ فردا دوباره امتحان کن.');
     case 'invalid':
-      return 'اطلاعات دوئل درست نبود؛ یه بار دیگه امتحان کن.';
+      return t('اطلاعات دوئل درست نبود؛ یه بار دیگه امتحان کن.');
     case 'network':
-      return 'به اینترنت وصل نیستی یا سرور جواب نمی‌ده.';
+      return t('به اینترنت وصل نیستی یا سرور جواب نمی‌ده.');
     default:
-      return 'یه مشکلی پیش اومد؛ یه بار دیگه امتحان کن.';
+      return t('یه مشکلی پیش اومد؛ یه بار دیگه امتحان کن.');
   }
 }

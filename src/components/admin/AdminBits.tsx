@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import { roomTime, untilText, whenText } from '@/lib/chat';
 import type { AdminMessage, AdminUser } from '@/lib/adminApi';
 import { colors, fonts } from '@/theme';
@@ -41,16 +42,16 @@ export function ActionSheet({
             <TextInput
               value={reason}
               onChangeText={setReason}
-              placeholder="دلیل (اختیاری، فقط مدیرها می‌بینن)"
+              placeholder={t('دلیل (اختیاری، فقط مدیرها می‌بینن)')}
               placeholderTextColor={colors.faint}
               maxLength={200}
-              style={adminStyles.input}
+              style={[adminStyles.input, { textAlign: textStart() }]}
             />
           ) : null}
           {options.map((o) => (
             <Button3D key={o.label} label={o.label} variant={o.variant ?? 'primary'} size={15} onPress={() => o.run(reason.trim())} style={{ alignSelf: 'stretch' }} />
           ))}
-          <Button3D label="بی‌خیال" variant="secondary" size={15} onPress={onClose} style={{ alignSelf: 'stretch' }} />
+          <Button3D label={t('بی‌خیال')} variant="secondary" size={15} onPress={onClose} style={{ alignSelf: 'stretch' }} />
         </Pressable>
       </Pressable>
     </Modal>
@@ -90,16 +91,16 @@ export function MessageCard({ message: m, actions }: { message: AdminMessage; ac
         <Txt w={900} size={14} style={{ flex: 1 }} numberOfLines={1}>
           {m.author_name}
         </Txt>
-        {m.author_banned ? <Badge label="مسدود" color={colors.bearSoft} ink={colors.bearText} /> : null}
-        {m.author_muted ? <Badge label="چت بسته" color={colors.goldSoft} ink={colors.gold} /> : null}
-        {m.reports > 0 ? <Badge label={`${fa(m.reports)} گزارش`} color={colors.bearSoft} ink={colors.bearText} /> : null}
-        {m.hidden ? <Badge label="پنهان" color={colors.raised} ink={colors.text3} /> : null}
+        {m.author_banned ? <Badge label={t('مسدود')} color={colors.bearSoft} ink={colors.bearText} /> : null}
+        {m.author_muted ? <Badge label={t('چت بسته')} color={colors.goldSoft} ink={colors.gold} /> : null}
+        {m.reports > 0 ? <Badge label={t('{n} گزارش', { n: fa(m.reports), count: m.reports })} color={colors.bearSoft} ink={colors.bearText} /> : null}
+        {m.hidden ? <Badge label={t('پنهان')} color={colors.raised} ink={colors.text3} /> : null}
       </View>
       <Txt size={12} color={colors.text3}>
         {`${m.room_title} · ${whenText(m.created_at)}`}
       </Txt>
       <Txt size={14} lh={1.8} color={m.hidden ? colors.text3 : colors.text}>
-        {m.kind === 'analysis' && !m.body ? 'تحلیل با نمودار' : m.body}
+        {m.kind === 'analysis' && !m.body ? t('تحلیل با نمودار') : m.body}
       </Txt>
       <View style={styles.actions}>{actions}</View>
     </Card>
@@ -108,34 +109,34 @@ export function MessageCard({ message: m, actions }: { message: AdminMessage; ac
 
 /** An account in the panel with its standing. */
 export function UserCard({ user: u, actions }: { user: AdminUser; actions: ReactNode }) {
-  const mutedFor = u.muted ? (u.muted_until ? untilText(u.muted_until) : 'تا وقتی باز بشه') : '';
+  const mutedFor = u.muted ? (u.muted_until ? untilText(u.muted_until) : t('تا وقتی باز بشه')) : '';
   return (
     <Card>
       <View style={styles.row}>
         <Txt w={900} size={15} style={{ flex: 1 }} numberOfLines={1}>
           {u.name}
         </Txt>
-        {u.role === 'admin' ? <Badge label="مدیر" color={colors.skySoft} ink={colors.skyText} /> : null}
-        {u.banned ? <Badge label="مسدود" color={colors.bearSoft} ink={colors.bearText} /> : null}
-        {u.muted ? <Badge label="چت بسته" color={colors.goldSoft} ink={colors.gold} /> : null}
+        {u.role === 'admin' ? <Badge label={t('مدیر')} color={colors.skySoft} ink={colors.skyText} /> : null}
+        {u.banned ? <Badge label={t('مسدود')} color={colors.bearSoft} ink={colors.bearText} /> : null}
+        {u.muted ? <Badge label={t('چت بسته')} color={colors.goldSoft} ink={colors.gold} /> : null}
       </View>
       <Txt mono size={12} color={colors.text2} numberOfLines={1}>
         {u.email ?? u.mobile}
       </Txt>
       <Txt size={12} lh={1.7} color={colors.text3}>
         {[
-          `عضویت: ${roomTime(u.created_at)}`,
-          u.last_seen ? `آخرین بازدید: ${roomTime(u.last_seen)}` : null,
-          `${fa(u.messages)} پیام`,
-          u.reported ? `${fa(u.reported)} گزارش` : null,
+          t('عضویت: {when}', { when: roomTime(u.created_at) }),
+          u.last_seen ? t('آخرین بازدید: {when}', { when: roomTime(u.last_seen) }) : null,
+          t('{n} پیام', { n: fa(u.messages), count: u.messages }),
+          u.reported ? t('{n} گزارش', { n: fa(u.reported), count: u.reported }) : null,
         ]
           .filter(Boolean)
           .join(' · ')}
       </Txt>
       {u.banned && u.ban_reason ? (
-        <Txt size={12} color={colors.bearText}>{`دلیل مسدودی: ${u.ban_reason}`}</Txt>
+        <Txt size={12} color={colors.bearText}>{t('دلیل مسدودی: {reason}', { reason: u.ban_reason })}</Txt>
       ) : null}
-      {mutedFor ? <Txt size={12} color={colors.gold}>{`چت بسته ${mutedFor}`}</Txt> : null}
+      {mutedFor ? <Txt size={12} color={colors.gold}>{t('چت بسته {until}', { until: mutedFor })}</Txt> : null}
       <View style={styles.actions}>{actions}</View>
     </Card>
   );
@@ -169,7 +170,6 @@ export const adminStyles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 14,
-    textAlign: 'right',
   },
 });
 

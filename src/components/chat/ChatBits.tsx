@@ -4,6 +4,8 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { ProChart, type ProLine } from '@/components/sim/ProChart';
+import { entryText } from '@/components/sim/text';
+import { t } from '@/i18n';
 import { CHART_SHIFT } from '@/lib/chartMath';
 import { roomTime, type ChatChart, type ChatRoom, type ChatTopic } from '@/lib/chat';
 import { findSymbol, type SymbolSpec } from '@/lib/simulator';
@@ -42,16 +44,16 @@ export function CoachAvatar({ size = 48 }: { size?: number }) {
 /** The AI coach, pinned first in the chat list like an ordinary conversation. */
 export function CoachRow({ preview, at, onPress }: { preview: string | null; at: number | null; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="گفتگو با شمعک، دستیار هوش مصنوعی" style={({ pressed }) => [styles.row, styles.coachRow, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={t('گفتگو با شمعک، دستیار هوش مصنوعی')} style={({ pressed }) => [styles.row, styles.coachRow, pressed && { opacity: 0.8 }]}>
       <CoachAvatar />
       <View style={{ flex: 1, gap: 3 }}>
         <View style={styles.titleLine}>
           <Txt w={900} size={15.5} numberOfLines={1} style={{ flexShrink: 1 }}>
-            شمعک
+            {t('شمعک')}
           </Txt>
           <View style={styles.aiBadge}>
             <Txt w={900} size={10.5} color={colors.bullInk}>
-              هوش مصنوعی
+              {t('هوش مصنوعی')}
             </Txt>
           </View>
           <View style={{ flex: 1 }} />
@@ -63,7 +65,7 @@ export function CoachRow({ preview, at, onPress }: { preview: string | null; at:
           <Icon name="pin" size={15} color={colors.text3} strokeWidth={2.4} />
         </View>
         <Txt w={500} size={13} color={colors.text2} numberOfLines={1}>
-          {preview ?? 'دستیار شخصی‌ات: درباره‌ی درس‌ها، پوزیشن‌ها و معامله‌هات بپرس.'}
+          {preview ?? t('دستیار شخصی‌ات: درباره‌ی درس‌ها، پوزیشن‌ها و معامله‌هات بپرس.')}
         </Txt>
       </View>
     </Pressable>
@@ -78,7 +80,7 @@ export function NameDot({ name, size = 32 }: { name: string; size?: number }) {
   return (
     <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: palette[h % palette.length] }]}>
       <Txt w={900} size={size * 0.45} color={colors.bg}>
-        {name.trim().charAt(0) || '؟'}
+        {name.trim().charAt(0) || t('؟')}
       </Txt>
     </View>
   );
@@ -86,10 +88,10 @@ export function NameDot({ name, size = 32 }: { name: string; size?: number }) {
 
 export function RoomRow({ room, onPress, onJoin }: { room: ChatRoom; onPress: () => void; onJoin?: () => void }) {
   const preview = room.last_author
-    ? `${room.last_author}: ${room.last_kind === 'analysis' ? 'یه تحلیل با نمودار' + (room.last_body ? ` · ${room.last_body}` : '') : (room.last_body ?? '')}`
+    ? `${room.last_author}: ${room.last_kind === 'analysis' ? t('یه تحلیل با نمودار') + (room.last_body ? ` · ${room.last_body}` : '') : (room.last_body ?? '')}`
     : room.about;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`گروه ${room.title}`} style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={t('گروه {title}', { title: room.title })} style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}>
       <TopicAvatar topic={room.topic} />
       <View style={{ flex: 1, gap: 3 }}>
         <View style={styles.titleLine}>
@@ -116,9 +118,9 @@ export function RoomRow({ room, onPress, onJoin }: { room: ChatRoom; onPress: ()
             </View>
           ) : null}
           {!room.joined && onJoin ? (
-            <Pressable onPress={onJoin} accessibilityRole="button" accessibilityLabel={`عضویت در ${room.title}`} hitSlop={6} style={styles.join}>
+            <Pressable onPress={onJoin} accessibilityRole="button" accessibilityLabel={t('عضویت در {title}', { title: room.title })} hitSlop={6} style={styles.join}>
               <Txt w={900} size={12.5} color={colors.bullText}>
-                عضویت
+                {t('عضویت')}
               </Txt>
             </Pressable>
           ) : null}
@@ -126,7 +128,7 @@ export function RoomRow({ room, onPress, onJoin }: { room: ChatRoom; onPress: ()
         <View style={styles.titleLine}>
           <Icon name="users" size={13} color={colors.text3} strokeWidth={2.2} />
           <Txt w={700} size={11.5} color={colors.text3}>
-            {`${fa(room.member_count)} عضو`}
+            {t('{n} عضو', { n: fa(room.member_count), count: room.member_count })}
           </Txt>
         </View>
       </View>
@@ -146,14 +148,14 @@ const STILL_TOOLS = { ma: true, ma2: false, bands: false, rsi: false, volume: fa
 
 /** A shared analysis drawn with the simulator's own chart: direction, entry, stop, target and levels. */
 export function AnalysisChart({ chart, width, height = 190 }: { chart: ChatChart; width: number; height?: number }) {
-  const lines: ProLine[] = (chart.levels ?? []).map((p) => ({ price: p, label: 'سطح', color: colors.gold, ink: colors.goldInk }));
-  if (chart.tp != null) lines.push({ price: chart.tp, label: 'حد سود', color: colors.bull, ink: colors.bullInk });
-  if (chart.entry != null) lines.push({ price: chart.entry, label: 'ورود', color: colors.text2, ink: colors.bg, solid: true });
-  if (chart.sl != null) lines.push({ price: chart.sl, label: 'حد ضرر', color: colors.bear, ink: colors.bearInk });
+  const lines: ProLine[] = (chart.levels ?? []).map((p) => ({ price: p, label: t('سطح'), color: colors.gold, ink: colors.goldInk }));
+  if (chart.tp != null) lines.push({ price: chart.tp, label: t('حد سود'), color: colors.bull, ink: colors.bullInk });
+  if (chart.entry != null) lines.push({ price: chart.entry, label: entryText(), color: colors.text2, ink: colors.bg, solid: true });
+  if (chart.sl != null) lines.push({ price: chart.sl, label: t('حد ضرر'), color: colors.bear, ink: colors.bearInk });
   const badge = chart.side ? (
     <View style={[styles.side, { backgroundColor: chart.side === 'buy' ? colors.bull : colors.bear }]}>
       <Txt w={900} size={11.5} color={chart.side === 'buy' ? colors.bullInk : colors.bearInk}>
-        {chart.side === 'buy' ? 'خرید' : 'فروش'}
+        {chart.side === 'buy' ? t('خرید') : t('فروش')}
       </Txt>
     </View>
   ) : null;

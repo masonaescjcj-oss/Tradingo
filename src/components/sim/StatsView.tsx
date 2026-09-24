@@ -5,6 +5,7 @@ import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { tradingCard, type ShareCard } from '@/lib/shareCard';
 import { tradeStats, type TradeStats } from '@/lib/stats';
 import { useGame, type SimBook } from '@/store/game';
@@ -21,29 +22,29 @@ type Tile = { label: string; value: string; mono?: boolean; color?: string; hint
 function tiles(s: TradeStats): Tile[] {
   const pf = s.profitFactor;
   return [
-    { label: 'تعداد معامله', value: faNum(s.count), hint: `${fa(s.wins)} سود، ${fa(s.losses)} ضرر` },
-    { label: 'درصد برد', value: s.winRate == null ? '—' : faPct(s.winRate, 0), hint: 'چند درصد معامله‌ها با سود بسته شدن' },
-    { label: 'میانگین سود', value: s.avgWin == null ? '—' : usd(s.avgWin), mono: true, color: colors.bullText, hint: 'متوسط معامله‌های سودده' },
-    { label: 'میانگین ضرر', value: s.avgLoss == null ? '—' : usd(-s.avgLoss), mono: true, color: colors.bearText, hint: 'متوسط معامله‌های ضررده' },
+    { label: t('تعداد معامله'), value: faNum(s.count), hint: t('{wins} سود، {losses} ضرر', { wins: fa(s.wins), losses: fa(s.losses) }) },
+    { label: t('درصد برد'), value: s.winRate == null ? '—' : faPct(s.winRate, 0), hint: t('چند درصد معامله‌ها با سود بسته شدن') },
+    { label: t('میانگین سود'), value: s.avgWin == null ? '—' : usd(s.avgWin), mono: true, color: colors.bullText, hint: t('متوسط معامله‌های سودده') },
+    { label: t('میانگین ضرر'), value: s.avgLoss == null ? '—' : usd(-s.avgLoss), mono: true, color: colors.bearText, hint: t('متوسط معامله‌های ضررده') },
     {
-      label: 'فاکتور سود',
+      label: t('فاکتور سود'),
       value: pf == null ? '—' : pf === Infinity ? '∞' : faDec(pf, 2),
       color: pf != null && pf >= 1 ? colors.bullText : pf != null ? colors.bearText : undefined,
-      hint: 'جمع سودها ÷ جمع ضررها؛ بالای ۱ یعنی سودده',
+      hint: t('جمع سودها ÷ جمع ضررها؛ بالای ۱ یعنی سودده'),
     },
     {
-      label: 'میانگین R',
+      label: t('میانگین R'),
       value: s.avgR == null ? '—' : rText(s.avgR, 2),
       color: s.avgR != null && s.avgR >= 0 ? colors.bullText : s.avgR != null ? colors.bearText : undefined,
-      hint: s.rCount ? `سود هر معامله به واحد ریسک، از ${fa(s.rCount)} معامله با حد ضرر` : 'فقط معامله‌های با حد ضرر حساب می‌شن',
+      hint: s.rCount ? t('سود هر معامله به واحد ریسک، از {n} معامله با حد ضرر', { n: fa(s.rCount), count: s.rCount }) : t('فقط معامله‌های با حد ضرر حساب می‌شن'),
     },
     {
-      label: 'بیشترین افت',
+      label: t('بیشترین افت'),
       value: faPct(s.maxDrawdown, s.maxDrawdown < 0.01 ? 2 : 1),
       color: s.maxDrawdown > 0.1 ? colors.bearText : undefined,
-      hint: `از سقف تا کف: ${ltr(usd(s.maxDrawdownUsd))}`,
+      hint: t('از سقف تا کف: {amount}', { amount: ltr(usd(s.maxDrawdownUsd)) }),
     },
-    { label: 'سود خالص', value: usd(s.net, true), mono: true, color: pnlColor(s.net), hint: 'جمع نتیجه‌ی معامله‌های بسته‌شده' },
+    { label: t('سود خالص'), value: usd(s.net, true), mono: true, color: pnlColor(s.net), hint: t('جمع نتیجه‌ی معامله‌های بسته‌شده') },
   ];
 }
 
@@ -60,26 +61,26 @@ export function StatsView({ width }: { width: number }) {
   return (
     <View style={{ gap: 12 }}>
       <Segment
-        label="کدوم حساب"
+        label={t('کدوم حساب')}
         value={book}
         onChange={setBook}
         options={[
-          { value: 'live', label: 'شبیه‌ساز زنده' },
-          { value: 'replay', label: 'بازپخش بازار' },
+          { value: 'live', label: t('شبیه‌ساز زنده') },
+          { value: 'replay', label: t('بازپخش بازار') },
         ]}
       />
 
       <View style={styles.grid}>
-        {tiles(stats).map((t) => (
-          <View key={t.label} style={styles.tile}>
+        {tiles(stats).map((tile) => (
+          <View key={tile.label} style={styles.tile}>
             <Txt w={700} size={11.5} color={colors.text2}>
-              {t.label}
+              {tile.label}
             </Txt>
-            <Txt mono={t.mono} w={900} size={18} color={t.color ?? colors.text}>
-              {t.value}
+            <Txt mono={tile.mono} w={900} size={18} color={tile.color ?? colors.text}>
+              {tile.value}
             </Txt>
             <Txt w={500} size={10.5} lh={1.5} color={colors.text3}>
-              {t.hint}
+              {tile.hint}
             </Txt>
           </View>
         ))}
@@ -87,7 +88,7 @@ export function StatsView({ width }: { width: number }) {
 
       <Card>
         <Txt w={900} size={15}>
-          نمودار سرمایه
+          {t('نمودار سرمایه')}
         </Txt>
         <EquityCurve curve={stats.curve} width={width - 32} />
       </Card>
@@ -101,12 +102,12 @@ export function StatsView({ width }: { width: number }) {
           radius={14}
           edge={3}
           onPress={() => setCard(tradingCard({ name, count: stats.count, winRate: stats.winRate, net: stats.net, profitFactor: stats.profitFactor }))}
-          accessibilityLabel="اشتراک آمار معامله‌ها"
+          accessibilityLabel={t('اشتراک آمار معامله‌ها')}
         >
           <View style={styles.shareRow}>
             <Icon name="share" size={17} color={colors.text} strokeWidth={2.6} />
             <Txt w={900} size={15}>
-              اشتراک آمار معامله‌هام
+              {t('اشتراک آمار معامله‌هام')}
             </Txt>
           </View>
         </Button3D>

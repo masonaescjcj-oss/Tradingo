@@ -11,6 +11,7 @@ import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { allCourses } from '@/content';
+import { t } from '@/i18n';
 import { UPTREND } from '@/content/charts';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -30,7 +31,7 @@ export default function Welcome() {
   return (
     <Screen style={styles.screen}>
       <GridBackdrop />
-      {/* فارسی | English, for learners who'd rather start in English. */}
+      {/* فارسی | English, for learners who'd rather start in English. i18n-ignore */}
       <View style={styles.lang}>
         <LanguageToggle compact />
       </View>
@@ -42,21 +43,23 @@ export default function Welcome() {
           <FloatingMascot size={136 * scale} left={92 * scale} />
           <SpeechBubble tail="bottomEnd" background={colors.text} border="#D5DBE6" style={[styles.bubble, { width: 200 * scale }]}>
             <Txt w={800} size={compact ? 13 : 15} lh={1.7} color={colors.bg}>
-              {returning ? `خوش برگشتی، ${user.name}! دلم برات تنگ شده بود.` : 'سلام! من شمعکم. بیا با هم ترید رو یاد بگیریم.'}
+              {returning
+                ? t('خوش برگشتی، {name}! دلم برات تنگ شده بود.', { name: user.name })
+                : t('سلام! من شمعکم. بیا با هم ترید رو یاد بگیریم.')}
             </Txt>
           </SpeechBubble>
         </View>
         <Txt display size={compact ? 48 : 60} color={colors.bull} style={[styles.wordmark, { lineHeight: compact ? 60 : 72 }]}>
-          چارتون
+          {t('چارتون')}
         </Txt>
         <Txt w={900} size={compact ? 18 : 21} center>
-          ترید رو مثل یه بازی یاد بگیر
+          {t('ترید رو مثل یه بازی یاد بگیر')}
         </Txt>
         {!compact && (
           <View style={styles.features}>
-            <Feature text={`${fa(allCourses().length)} دوره`} />
-            <Feature text="درس‌های ۵ دقیقه‌ای" />
-            <Feature text="شبیه‌ساز معامله" />
+            <Feature text={t('{n} دوره', { n: fa(allCourses().length), count: allCourses().length })} />
+            <Feature text={t('درس‌های ۵ دقیقه‌ای')} />
+            <Feature text={t('شبیه‌ساز معامله')} />
           </View>
         )}
       </View>
@@ -64,17 +67,17 @@ export default function Welcome() {
       <View style={styles.actions}>
         {returning ? (
           <>
-            <Button3D label="ورود به حسابم" onPress={() => router.push('/login')} />
-            <Button3D label="ساخت حساب جدید" variant="secondary" size={16} onPress={() => setConfirmNew(true)} />
+            <Button3D label={t('ورود به حسابم')} onPress={() => router.push('/login')} />
+            <Button3D label={t('ساخت حساب جدید')} variant="secondary" size={16} onPress={() => setConfirmNew(true)} />
           </>
         ) : (
           <>
-            <Button3D label="شروع کن" onPress={() => router.push('/onboarding')} />
-            <Button3D label="حساب دارم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/login')} />
+            <Button3D label={t('شروع کن')} onPress={() => router.push('/onboarding')} />
+            <Button3D label={t('حساب دارم؛ ورود')} variant="secondary" size={16} onPress={() => router.push('/login')} />
           </>
         )}
         <Txt size={12} lh={1.7} color={colors.text3} center>
-          محتوای چارتون آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
+          {t('محتوای چارتون آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.')}
         </Txt>
       </View>
 
@@ -83,13 +86,13 @@ export default function Welcome() {
           <View style={styles.dialog}>
             <Mascot mood="think" size={90} />
             <Txt w={900} size={18} center>
-              حساب جدید بسازی؟
+              {t('حساب جدید بسازی؟')}
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2} center>
-              {`پیشرفت حساب «${user?.name ?? ''}» روی این دستگاه پاک می‌شه و از اول شروع می‌کنی.`}
+              {t('پیشرفت حساب «{name}» روی این دستگاه پاک می‌شه و از اول شروع می‌کنی.', { name: user?.name ?? '' })}
             </Txt>
             <Button3D
-              label="آره، از اول"
+              label={t('آره، از اول')}
               variant="danger"
               size={16}
               onPress={() => {
@@ -99,7 +102,7 @@ export default function Welcome() {
               }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Button3D label="نه، برمی‌گردم" variant="secondary" size={16} onPress={() => setConfirmNew(false)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('نه، برمی‌گردم')} variant="secondary" size={16} onPress={() => setConfirmNew(false)} style={{ alignSelf: 'stretch' }} />
           </View>
         </View>
       </Modal>

@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { formatPrice, formatSize, quote, type SymbolSpec } from '@/lib/simulator';
 import {
   DEFAULT_LEVERAGE,
@@ -103,41 +104,41 @@ export function OrderTicket({
     <Card>
       <Row>
         <Txt w={900} size={15}>
-          سفارش جدید
+          {t('سفارش جدید')}
         </Txt>
-        <Pressable onPress={onInfo} accessibilityRole="button" accessibilityLabel="راهنمای نوع سفارش، اهرم و لیکوئید" hitSlop={8} style={styles.help}>
+        <Pressable onPress={onInfo} accessibilityRole="button" accessibilityLabel={t('راهنمای نوع سفارش، اهرم و لیکوئید')} hitSlop={8} style={styles.help}>
           <Icon name="info" size={15} color={colors.skyText} strokeWidth={2.4} />
           <Txt w={800} size={12} color={colors.skyText}>
-            راهنما
+            {t('راهنما')}
           </Txt>
         </Pressable>
       </Row>
 
       <Segment
-        label="نوع سفارش"
+        label={t('نوع سفارش')}
         value={type}
         onChange={setType}
         options={[
-          { value: 'market', label: 'مارکت' },
-          { value: 'limit', label: 'لیمیت' },
-          { value: 'stop', label: 'استاپ' },
+          { value: 'market', label: t('مارکت') },
+          { value: 'limit', label: t('لیمیت') },
+          { value: 'stop', label: t('استاپ') },
         ]}
       />
       <Txt w={700} size={11.5} lh={1.7} color={colors.text3}>
         {type === 'market'
-          ? 'همین الان با قیمت بازار وارد می‌شی: خرید با Ask، فروش با Bid.'
+          ? t('همین الان با قیمت بازار وارد می‌شی: خرید با Ask، فروش با Bid.')
           : type === 'limit'
-            ? 'منتظر قیمت بهتر می‌مونی: خرید پایین‌تر از قیمت فعلی، فروش بالاتر.'
-            : 'وقتی قیمت شکست وارد می‌شی: خرید بالاتر از قیمت فعلی، فروش پایین‌تر.'}
+            ? t('منتظر قیمت بهتر می‌مونی: خرید پایین‌تر از قیمت فعلی، فروش بالاتر.')
+            : t('وقتی قیمت شکست وارد می‌شی: خرید بالاتر از قیمت فعلی، فروش پایین‌تر.')}
       </Txt>
 
       {type !== 'market' && (
         <Row>
           <Txt w={800} size={13.5} color={colors.text2}>
-            فاصله از قیمت فعلی
+            {t('فاصله از قیمت فعلی')}
           </Txt>
           <Stepper
-            label="فاصله‌ی سفارش"
+            label={t('فاصله‌ی سفارش')}
             value={distanceLabel(spec, offset)}
             onMinus={() => setOffsetMult((m) => Math.max(0.25, m - 0.25))}
             onPlus={() => setOffsetMult((m) => Math.min(10, m + 0.25))}
@@ -148,42 +149,42 @@ export function OrderTicket({
       <View style={{ gap: 6 }}>
         <Row>
           <Txt w={800} size={13.5} color={colors.text2}>
-            اهرم
+            {t('اهرم')}
           </Txt>
           <Txt w={700} size={11.5} color={leverage >= 20 ? colors.bearText : colors.text3}>
-            {`لیکوئید با ${faPct(liqMove, 2)} حرکت خلاف جهت`}
+            {t('لیکوئید با {pct} حرکت خلاف جهت', { pct: faPct(liqMove, 2) })}
           </Txt>
         </Row>
         <Segment
-          label="اهرم"
+          label={t('اهرم')}
           value={leverage}
           onChange={setLeverage}
           small
-          options={LEVERAGES.map((l) => ({ value: l, label: `${fa(l)}×`, hint: `اهرم ${fa(l)} برابر` }))}
+          options={LEVERAGES.map((l) => ({ value: l, label: `${fa(l)}×`, hint: t('اهرم {n} برابر', { n: fa(l) }) }))}
         />
       </View>
 
       <View style={{ gap: 6 }}>
         <Row>
           <Txt w={800} size={13.5} color={colors.text2}>
-            {`حجم (${spec.sizeUnit})`}
+            {t('حجم ({unit})', { unit: t(spec.sizeUnit) })}
           </Txt>
           <View style={{ width: 170 }}>
             <Segment
-              label="روش تعیین حجم"
+              label={t('روش تعیین حجم')}
               value={sizeMode}
               onChange={setSizeMode}
               small
               options={[
-                { value: 'fixed', label: 'ثابت' },
-                { value: 'risk', label: 'درصد ریسک' },
+                { value: 'fixed', label: t('ثابت') },
+                { value: 'risk', label: t('درصد ریسک') },
               ]}
             />
           </View>
         </Row>
         {sizeMode === 'fixed' ? (
           <Segment
-            label="حجم"
+            label={t('حجم')}
             value={sizeIndex}
             onChange={setSizeIndex}
             options={spec.sizes.map((s, i) => ({ value: i, label: formatSize(spec, s), mono: true }))}
@@ -191,21 +192,21 @@ export function OrderTicket({
         ) : (
           <>
             <Segment
-              label="درصد ریسک از ارزش حساب"
+              label={t('درصد ریسک از ارزش حساب')}
               value={riskPct}
               onChange={setRiskPct}
-              options={RISKS.map((r) => ({ value: r, label: `${faDec(r)}٪`, hint: `ریسک ${faDec(r)} درصد` }))}
+              options={RISKS.map((r) => ({ value: r, label: t('{n}٪', { n: faDec(r) }), hint: t('ریسک {n} درصد', { n: faDec(r) }) }))}
             />
             <Row>
               <Txt w={700} size={12} color={colors.text3} style={{ flex: 1 }}>
-                {`${ltr(usd((summary.equity * riskPct) / 100))} ریسک ÷ فاصله‌ی حد ضرر =`}
+                {t('{amount} ریسک ÷ فاصله‌ی حد ضرر =', { amount: ltr(usd((summary.equity * riskPct) / 100)) })}
               </Txt>
               <View style={styles.sizeOut}>
                 <Txt mono w={800} size={13} color={size > 0 ? colors.text : colors.bearText}>
                   {formatSize(spec, size)}
                 </Txt>
                 <Txt w={700} size={12} color={colors.text2}>
-                  {spec.sizeUnit}
+                  {t(spec.sizeUnit)}
                 </Txt>
               </View>
             </Row>
@@ -214,7 +215,7 @@ export function OrderTicket({
       </View>
 
       <StopRow
-        label="حد ضرر"
+        label={t('حد ضرر')}
         tone={colors.bearText}
         on={slOn}
         locked={sizeMode === 'risk'}
@@ -224,7 +225,7 @@ export function OrderTicket({
         onPlus={() => setSlMult((m) => Math.min(10, m + 0.25))}
       />
       <StopRow
-        label="حد سود"
+        label={t('حد سود')}
         tone={colors.bullText}
         on={useTp}
         onToggle={() => setUseTp((v) => !v)}
@@ -234,22 +235,22 @@ export function OrderTicket({
       />
 
       <View style={styles.summary}>
-        <SummaryItem label="مارجین لازم" value={usd(margin)} color={noMargin ? colors.bearText : colors.text} />
-        <SummaryItem label="ریسک" value={slOn ? usd(riskUsd) : 'بی‌سقف'} color={colors.bearText} mono={slOn} />
-        <SummaryItem label="ریوارد" value={useTp ? usd(rewardUsd) : '—'} color={colors.bullText} />
+        <SummaryItem label={t('مارجین لازم')} value={usd(margin)} color={noMargin ? colors.bearText : colors.text} />
+        <SummaryItem label={t('ریسک')} value={slOn ? usd(riskUsd) : t('بی‌سقف')} color={colors.bearText} mono={slOn} />
+        <SummaryItem label={t('ریوارد')} value={useTp ? usd(rewardUsd) : '—'} color={colors.bullText} />
         {slOn && useTp ? (
           <View style={styles.rr}>
             <Txt w={900} size={12} color={colors.gold}>
-              {`۱ به ${faDec(tpMult / slMult)}`}
+              {t('۱ به {n}', { n: faDec(tpMult / slMult) })}
             </Txt>
           </View>
         ) : null}
       </View>
 
-      {!slOn && <Hint tone="bear">بدون حد ضرر، ضررت سقفی نداره تا جایی که لیکوئید بشی.</Hint>}
-      {stopPastLiquidation && <Hint tone="bear">حد ضررت از نقطه‌ی لیکوئید دورتره؛ قبل از رسیدن به حد ضرر لیکوئید می‌شی! اهرم رو کم کن.</Hint>}
-      {noMargin && <Hint tone="bear">{`مارجین آزادت (${ltr(usd(summary.freeMargin))}) برای این حجم کافی نیست.`}</Hint>}
-      {sizeMode === 'risk' && size === 0 && <Hint tone="gold">با این ریسک و حد ضرر، حجم از حداقل کمتر می‌شه. ریسک رو بیشتر یا حد ضرر رو نزدیک‌تر کن.</Hint>}
+      {!slOn && <Hint tone="bear">{t('بدون حد ضرر، ضررت سقفی نداره تا جایی که لیکوئید بشی.')}</Hint>}
+      {stopPastLiquidation && <Hint tone="bear">{t('حد ضررت از نقطه‌ی لیکوئید دورتره؛ قبل از رسیدن به حد ضرر لیکوئید می‌شی! اهرم رو کم کن.')}</Hint>}
+      {noMargin && <Hint tone="bear">{t('مارجین آزادت ({amount}) برای این حجم کافی نیست.', { amount: ltr(usd(summary.freeMargin)) })}</Hint>}
+      {sizeMode === 'risk' && size === 0 && <Hint tone="gold">{t('با این ریسک و حد ضرر، حجم از حداقل کمتر می‌شه. ریسک رو بیشتر یا حد ضرر رو نزدیک‌تر کن.')}</Hint>}
 
       <View style={styles.tradeRow}>
         {(['buy', 'sell'] as const).map((side) => {
@@ -261,10 +262,10 @@ export function OrderTicket({
               onPress={() => place(side)}
               height={58}
               style={{ flex: 1 }}
-              accessibilityLabel={`${orderText(type, side)} با قیمت ${formatPrice(spec, p)}`}
+              accessibilityLabel={t('{order} با قیمت {price}', { order: orderText(type, side), price: formatPrice(spec, p) })}
             >
               <Txt w={900} size={type === 'market' ? 17 : 15} color={side === 'buy' ? colors.bullInk : colors.bearInk}>
-                {type === 'market' ? (side === 'buy' ? 'خرید' : 'فروش') : orderText(type, side)}
+                {type === 'market' ? (side === 'buy' ? t('خرید') : t('فروش')) : orderText(type, side)}
               </Txt>
               <Txt mono w={800} size={12} color={side === 'buy' ? '#0A4A2A' : '#5A0F1C'}>
                 {formatPrice(spec, p)}
@@ -274,7 +275,7 @@ export function OrderTicket({
         })}
       </View>
       <Txt w={700} size={11.5} color={colors.text3} center>
-        {`اسپرد: ${distanceLabel(spec, spec.spread)} · خرید با Ask، فروش با Bid`}
+        {t('اسپرد: {spread} · خرید با Ask، فروش با Bid', { spread: distanceLabel(spec, spec.spread) })}
       </Txt>
     </Card>
   );
@@ -305,7 +306,7 @@ function StopRow({
         onPress={locked ? undefined : onToggle}
         accessibilityRole="switch"
         accessibilityState={{ checked: on, disabled: locked }}
-        accessibilityLabel={locked ? `${label} (برای حجم با درصد ریسک لازمه)` : label}
+        accessibilityLabel={locked ? t('{label} (برای حجم با درصد ریسک لازمه)', { label }) : label}
         style={styles.stopLabel}
       >
         <Toggle on={on} />
@@ -315,7 +316,7 @@ function StopRow({
           </Txt>
           {locked ? (
             <Txt w={700} size={10} color={colors.text3}>
-              برای درصد ریسک لازمه
+              {t('برای درصد ریسک لازمه')}
             </Txt>
           ) : null}
         </View>
@@ -324,7 +325,7 @@ function StopRow({
         <Stepper label={label} value={value} onMinus={onMinus} onPlus={onPlus} />
       ) : (
         <Txt w={700} size={12} color={colors.text3}>
-          خاموش
+          {t('خاموش')}
         </Txt>
       )}
     </Row>

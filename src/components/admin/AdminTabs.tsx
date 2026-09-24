@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react
 
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import {
   actOnUser,
   adminErrorText,
@@ -40,10 +41,10 @@ type Sheet = { title: string; body?: string; options: SheetOption[]; withReason?
 type Notify = (text: string) => void;
 
 const MUTE_CHOICES: [string, number | null][] = [
-  ['۱ ساعت', 1],
-  ['۲۴ ساعت', 24],
-  ['۷ روز', 24 * 7],
-  ['تا وقتی خودم باز کنم', null],
+  ['۱ ساعت', 1], // i18n-ignore: translated where shown
+  ['۲۴ ساعت', 24], // i18n-ignore: translated where shown
+  ['۷ روز', 24 * 7], // i18n-ignore: translated where shown
+  ['تا وقتی خودم باز کنم', null], // i18n-ignore: translated where shown
 ];
 
 /** The account actions shared by the reports, messages and users tabs. */
@@ -59,28 +60,28 @@ function useUserActions(notify: Notify, onChanged: (u: AdminUser) => void) {
   const ask = {
     mute: (id: string, name: string) =>
       setSheet({
-        title: `چت ${name} بسته بشه؟`,
-        body: 'پیام‌ها رو می‌تونه بخونه ولی نمی‌تونه پیام بفرسته یا گروه بسازه.',
-        options: MUTE_CHOICES.map(([label, hours]) => ({ label, variant: 'secondary' as const, run: (reason) => run(id, 'mute', { hours, reason }, `چت ${name} بسته شد.`) })),
+        title: t('چت {name} بسته بشه؟', { name }),
+        body: t('پیام‌ها رو می‌تونه بخونه ولی نمی‌تونه پیام بفرسته یا گروه بسازه.'),
+        options: MUTE_CHOICES.map(([label, hours]) => ({ label: t(label), variant: 'secondary' as const, run: (reason) => run(id, 'mute', { hours, reason }, t('چت {name} بسته شد.', { name })) })),
         withReason: true,
       }),
     ban: (id: string, name: string) =>
       setSheet({
-        title: `حساب ${name} مسدود بشه؟`,
-        body: 'از همه‌ی دستگاه‌ها خارج می‌شه، دیگه نمی‌تونه وارد بشه، همه‌ی پیام‌هاش پنهان می‌شه و از لیگ این هفته بیرون می‌ره.',
-        options: [{ label: 'مسدود کن', variant: 'danger', run: (reason) => run(id, 'ban', { reason }, `${name} مسدود شد.`) }],
+        title: t('حساب {name} مسدود بشه؟', { name }),
+        body: t('از همه‌ی دستگاه‌ها خارج می‌شه، دیگه نمی‌تونه وارد بشه، همه‌ی پیام‌هاش پنهان می‌شه و از لیگ این هفته بیرون می‌ره.'),
+        options: [{ label: t('مسدود کن'), variant: 'danger', run: (reason) => run(id, 'ban', { reason }, t('{name} مسدود شد.', { name })) }],
         withReason: true,
       }),
     purge: (id: string, name: string) =>
       setSheet({
-        title: `همه‌ی پیام‌های ${name} پاک بشه؟`,
-        options: [{ label: 'پاک کن', variant: 'danger', run: () => run(id, 'purge', {}, `پیام‌های ${name} پاک شد.`) }],
+        title: t('همه‌ی پیام‌های {name} پاک بشه؟', { name }),
+        options: [{ label: t('پاک کن'), variant: 'danger', run: () => run(id, 'purge', {}, t('پیام‌های {name} پاک شد.', { name })) }],
       }),
     role: (id: string, name: string, admin: boolean) =>
       setSheet({
-        title: admin ? `دسترسی مدیری ${name} برداشته بشه؟` : `${name} مدیر بشه؟`,
-        body: admin ? undefined : 'مدیرها به همین پنل، حذف پیام، بستن چت، مسدود کردن و کلید هوش مصنوعی دسترسی دارن.',
-        options: [{ label: admin ? 'بردار' : 'مدیر کن', variant: admin ? 'danger' : 'primary', run: () => run(id, admin ? 'remove_admin' : 'make_admin') }],
+        title: admin ? t('دسترسی مدیری {name} برداشته بشه؟', { name }) : t('{name} مدیر بشه؟', { name }),
+        body: admin ? undefined : t('مدیرها به همین پنل، حذف پیام، بستن چت، مسدود کردن و کلید هوش مصنوعی دسترسی دارن.'),
+        options: [{ label: admin ? t('بردار') : t('مدیر کن'), variant: admin ? 'danger' : 'primary', run: () => run(id, admin ? 'remove_admin' : 'make_admin') }],
       }),
     unmute: (id: string) => run(id, 'unmute'),
     unban: (id: string) => run(id, 'unban'),
@@ -149,40 +150,40 @@ export function MessagesTab({
   if (!items) return <ActivityIndicator color={colors.bull} style={{ marginTop: 32 }} />;
   return (
     <View style={styles.list}>
-      {account ? <Txt w={800} size={13} color={colors.text2}>{`پیام‌های ${account.name}`}</Txt> : null}
+      {account ? <Txt w={800} size={13} color={colors.text2}>{t('پیام‌های {name}', { name: account.name })}</Txt> : null}
       {room ? (
         <View style={styles.roomHead}>
-          <Txt w={800} size={13} color={colors.text2} style={{ flex: 1 }}>{`پیام‌های گروه «${room.title}»، پنهان‌شده‌ها هم هستن`}</Txt>
-          <SmallButton label="رفتن به گروه" onPress={() => router.push(`/chat/${room.id}`)} />
+          <Txt w={800} size={13} color={colors.text2} style={{ flex: 1 }}>{t('پیام‌های گروه «{title}»، پنهان‌شده‌ها هم هستن', { title: room.title })}</Txt>
+          <SmallButton label={t('رفتن به گروه')} onPress={() => router.push(`/chat/${room.id}`)} />
         </View>
       ) : null}
-      {items.length === 0 ? <Empty text={reported ? 'گزارشی نمونده 🎉' : 'پیامی نیست.'} /> : null}
+      {items.length === 0 ? <Empty text={reported ? t('گزارشی نمونده 🎉') : t('پیامی نیست.')} /> : null}
       {items.map((m) => (
         <MessageCard
           key={m.id}
           message={m}
           actions={
             <>
-              {!m.hidden ? <SmallButton label="حذف پیام" tone="danger" onPress={() => decide(m, 'delete')} /> : <SmallButton label="برگردوندن پیام" onPress={() => decide(m, 'keep')} />}
-              {reported && !m.hidden ? <SmallButton label="مشکلی نداره" tone="good" onPress={() => decide(m, 'keep')} /> : null}
-              {m.author_id && !m.author_muted && !m.author_banned ? <SmallButton label="بستن چت نویسنده" onPress={() => ask.mute(m.author_id!, m.author_name)} /> : null}
-              {m.author_id && !m.author_banned ? <SmallButton label="مسدود کردن نویسنده" tone="danger" onPress={() => ask.ban(m.author_id!, m.author_name)} /> : null}
+              {!m.hidden ? <SmallButton label={t('حذف پیام')} tone="danger" onPress={() => decide(m, 'delete')} /> : <SmallButton label={t('برگردوندن پیام')} onPress={() => decide(m, 'keep')} />}
+              {reported && !m.hidden ? <SmallButton label={t('مشکلی نداره')} tone="good" onPress={() => decide(m, 'keep')} /> : null}
+              {m.author_id && !m.author_muted && !m.author_banned ? <SmallButton label={t('بستن چت نویسنده')} onPress={() => ask.mute(m.author_id!, m.author_name)} /> : null}
+              {m.author_id && !m.author_banned ? <SmallButton label={t('مسدود کردن نویسنده')} tone="danger" onPress={() => ask.ban(m.author_id!, m.author_name)} /> : null}
             </>
           }
         />
       ))}
-      {more && items.length > 0 ? <Button3D label="پیام‌های قدیمی‌تر" variant="secondary" size={14} onPress={() => load(items[items.length - 1].id)} /> : null}
+      {more && items.length > 0 ? <Button3D label={t('پیام‌های قدیمی‌تر')} variant="secondary" size={14} onPress={() => load(items[items.length - 1].id)} /> : null}
       {element}
     </View>
   );
 }
 
 const FILTERS: [UserFilter, string][] = [
-  ['all', 'همه'],
-  ['reported', 'گزارش‌شده'],
-  ['muted', 'چت بسته'],
-  ['banned', 'مسدود'],
-  ['admins', 'مدیرها'],
+  ['all', 'همه'], // i18n-ignore: translated where shown
+  ['reported', 'گزارش‌شده'], // i18n-ignore: translated where shown
+  ['muted', 'چت بسته'], // i18n-ignore: translated where shown
+  ['banned', 'مسدود'], // i18n-ignore: translated where shown
+  ['admins', 'مدیرها'], // i18n-ignore: translated where shown
 ];
 
 /** Accounts: search by name, email or mobile, filter by standing, and act on them. */
@@ -193,7 +194,7 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
   useEffect(() => {
     let live = true;
     // Waits for a pause in typing before searching.
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       fetchUsers(query, filter).then((res) => {
         if (!live) return;
         if (!res.ok) return notify(adminErrorText(res.error));
@@ -202,7 +203,7 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
     }, 350);
     return () => {
       live = false;
-      clearTimeout(t);
+      clearTimeout(timer);
     };
   }, [query, filter, notify]);
   const myLogin = useCloud((s) => s.login);
@@ -213,32 +214,32 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
 
   return (
     <View style={styles.list}>
-      <TextInput value={query} onChangeText={setQuery} placeholder="جستجوی اسم، ایمیل یا شماره" placeholderTextColor={colors.faint} style={adminStyles.input} />
+      <TextInput value={query} onChangeText={setQuery} placeholder={t('جستجوی اسم، ایمیل یا شماره')} placeholderTextColor={colors.faint} style={[adminStyles.input, { textAlign: textStart() }]} />
       <View style={styles.chips}>
         {FILTERS.map(([key, label]) => (
           <Pressable key={key} onPress={() => setFilter(key)} accessibilityRole="radio" accessibilityState={{ checked: filter === key }} style={[styles.chip, filter === key && styles.chipOn]}>
             <Txt w={800} size={12} color={filter === key ? colors.skyText : colors.text2}>
-              {label}
+              {t(label)}
             </Txt>
           </Pressable>
         ))}
       </View>
       {!items ? <ActivityIndicator color={colors.bull} style={{ marginTop: 24 }} /> : null}
-      {items && items.length === 0 ? <Empty text="کسی پیدا نشد." /> : null}
+      {items && items.length === 0 ? <Empty text={t('کسی پیدا نشد.')} /> : null}
       {items?.map((u) => (
         <UserCard
           key={u.id}
           user={u}
           actions={
             <>
-              <SmallButton label="پیام‌ها" onPress={() => onShowMessages(u)} />
+              <SmallButton label={t('پیام‌ها')} onPress={() => onShowMessages(u)} />
               {/* Nothing to do to your own account here; the server refuses it anyway. */}
               {(u.email ?? u.mobile) === myLogin ? null : (
                 <>
-                  {u.muted ? <SmallButton label="باز کردن چت" tone="good" onPress={() => ask.unmute(u.id)} /> : u.role !== 'admin' && !u.banned ? <SmallButton label="بستن چت" onPress={() => ask.mute(u.id, u.name)} /> : null}
-                  {u.banned ? <SmallButton label="رفع مسدودی" tone="good" onPress={() => ask.unban(u.id)} /> : u.role !== 'admin' ? <SmallButton label="مسدود کردن" tone="danger" onPress={() => ask.ban(u.id, u.name)} /> : null}
-                  {u.messages > 0 ? <SmallButton label="پاک کردن پیام‌ها" tone="danger" onPress={() => ask.purge(u.id, u.name)} /> : null}
-                  {!u.banned ? <SmallButton label={u.role === 'admin' ? 'برداشتن مدیری' : 'مدیر کردن'} onPress={() => ask.role(u.id, u.name, u.role === 'admin')} /> : null}
+                  {u.muted ? <SmallButton label={t('باز کردن چت')} tone="good" onPress={() => ask.unmute(u.id)} /> : u.role !== 'admin' && !u.banned ? <SmallButton label={t('بستن چت')} onPress={() => ask.mute(u.id, u.name)} /> : null}
+                  {u.banned ? <SmallButton label={t('رفع مسدودی')} tone="good" onPress={() => ask.unban(u.id)} /> : u.role !== 'admin' ? <SmallButton label={t('مسدود کردن')} tone="danger" onPress={() => ask.ban(u.id, u.name)} /> : null}
+                  {u.messages > 0 ? <SmallButton label={t('پاک کردن پیام‌ها')} tone="danger" onPress={() => ask.purge(u.id, u.name)} /> : null}
+                  {!u.banned ? <SmallButton label={u.role === 'admin' ? t('برداشتن مدیری') : t('مدیر کردن')} onPress={() => ask.role(u.id, u.name, u.role === 'admin')} /> : null}
                 </>
               )}
             </>
@@ -271,18 +272,18 @@ export function RoomsTab({ notify, onChanged, onShowMessages }: { notify: Notify
 
   const remove = (r: AdminRoom) =>
     setSheet({
-      title: `گروه «${r.title}» حذف بشه؟`,
-      body: 'گروه با همه‌ی پیام‌هاش برای همیشه پاک می‌شه و اعضاش ازش بیرون می‌رن.',
+      title: t('گروه «{title}» حذف بشه؟', { title: r.title }),
+      body: t('گروه با همه‌ی پیام‌هاش برای همیشه پاک می‌شه و اعضاش ازش بیرون می‌رن.'),
       options: [
         {
-          label: 'حذف گروه',
+          label: t('حذف گروه'),
           variant: 'danger',
           run: async () => {
             setSheet(null);
             const res = await deleteRoom(r.id);
             if (!res.ok) return notify(adminErrorText(res.error));
             setItems((prev) => prev?.filter((x) => x.id !== r.id) ?? null);
-            notify(`گروه «${r.title}» حذف شد.`);
+            notify(t('گروه «{title}» حذف شد.', { title: r.title }));
             onChanged();
           },
         },
@@ -292,31 +293,31 @@ export function RoomsTab({ notify, onChanged, onShowMessages }: { notify: Notify
   if (!items) return <ActivityIndicator color={colors.bull} style={{ marginTop: 32 }} />;
   return (
     <View style={styles.list}>
-      {items.length === 0 ? <Empty text="گروهی نیست." /> : null}
+      {items.length === 0 ? <Empty text={t('گروهی نیست.')} /> : null}
       {items.map((r) => (
         <Card key={r.id}>
           <View style={styles.roomHead}>
             <Txt w={900} size={15} style={{ flex: 1 }} numberOfLines={1}>
               {r.title}
             </Txt>
-            {r.official ? <Badge label="رسمی" color={colors.skySoft} ink={colors.skyText} /> : null}
-            {r.open_reports > 0 ? <Badge label={`${fa(r.open_reports)} گزارش`} color={colors.bearSoft} ink={colors.bearText} /> : null}
+            {r.official ? <Badge label={t('رسمی')} color={colors.skySoft} ink={colors.skyText} /> : null}
+            {r.open_reports > 0 ? <Badge label={t('{n} گزارش', { n: fa(r.open_reports), count: r.open_reports })} color={colors.bearSoft} ink={colors.bearText} /> : null}
           </View>
           <Txt size={12} lh={1.7} color={colors.text3}>
             {[
-              r.official ? null : `سازنده: ${r.owner_name ?? 'حساب حذف‌شده'}`,
-              `${fa(r.member_count)} عضو`,
-              `${fa(r.messages)} پیام`,
-              r.hidden ? `${fa(r.hidden)} پنهان` : null,
-              r.messages ? `آخرین پیام: ${whenText(r.last_message_at)}` : null,
+              r.official ? null : t('سازنده: {name}', { name: r.owner_name ?? t('حساب حذف‌شده') }),
+              t('{n} عضو', { n: fa(r.member_count), count: r.member_count }),
+              t('{n} پیام', { n: fa(r.messages), count: r.messages }),
+              r.hidden ? t('{n} پنهان', { n: fa(r.hidden), count: r.hidden }) : null,
+              r.messages ? t('آخرین پیام: {when}', { when: whenText(r.last_message_at) }) : null,
             ]
               .filter(Boolean)
               .join(' · ')}
           </Txt>
           <View style={styles.actionsRow}>
-            <SmallButton label="پیام‌ها" onPress={() => onShowMessages(r)} />
-            <SmallButton label="رفتن به گروه" onPress={() => router.push(`/chat/${r.id}`)} />
-            {!r.official ? <SmallButton label="حذف گروه" tone="danger" onPress={() => remove(r)} /> : null}
+            <SmallButton label={t('پیام‌ها')} onPress={() => onShowMessages(r)} />
+            <SmallButton label={t('رفتن به گروه')} onPress={() => router.push(`/chat/${r.id}`)} />
+            {!r.official ? <SmallButton label={t('حذف گروه')} tone="danger" onPress={() => remove(r)} /> : null}
           </View>
         </Card>
       ))}
@@ -344,40 +345,40 @@ export function AiTab({ status, notify, onSaved }: { status: AiStatus; notify: N
     if (!res.ok) return notify(adminErrorText(res.error));
     setKey('');
     onSaved(res.value);
-    notify(clearKey ? 'کلید حذف شد.' : 'تنظیمات ذخیره شد؛ از پیام بعدی دستیار اعمال می‌شه.');
+    notify(clearKey ? t('کلید حذف شد.') : t('تنظیمات ذخیره شد؛ از پیام بعدی دستیار اعمال می‌شه.'));
   };
 
   return (
     <View style={styles.list}>
       <Card>
         <Txt w={900} size={15}>
-          وضعیت کلید
+          {t('وضعیت کلید')}
         </Txt>
         <Txt size={13} lh={1.8} color={status.key_set ? colors.bullText : colors.text2}>
           {status.key_set
-            ? `کلید ثبت شده (…${status.key_hint ?? ''})${status.key_updated_at ? ` · ${whenText(status.key_updated_at)}` : ''}`
-            : 'اینجا کلیدی ثبت نشده؛ اگه کلید توی Secrets داشبورد Supabase باشه، از همون استفاده می‌شه.'}
+            ? `${t('کلید ثبت شده (…{hint})', { hint: status.key_hint ?? '' })}${status.key_updated_at ? ` · ${whenText(status.key_updated_at)}` : ''}`
+            : t('اینجا کلیدی ثبت نشده؛ اگه کلید توی Secrets داشبورد Supabase باشه، از همون استفاده می‌شه.')}
         </Txt>
       </Card>
 
       <Txt w={800} size={13} color={colors.text2}>
-        سرویس
+        {t('سرویس')}
       </Txt>
       <Segments
         value={provider}
         options={[
           ['anthropic', 'Anthropic (Claude)'],
-          ['openai', 'سازگار با OpenAI'],
+          ['openai', t('سازگار با OpenAI')],
         ]}
         onChange={setProvider}
       />
       <Txt w={800} size={13} color={colors.text2}>
-        کلید API جدید
+        {t('کلید API جدید')}
       </Txt>
       <TextInput
         value={key}
         onChangeText={setKey}
-        placeholder={status.key_set ? 'خالی بذاری، همون کلید قبلی می‌مونه' : 'کلید رو اینجا بذار'}
+        placeholder={status.key_set ? t('خالی بذاری، همون کلید قبلی می‌مونه') : t('کلید رو اینجا بذار')}
         placeholderTextColor={colors.faint}
         secureTextEntry
         autoCapitalize="none"
@@ -385,12 +386,12 @@ export function AiTab({ status, notify, onSaved }: { status: AiStatus; notify: N
         style={[adminStyles.input, styles.ltr]}
       />
       <Txt w={800} size={13} color={colors.text2}>
-        مدل
+        {t('مدل')}
       </Txt>
       <TextInput
         value={model}
         onChangeText={setModel}
-        placeholder={provider === 'anthropic' ? 'پیش‌فرض: claude-sonnet-5' : 'مثلاً gpt-4o-mini'}
+        placeholder={provider === 'anthropic' ? t('پیش‌فرض: claude-sonnet-5') : t('مثلاً gpt-4o-mini')}
         placeholderTextColor={colors.faint}
         autoCapitalize="none"
         autoCorrect={false}
@@ -399,7 +400,7 @@ export function AiTab({ status, notify, onSaved }: { status: AiStatus; notify: N
       {provider === 'openai' ? (
         <>
           <Txt w={800} size={13} color={colors.text2}>
-            آدرس API
+            {t('آدرس API')}
           </Txt>
           <TextInput
             value={baseUrl}
@@ -414,19 +415,19 @@ export function AiTab({ status, notify, onSaved }: { status: AiStatus; notify: N
         </>
       ) : null}
       <Txt w={800} size={13} color={colors.text2}>
-        سقف پیام هر کاربر در روز
+        {t('سقف پیام هر کاربر در روز')}
       </Txt>
-      <TextInput value={limit} onChangeText={setLimit} placeholder="پیش‌فرض: ۴۰" placeholderTextColor={colors.faint} keyboardType="number-pad" style={adminStyles.input} />
-      <Button3D label={saving ? 'در حال ذخیره…' : 'ذخیره'} size={16} disabled={saving} onPress={() => save()} style={{ marginTop: 4 }} />
-      {status.key_set ? <SmallButton label="حذف کلید ثبت‌شده" tone="danger" onPress={() => setConfirmClear(true)} /> : null}
+      <TextInput value={limit} onChangeText={setLimit} placeholder={t('پیش‌فرض: {n}', { n: fa(40) })} placeholderTextColor={colors.faint} keyboardType="number-pad" style={[adminStyles.input, { textAlign: textStart() }]} />
+      <Button3D label={saving ? t('در حال ذخیره…') : t('ذخیره')} size={16} disabled={saving} onPress={() => save()} style={{ marginTop: 4 }} />
+      {status.key_set ? <SmallButton label={t('حذف کلید ثبت‌شده')} tone="danger" onPress={() => setConfirmClear(true)} /> : null}
       <Txt size={12} lh={1.8} color={colors.text3}>
-        کلید فقط روی سرور ذخیره می‌شه و هیچ‌جا نمایش داده نمی‌شه (حتی اینجا فقط چهار حرف آخرش). هر تغییر توی «سابقه» ثبت می‌شه.
+        {t('کلید فقط روی سرور ذخیره می‌شه و هیچ‌جا نمایش داده نمی‌شه (حتی اینجا فقط چهار حرف آخرش). هر تغییر توی «سابقه» ثبت می‌شه.')}
       </Txt>
       {confirmClear ? (
         <ActionSheet
-          title="کلید ثبت‌شده حذف بشه؟"
-          body="دستیار تا وقتی کلید جدید بذاری (یا کلید Secrets داشبورد باشه) کار نمی‌کنه."
-          options={[{ label: 'حذف کن', variant: 'danger', run: () => save(true) }]}
+          title={t('کلید ثبت‌شده حذف بشه؟')}
+          body={t('دستیار تا وقتی کلید جدید بذاری (یا کلید Secrets داشبورد باشه) کار نمی‌کنه.')}
+          options={[{ label: t('حذف کن'), variant: 'danger', run: () => save(true) }]}
           onClose={() => setConfirmClear(false)}
         />
       ) : null}
@@ -461,40 +462,40 @@ function AiReports({ notify }: { notify: Notify }) {
   return (
     <View style={{ gap: 10, marginTop: 12 }}>
       <Txt w={900} size={16}>
-        {`جواب‌های گزارش‌شده (${fa(reports.filter((r) => !r.reviewed_at).length)} بررسی‌نشده)`}
+        {t('جواب‌های گزارش‌شده ({n} بررسی‌نشده)', { n: fa(reports.filter((r) => !r.reviewed_at).length) })}
       </Txt>
       {!reports.length ? (
         <Txt size={13} color={colors.text3}>
-          هنوز کسی جوابی از شمعک رو گزارش نداده.
+          {t('هنوز کسی جوابی از شمعک رو گزارش نداده.')}
         </Txt>
       ) : null}
       {reports.map((r) => (
         <Card key={r.id}>
           <View style={styles.reportHead}>
-            <Badge label={AI_REPORT_REASON[r.reason] ?? r.reason} color={r.reviewed_at ? colors.raised : colors.bearSoft} ink={r.reviewed_at ? colors.text3 : colors.bearText} />
+            <Badge label={t(AI_REPORT_REASON[r.reason] ?? r.reason)} color={r.reviewed_at ? colors.raised : colors.bearSoft} ink={r.reviewed_at ? colors.text3 : colors.bearText} />
             <Txt size={11.5} color={colors.text3} style={{ flex: 1 }} numberOfLines={1}>
-              {`${r.author_name ?? 'حساب حذف‌شده'}${r.author_username ? ` · @${r.author_username}` : ''} · ${whenText(r.created_at)}`}
+              {`${r.author_name ?? t('حساب حذف‌شده')}${r.author_username ? ` · @${r.author_username}` : ''} · ${whenText(r.created_at)}`}
             </Txt>
           </View>
           {r.question ? (
             <Txt size={13} lh={1.8} color={colors.text2}>
-              {`سؤال: ${r.question}`}
+              {t('سؤال: {text}', { text: r.question })}
             </Txt>
           ) : null}
           <Txt size={13.5} lh={1.8} numberOfLines={8}>
-            {`جواب: ${r.answer}`}
+            {t('جواب: {text}', { text: r.answer })}
           </Txt>
           {r.note ? (
             <Txt size={12.5} lh={1.7} color={colors.gold}>
-              {`توضیح: ${r.note}`}
+              {t('توضیح: {text}', { text: r.note })}
             </Txt>
           ) : null}
           {r.reviewed_at ? (
             <Txt w={700} size={12} color={colors.bullText}>
-              بررسی شد
+              {t('بررسی شد')}
             </Txt>
           ) : (
-            <SmallButton label="بررسی شد" onPress={() => done(r)} />
+            <SmallButton label={t('بررسی شد')} onPress={() => done(r)} />
           )}
         </Card>
       ))}
@@ -504,7 +505,7 @@ function AiReports({ notify }: { notify: Notify }) {
 
 /** What admins did, newest first. */
 export function LogTab({ log }: { log: AdminLogEntry[] }) {
-  if (!log.length) return <Empty text="هنوز کاری ثبت نشده." />;
+  if (!log.length) return <Empty text={t('هنوز کاری ثبت نشده.')} />;
   return (
     <View style={styles.list}>
       {log.map((l) => (

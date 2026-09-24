@@ -11,6 +11,7 @@ import { KeyboardScroll } from '@/components/KeyboardScroll';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { dateLocale, t } from '@/i18n';
 import { deleteAccount, logout, uploadAccount } from '@/lib/auth';
 import { syncNow, useCloud } from '@/lib/cloud';
 import { loginText } from '@/lib/login';
@@ -25,7 +26,7 @@ export default function AccountScreen() {
   const user = useGame((s) => s.user);
   return (
     <Screen>
-      <BackHeader caption="پروفایل" title="حساب کاربری" />
+      <BackHeader caption={t('پروفایل')} title={t('حساب کاربری')} />
       <KeyboardScroll contentContainerStyle={styles.content}>{user ? <SignedIn /> : <Guest />}</KeyboardScroll>
     </Screen>
   );
@@ -38,15 +39,17 @@ function Guest() {
         <Mascot mood="think" size={84} />
         <View style={{ flex: 1, gap: 4 }}>
           <Txt w={900} size={17}>
-            هنوز حساب نساختی
+            {t('هنوز حساب نساختی')}
           </Txt>
           <Txt size={14} lh={1.8} color={colors.text2}>
-            با یه حساب، پیشرفتت به اسم خودت ذخیره می‌شه{cloudEnabled ? ' و روی همه‌ی دستگاه‌ها یکیه' : ''}. کد تأیید هم لازم نیست.
+            {cloudEnabled
+              ? t('با یه حساب، پیشرفتت به اسم خودت ذخیره می‌شه و روی همه‌ی دستگاه‌ها یکیه. کد تأیید هم لازم نیست.')
+              : t('با یه حساب، پیشرفتت به اسم خودت ذخیره می‌شه. کد تأیید هم لازم نیست.')}
           </Txt>
         </View>
       </View>
-      <Button3D label="ساخت حساب" onPress={() => router.push('/signup')} />
-      <Button3D label="حساب دارم؛ ورود" variant="secondary" size={16} onPress={() => router.push('/login')} />
+      <Button3D label={t('ساخت حساب')} onPress={() => router.push('/signup')} />
+      <Button3D label={t('حساب دارم؛ ورود')} variant="secondary" size={16} onPress={() => router.push('/login')} />
     </View>
   );
 }
@@ -57,21 +60,21 @@ function SignedIn() {
   const cloud = useCloud();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
   }, []);
   const since = cloud.lastSyncedAt ? Math.max(0, Math.round((now - cloud.lastSyncedAt) / 60000)) : null;
   const syncText = !user.cloud
-    ? 'روی همین دستگاه ذخیره می‌شه'
+    ? t('روی همین دستگاه ذخیره می‌شه')
     : cloud.status === 'syncing'
-      ? 'در حال همگام‌سازی…'
+      ? t('در حال همگام‌سازی…')
       : cloud.status === 'error'
-        ? 'همگام‌سازی نشد'
+        ? t('همگام‌سازی نشد')
         : since == null
-          ? 'به سرور وصله'
+          ? t('به سرور وصله')
           : since < 1
-            ? 'همین الان همگام شد'
-            : `${fa(since)} دقیقه پیش همگام شد`;
+            ? t('همین الان همگام شد')
+            : t('{n} دقیقه پیش همگام شد', { n: fa(since), count: since });
 
   return (
     <View style={{ gap: 16 }}>
@@ -93,8 +96,8 @@ function SignedIn() {
       </View>
 
       <View style={styles.rows}>
-        <Row icon={user.cloud ? 'refresh' : 'phone'} label="ذخیره‌ی پیشرفت" value={syncText} tone={cloud.status === 'error' ? colors.bearText : colors.bullText} />
-        <Row icon="clock" label="عضویت از" value={new Date(user.createdAt).toLocaleDateString('fa-IR')} />
+        <Row icon={user.cloud ? 'refresh' : 'phone'} label={t('ذخیره‌ی پیشرفت')} value={syncText} tone={cloud.status === 'error' ? colors.bearText : colors.bullText} />
+        <Row icon="clock" label={t('عضویت از')} value={new Date(user.createdAt).toLocaleDateString(dateLocale())} />
       </View>
       {cloud.error && user.cloud ? (
         <Txt size={13} lh={1.7} color={colors.bearText}>
@@ -104,11 +107,11 @@ function SignedIn() {
 
       {!user.cloud && cloudEnabled && <MoveToServer />}
       {user.cloud && (
-        <Button3D label="همگام‌سازی الان" variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
+        <Button3D label={t('همگام‌سازی الان')} variant="secondary" size={16} disabled={cloud.status === 'syncing'} onPress={syncNow} />
       )}
-      {cloud.userId ? <Button3D label="کاربرهای بلاک‌شده" variant="secondary" size={16} onPress={() => router.push('/blocked')} /> : null}
+      {cloud.userId ? <Button3D label={t('کاربرهای بلاک‌شده')} variant="secondary" size={16} onPress={() => router.push('/blocked')} /> : null}
       <Button3D
-        label="خروج از حساب"
+        label={t('خروج از حساب')}
         variant="secondary"
         size={16}
         onPress={async () => {
@@ -117,7 +120,7 @@ function SignedIn() {
         }}
       />
       <Txt size={12} lh={1.8} color={colors.text3} center>
-        بعد از خروج، پیشرفتت روی این دستگاه می‌مونه و با ورود دوباره برمی‌گرده.
+        {t('بعد از خروج، پیشرفتت روی این دستگاه می‌مونه و با ورود دوباره برمی‌گرده.')}
       </Txt>
       <DeleteAccount />
     </View>
@@ -137,22 +140,31 @@ function DeleteAccount() {
   };
   return (
     <>
-      <Button3D label="حذف حساب" variant="secondary" size={15} onPress={() => setOpen(true)} style={{ marginTop: 8 }} />
+      <Button3D label={t('حذف حساب')} variant="secondary" size={15} onPress={() => setOpen(true)} style={{ marginTop: 8 }} />
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
         <View style={styles.backdrop}>
           <View style={styles.dialog}>
             <Mascot mood="sad" size={84} />
             <Txt w={900} size={19} center>
-              حسابت برای همیشه حذف بشه؟
+              {t('حسابت برای همیشه حذف بشه؟')}
             </Txt>
             <Txt size={13.5} lh={1.9} color={colors.text2} center>
-              حساب، پیشرفت ذخیره‌شده روی سرور، امتیاز لیگ، پیام‌هات توی گروه‌ها، دوئل‌هایی که ساختی و پیشرفت روی همین دستگاه پاک می‌شه و برنمی‌گرده.
+              {t('حساب، پیشرفت ذخیره‌شده روی سرور، امتیاز لیگ، پیام‌هات توی گروه‌ها، دوئل‌هایی که ساختی و پیشرفت روی همین دستگاه پاک می‌شه و برنمی‌گرده.')}
             </Txt>
             <View style={{ alignSelf: 'stretch' }}>
-              <AuthField label="برای تأیید، رمز عبورت رو بزن" icon="lock" ltr secret value={password} onChangeText={setPassword} placeholder="رمز عبور" error={error} />
+              <AuthField
+                label={t('برای تأیید، رمز عبورت رو بزن')}
+                icon="lock"
+                ltr
+                secret
+                value={password}
+                onChangeText={setPassword}
+                placeholder={t('رمز عبور')}
+                error={error}
+              />
             </View>
             <Button3D
-              label={busy ? 'در حال حذف…' : 'حذف همیشگی حساب'}
+              label={busy ? t('در حال حذف…') : t('حذف همیشگی حساب')}
               variant="danger"
               size={16}
               disabled={busy || !password}
@@ -169,7 +181,7 @@ function DeleteAccount() {
               }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Button3D label="نه، منصرف شدم" variant="secondary" size={16} onPress={close} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('نه، منصرف شدم')} variant="secondary" size={16} onPress={close} style={{ alignSelf: 'stretch' }} />
           </View>
         </View>
       </Modal>
@@ -185,14 +197,23 @@ function MoveToServer() {
   return (
     <View style={styles.move}>
       <Txt w={900} size={15}>
-        حسابت فقط روی این دستگاهه
+        {t('حسابت فقط روی این دستگاهه')}
       </Txt>
       <Txt size={13} lh={1.8} color={colors.text2}>
-        با رمزت حساب رو به سرور منتقل کن تا روی گوشی و مرورگرهای دیگه هم با همین ایمیل یا شماره وارد بشی.
+        {t('با رمزت حساب رو به سرور منتقل کن تا روی گوشی و مرورگرهای دیگه هم با همین ایمیل یا شماره وارد بشی.')}
       </Txt>
-      <AuthField label="رمز عبور" icon="lock" ltr secret value={password} onChangeText={setPassword} placeholder="رمز عبورت" error={message} />
+      <AuthField
+        label={t('رمز عبور')}
+        icon="lock"
+        ltr
+        secret
+        value={password}
+        onChangeText={setPassword}
+        placeholder={t('رمز عبورت')}
+        error={message}
+      />
       <Button3D
-        label={busy ? 'چند لحظه…' : 'انتقال به سرور'}
+        label={busy ? t('چند لحظه…') : t('انتقال به سرور')}
         size={16}
         disabled={busy || !password}
         onPress={async () => {

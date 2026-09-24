@@ -9,6 +9,7 @@ import { Confetti } from '@/components/Confetti';
 import { CoinIcon, HeartIcon, Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import { CHEST_AFTER, findUnitWithCourse } from '@/content';
+import { t } from '@/i18n';
 import { CHEST_REWARDS, chestPlan, UPGRADE_TAPS } from '@/lib/chest';
 import { logFor, questChestDay, questsDone, questsFor } from '@/lib/quests';
 import { playSfx } from '@/lib/sfx';
@@ -49,7 +50,7 @@ export default function ChestScreen() {
   const tier = done ? plan.final : taps === 0 ? plan.start : plan.steps[taps - 1];
   const look = CHEST_LOOK[tier];
   const reward = CHEST_REWARDS[plan.final];
-  const upgradedAt = plan.steps.map((t, i) => t !== (i === 0 ? plan.start : plan.steps[i - 1]));
+  const upgradedAt = plan.steps.map((step, i) => step !== (i === 0 ? plan.start : plan.steps[i - 1]));
   const justUpgraded = taps > 0 && upgradedAt[taps - 1];
 
   useEffect(() => {
@@ -89,32 +90,32 @@ export default function ChestScreen() {
   const rotate = shake.interpolate({ inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1], outputRange: ['0deg', '-9deg', '8deg', '-6deg', '4deg', '0deg'] });
   const message = !earned && !claimed
     ? questDay
-      ? 'این صندوق بعد از تموم کردن هر سه مأموریت امروز باز می‌شه.'
-      : 'این صندوق بعد از تموم کردن درس‌های قبلیِ واحد باز می‌شه.'
+      ? t('این صندوق بعد از تموم کردن هر سه مأموریت امروز باز می‌شه.')
+      : t('این صندوق بعد از تموم کردن درس‌های قبلیِ واحد باز می‌شه.')
     : done
       ? opened
-        ? 'نوش جونت!'
-        : 'این صندوق رو قبلاً باز کردی.'
+        ? t('نوش جونت!')
+        : t('این صندوق رو قبلاً باز کردی.')
       : taps < UPGRADE_TAPS
         ? justUpgraded
-          ? `ارتقا گرفت! حالا ${look.label}ه. باز هم بزن!`
-          : 'روی صندوق بزن؛ شاید ارتقا بگیره!'
-        : 'آماده‌ست! بازش کن.';
+          ? t('ارتقا گرفت! حالا {tier}ه. باز هم بزن!', { tier: t(look.label) })
+          : t('روی صندوق بزن؛ شاید ارتقا بگیره!')
+        : t('آماده‌ست! بازش کن.');
 
   return (
     <View style={[styles.screen, { backgroundColor: look.bg, paddingTop: Math.max(insets.top, 12), paddingBottom: Math.max(insets.bottom, 16) }]}>
       <View style={styles.top}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={10} style={styles.close}>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={10} style={styles.close}>
           <Icon name="close" size={24} color="rgba(255,255,255,0.85)" strokeWidth={2.8} />
         </Pressable>
       </View>
 
       <View style={styles.middle}>
         <Txt display size={40} color="#FFFFFF" style={styles.tier}>
-          {look.label}
+          {t(look.label)}
         </Txt>
 
-        <Pressable onPress={tap} disabled={done || taps >= UPGRADE_TAPS || !earned} accessibilityRole="button" accessibilityLabel="زدن روی صندوق">
+        <Pressable onPress={tap} disabled={done || taps >= UPGRADE_TAPS || !earned} accessibilityRole="button" accessibilityLabel={t('زدن روی صندوق')}>
           <Animated.View style={{ transform: [{ translateY: done ? 0 : bob }, { rotate }, { scale: pop }] }}>
             <Sparkles />
             <Chest tier={tier} size={230} open={done} locked={!earned} />
@@ -122,7 +123,7 @@ export default function ChestScreen() {
         </Pressable>
 
         {!done && earned ? (
-          <View style={styles.dots} accessibilityLabel={`${fa(UPGRADE_TAPS - taps)} ضربه‌ی دیگه`}>
+          <View style={styles.dots} accessibilityLabel={t('{n} ضربه‌ی دیگه', { n: fa(UPGRADE_TAPS - taps), count: UPGRADE_TAPS - taps })}>
             {Array.from({ length: UPGRADE_TAPS }, (_, i) => {
               const used = i < taps;
               const next = i === taps;
@@ -147,20 +148,20 @@ export default function ChestScreen() {
 
         {done ? (
           <View style={styles.rewards}>
-            <RewardRow icon={<CoinIcon size={26} />} text={`+${fa(reward.coins)} سکه`} />
-            {reward.xp > 0 ? <RewardRow icon={<Icon name="bulb" size={24} color={colors.gold} strokeWidth={2.6} />} text={`+${fa(reward.xp)} امتیاز`} /> : null}
-            {reward.hearts ? <RewardRow icon={<HeartIcon size={26} />} text="قلب‌هات پر شد" /> : null}
+            <RewardRow icon={<CoinIcon size={26} />} text={t('+{n} سکه', { n: fa(reward.coins), count: reward.coins })} />
+            {reward.xp > 0 ? <RewardRow icon={<Icon name="bulb" size={24} color={colors.gold} strokeWidth={2.6} />} text={t('+{n} امتیاز', { n: fa(reward.xp) })} /> : null}
+            {reward.hearts ? <RewardRow icon={<HeartIcon size={26} />} text={t('قلب‌هات پر شد')} /> : null}
           </View>
         ) : null}
       </View>
 
       <View style={styles.bottom}>
         {!earned || done ? (
-          <Button3D label="ادامه" variant="secondary" onPress={() => router.back()} />
+          <Button3D label={t('ادامه')} variant="secondary" onPress={() => router.back()} />
         ) : taps < UPGRADE_TAPS ? (
-          <Button3D label={`بزن (${fa(UPGRADE_TAPS - taps)})`} variant="secondary" onPress={tap} />
+          <Button3D label={t('بزن ({n})', { n: fa(UPGRADE_TAPS - taps) })} variant="secondary" onPress={tap} />
         ) : (
-          <Button3D label="باز کن" variant="gold" onPress={open} />
+          <Button3D label={t('باز کن')} variant="gold" onPress={open} />
         )}
       </View>
 

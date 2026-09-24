@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { useGame } from '@/store/game';
 
 import { cloudDeleteAccount, cloudSignIn, cloudSignOut, cloudSignUp } from './cloud';
@@ -21,7 +22,7 @@ export async function register(name: string, login: string, password: string): P
     cloud = !result.offline;
   }
   useGame.getState().createAccount({
-    name: name.trim() || 'تریدر',
+    name: name.trim() || 'تریدر', // i18n-ignore: the default name, kept as data (translated where shown)
     login,
     passwordHash: passwordHash(login, password),
     createdAt: Date.now(),
@@ -53,10 +54,11 @@ export async function login(loginId: string, password: string): Promise<string |
   // Device-only account (no server, or the server is unreachable).
   const user = useGame.getState().user;
   if (!user || user.login !== loginId) {
-    const what = loginMethod(loginId) === 'email' ? 'ایمیل' : 'شماره';
-    return `این ${what} روی این دستگاه ثبت نشده. اگه با گوشی یا مرورگر دیگه‌ای ثبت‌نام کردی، وقتی به سرور وصل باشی با همون ${what} وارد شو.`;
+    return loginMethod(loginId) === 'email'
+      ? t('این ایمیل روی این دستگاه ثبت نشده. اگه با گوشی یا مرورگر دیگه‌ای ثبت‌نام کردی، وقتی به سرور وصل باشی با همون ایمیل وارد شو.')
+      : t('این شماره روی این دستگاه ثبت نشده. اگه با گوشی یا مرورگر دیگه‌ای ثبت‌نام کردی، وقتی به سرور وصل باشی با همون شماره وارد شو.');
   }
-  if (user.passwordHash !== passwordHash(loginId, password)) return 'رمز عبور درست نیست.';
+  if (user.passwordHash !== passwordHash(loginId, password)) return t('رمز عبور درست نیست.');
   useGame.getState().signInAccount();
   return null;
 }
@@ -67,10 +69,10 @@ export async function login(loginId: string, password: string): Promise<string |
  */
 export async function deleteAccount(password: string): Promise<string | null> {
   const user = useGame.getState().user;
-  if (!user) return 'حسابی روی این دستگاه نیست.';
-  if (user.passwordHash !== passwordHash(user.login, password)) return 'رمز عبور درست نیست.';
+  if (!user) return t('حسابی روی این دستگاه نیست.');
+  if (user.passwordHash !== passwordHash(user.login, password)) return t('رمز عبور درست نیست.');
   if (user.cloud) {
-    if (!cloudEnabled) return 'برای حذف حساب باید به سرور وصل باشی.';
+    if (!cloudEnabled) return t('برای حذف حساب باید به سرور وصل باشی.');
     const error = await cloudDeleteAccount(user.login, password);
     if (error) return error;
   }
@@ -91,12 +93,12 @@ export async function logout() {
  */
 export async function uploadAccount(password: string): Promise<string | null> {
   const user = useGame.getState().user;
-  if (!user) return 'حسابی روی این دستگاه نیست.';
-  if (user.passwordHash !== passwordHash(user.login, password)) return 'رمز عبور درست نیست.';
+  if (!user) return t('حسابی روی این دستگاه نیست.');
+  if (user.passwordHash !== passwordHash(user.login, password)) return t('رمز عبور درست نیست.');
   let result = await cloudSignUp(user.login, password, user.name);
   if (result.code === 'mobile_taken' || result.code === 'email_taken') result = await cloudSignIn(user.login, password);
   if (result.error) return result.error;
-  if (result.offline) return 'سرور هنوز در دسترس نیست؛ بعداً دوباره امتحان کن.';
+  if (result.offline) return t('سرور هنوز در دسترس نیست؛ بعداً دوباره امتحان کن.');
   useGame.getState().createAccount({ ...user, cloud: true });
   return null;
 }

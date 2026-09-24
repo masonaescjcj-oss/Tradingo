@@ -4,6 +4,7 @@ import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Polyline, Rect } from 're
 
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { layoutDir, t, textStart } from '@/i18n';
 import { DRAW_COLORS, type Drawing, type Shape } from '@/lib/drawings';
 import { colors, fonts } from '@/theme';
 
@@ -11,7 +12,7 @@ import { colors, fonts } from '@/theme';
 export type DrawnItem = { d: Drawing; shapes: Shape[]; handles: { x: number; y: number }[]; selected: boolean };
 
 const INK = '#06090F';
-const PERSIAN = /[؀-ۿ]/;
+const PERSIAN = /[؀-ۿ]/; // i18n-ignore: detects Persian in the learner's own text
 const f1 = (v: number) => v.toFixed(1);
 
 /** An arrowhead at (x2, y2) pointing away from (x1, y1). */
@@ -203,7 +204,7 @@ export function DrawingLabels({
 /** What to do next while placing a tool, with cancel (and "done" for open-ended tools). */
 export function PlaceBar({ name, hint, onCancel, onDone }: { name: string; hint: string; onCancel: () => void; onDone?: () => void }) {
   return (
-    <View style={styles.bar}>
+    <View style={[styles.bar, { direction: layoutDir() }]}>
       <View style={{ flexShrink: 1 }}>
         <Txt w={900} size={12.5}>
           {name}
@@ -213,15 +214,15 @@ export function PlaceBar({ name, hint, onCancel, onDone }: { name: string; hint:
         </Txt>
       </View>
       {onDone ? (
-        <Pressable onPress={onDone} accessibilityRole="button" accessibilityLabel="تمام کردن رسم" hitSlop={6} style={[styles.barButton, styles.barDone]}>
+        <Pressable onPress={onDone} accessibilityRole="button" accessibilityLabel={t('تمام کردن رسم')} hitSlop={6} style={[styles.barButton, styles.barDone]}>
           <Txt w={900} size={12.5} color={colors.bullInk}>
-            تمام
+            {t('تمام')}
           </Txt>
         </Pressable>
       ) : null}
-      <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel="لغو رسم" hitSlop={6} style={styles.barButton}>
+      <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel={t('لغو رسم')} hitSlop={6} style={styles.barButton}>
         <Txt w={900} size={12.5} color={colors.text}>
-          لغو
+          {t('لغو')}
         </Txt>
       </Pressable>
     </View>
@@ -243,7 +244,7 @@ export function SelectedBar({
   onDone: () => void;
 }) {
   return (
-    <View style={styles.bar} accessibilityLabel="ویرایش رسم انتخاب‌شده">
+    <View style={[styles.bar, { direction: layoutDir() }]} accessibilityLabel={t('ویرایش رسم انتخاب‌شده')}>
       <View style={styles.swatches}>
         {DRAW_COLORS.map((c) => (
           <Pressable
@@ -251,7 +252,7 @@ export function SelectedBar({
             onPress={() => onColor(c)}
             accessibilityRole="radio"
             accessibilityState={{ checked: c === color }}
-            accessibilityLabel={`رنگ ${c}`}
+            accessibilityLabel={t('رنگ {color}', { color: c })}
             hitSlop={3}
             style={[styles.swatch, { backgroundColor: c }, c === color && styles.swatchOn]}
           />
@@ -259,14 +260,14 @@ export function SelectedBar({
       </View>
       <View style={styles.divider} />
       {onText ? (
-        <Pressable onPress={onText} accessibilityRole="button" accessibilityLabel="ویرایش متن" hitSlop={4} style={styles.iconButton}>
+        <Pressable onPress={onText} accessibilityRole="button" accessibilityLabel={t('ویرایش متن')} hitSlop={4} style={styles.iconButton}>
           <Icon name="pencil" size={17} color={colors.text} strokeWidth={2.4} />
         </Pressable>
       ) : null}
-      <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel="حذف رسم" hitSlop={4} style={styles.iconButton}>
+      <Pressable onPress={onDelete} accessibilityRole="button" accessibilityLabel={t('حذف رسم')} hitSlop={4} style={styles.iconButton}>
         <Icon name="trash" size={17} color={colors.bearText} strokeWidth={2.4} />
       </Pressable>
-      <Pressable onPress={onDone} accessibilityRole="button" accessibilityLabel="بستن ویرایش" hitSlop={4} style={styles.iconButton}>
+      <Pressable onPress={onDone} accessibilityRole="button" accessibilityLabel={t('بستن ویرایش')} hitSlop={4} style={styles.iconButton}>
         <Icon name="check" size={17} color={colors.bullText} strokeWidth={2.8} />
       </Pressable>
     </View>
@@ -278,34 +279,34 @@ export function TextPrompt({ initial, onSubmit, onCancel }: { initial: string; o
   const [text, setText] = useState(initial);
   const ok = text.trim().length > 0;
   return (
-    <View style={[styles.bar, styles.prompt]}>
+    <View style={[styles.bar, styles.prompt, { direction: layoutDir() }]}>
       <TextInput
         value={text}
         onChangeText={setText}
-        placeholder="متن رو بنویس…"
+        placeholder={t('متن رو بنویس…')}
         placeholderTextColor={colors.faint}
         autoFocus
         maxLength={80}
         onSubmitEditing={() => ok && onSubmit(text.trim())}
         returnKeyType="done"
-        accessibilityLabel="متن رسم"
-        style={styles.input}
+        accessibilityLabel={t('متن رسم')}
+        style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
       />
       <Pressable
         onPress={() => ok && onSubmit(text.trim())}
         accessibilityRole="button"
-        accessibilityLabel="ثبت متن"
+        accessibilityLabel={t('ثبت متن')}
         accessibilityState={{ disabled: !ok }}
         hitSlop={6}
         style={[styles.barButton, styles.barDone, !ok && { opacity: 0.5 }]}
       >
         <Txt w={900} size={12.5} color={colors.bullInk}>
-          ثبت
+          {t('ثبت')}
         </Txt>
       </Pressable>
-      <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel="لغو" hitSlop={6} style={styles.barButton}>
+      <Pressable onPress={onCancel} accessibilityRole="button" accessibilityLabel={t('لغو')} hitSlop={6} style={styles.barButton}>
         <Txt w={900} size={12.5} color={colors.text}>
-          لغو
+          {t('لغو')}
         </Txt>
       </Pressable>
     </View>
@@ -336,7 +337,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bar: {
-    direction: 'rtl',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -401,8 +401,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 14,
-    textAlign: 'right',
-    writingDirection: 'rtl',
     outlineWidth: 0,
   },
 });

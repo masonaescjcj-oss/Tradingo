@@ -3,6 +3,7 @@
  * learning, and often one in the simulator). Finishing all three opens the day's quest
  * chest. The same day always gives the same quests.
  */
+import { t } from '@/i18n';
 import { fa } from '@/utils/format';
 import { createRng, hashString } from '@/utils/random';
 
@@ -18,18 +19,26 @@ const BEST_OF_DAY: QuestMetric[] = ['combo'];
 
 type Template = { metric: QuestMetric; targets: number[]; title: (n: number) => string };
 
+/** Number variables for a title: the digits and the count that picks singular or plural. */
+const num = (n: number) => ({ n: fa(n), count: n });
+
+// Titles are made when the day's quests are, so they're in the app's language.
 const LEARN: Template[] = [
-  { metric: 'lessons', targets: [2, 3], title: (n) => `${fa(n)} درس تموم کن` },
-  { metric: 'perfect', targets: [1, 2], title: (n) => (n === 1 ? 'یه درس رو بدون غلط تموم کن' : `${fa(n)} درس رو بدون غلط تموم کن`) },
-  { metric: 'combo', targets: [5, 8, 10], title: (n) => `${fa(n)} جواب درست پشت سر هم بده` },
-  { metric: 'practice', targets: [1, 2], title: (n) => (n === 1 ? 'یه تمرین انجام بده' : `${fa(n)} تمرین انجام بده`) },
-  { metric: 'seconds', targets: [300, 600], title: (n) => `${fa(n / 60)} دقیقه درس بخون یا تمرین کن` },
+  { metric: 'lessons', targets: [2, 3], title: (n) => t('{n} درس تموم کن', num(n)) },
+  { metric: 'perfect', targets: [1, 2], title: (n) => (n === 1 ? t('یه درس رو بدون غلط تموم کن') : t('{n} درس رو بدون غلط تموم کن', num(n))) },
+  { metric: 'combo', targets: [5, 8, 10], title: (n) => t('{n} جواب درست پشت سر هم بده', num(n)) },
+  { metric: 'practice', targets: [1, 2], title: (n) => (n === 1 ? t('یه تمرین انجام بده') : t('{n} تمرین انجام بده', num(n))) },
+  { metric: 'seconds', targets: [300, 600], title: (n) => t('{n} دقیقه درس بخون یا تمرین کن', num(n / 60)) },
 ];
 
 const TRADE: Template[] = [
-  { metric: 'stopTrades', targets: [1, 2], title: (n) => (n === 1 ? 'یه معامله با حد ضرر توی شبیه‌ساز باز کن' : `${fa(n)} معامله با حد ضرر توی شبیه‌ساز باز کن`) },
-  { metric: 'trades', targets: [2, 3], title: (n) => `${fa(n)} معامله توی شبیه‌ساز باز کن` },
-  { metric: 'duels', targets: [1, 2], title: (n) => (n === 1 ? 'یه دوئل بازی کن' : `${fa(n)} دوئل بازی کن`) },
+  {
+    metric: 'stopTrades',
+    targets: [1, 2],
+    title: (n) => (n === 1 ? t('یه معامله با حد ضرر توی شبیه‌ساز باز کن') : t('{n} معامله با حد ضرر توی شبیه‌ساز باز کن', num(n))),
+  },
+  { metric: 'trades', targets: [2, 3], title: (n) => t('{n} معامله توی شبیه‌ساز باز کن', num(n)) },
+  { metric: 'duels', targets: [1, 2], title: (n) => (n === 1 ? t('یه دوئل بازی کن') : t('{n} دوئل بازی کن', num(n))) },
 ];
 
 /** A bit more than the daily goal, rounded to tens. */
@@ -40,15 +49,15 @@ export function xpQuestTarget(dailyGoal: number): number {
 export function questsFor(day: string, dailyGoal: number): Quest[] {
   const rng = createRng(hashString(`quests:${day}`));
   const pick = <T>(list: T[]) => list[Math.floor(rng() * list.length)];
-  const make = (t: Template, id: string, kind: Quest['kind']): Quest => {
-    const target = pick(t.targets);
-    return { id, metric: t.metric, target, title: t.title(target), kind };
+  const make = (tpl: Template, id: string, kind: Quest['kind']): Quest => {
+    const target = pick(tpl.targets);
+    return { id, metric: tpl.metric, target, title: tpl.title(target), kind };
   };
   const xp = xpQuestTarget(dailyGoal);
   const learn = pick(LEARN);
   const second = make(learn, 'learn', 'learn');
-  const third = rng() < 0.6 ? make(pick(TRADE), 'trade', 'trade') : make(pick(LEARN.filter((t) => t !== learn)), 'learn2', 'learn');
-  return [{ id: 'xp', metric: 'xp', target: xp, title: `${fa(xp)} امتیاز بگیر`, kind: 'xp' }, second, third];
+  const third = rng() < 0.6 ? make(pick(TRADE), 'trade', 'trade') : make(pick(LEARN.filter((tpl) => tpl !== learn)), 'learn2', 'learn');
+  return [{ id: 'xp', metric: 'xp', target: xp, title: t('{n} امتیاز بگیر', num(xp)), kind: 'xp' }, second, third];
 }
 
 /** Today's log, or a fresh one when the saved log is from another day. */

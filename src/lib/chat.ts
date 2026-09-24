@@ -3,17 +3,18 @@
  * and types; the server calls live in chatApi.ts.
  */
 import type { Candle } from '@/content/types';
+import { dateLocale, t } from '@/i18n';
 import { fa } from '@/utils/format';
 
 export type ChatTopic = 'general' | 'beginners' | 'crypto' | 'forex' | 'technical' | 'psychology';
 
 export const CHAT_TOPICS: { id: ChatTopic; label: string }[] = [
-  { id: 'general', label: 'آزاد' },
-  { id: 'beginners', label: 'تازه‌کارها' },
-  { id: 'crypto', label: 'کریپتو' },
-  { id: 'forex', label: 'فارکس و طلا' },
-  { id: 'technical', label: 'تحلیل تکنیکال' },
-  { id: 'psychology', label: 'روانشناسی' },
+  { id: 'general', label: 'آزاد' }, // i18n-ignore: translated where shown
+  { id: 'beginners', label: 'تازه‌کارها' }, // i18n-ignore: translated where shown
+  { id: 'crypto', label: 'کریپتو' }, // i18n-ignore: translated where shown
+  { id: 'forex', label: 'فارکس و طلا' }, // i18n-ignore: translated where shown
+  { id: 'technical', label: 'تحلیل تکنیکال' }, // i18n-ignore: translated where shown
+  { id: 'psychology', label: 'روانشناسی' }, // i18n-ignore: translated where shown
 ];
 
 export type ChatRoom = {
@@ -68,7 +69,7 @@ export const CHART_CANDLES = 60;
  * don't fill up with scams and paid "signal" channels.
  */
 export function hasBlockedContent(text: string): boolean {
-  return /(https?:\/\/|www\.|[a-z0-9-]+\.(com|ir|io|net|org|me|xyz|app|link)\b|t\.me|@[a-z0-9_]{4,}|(\+98|0098|\b0)?9\d{9}\b|[۰-۹]{10,})/i.test(text);
+  return /(https?:\/\/|www\.|[a-z0-9-]+\.(com|ir|io|net|org|me|xyz|app|link)\b|t\.me|@[a-z0-9_]{4,}|(\+98|0098|\b0)?9\d{9}\b|[۰-۹]{10,})/i.test(text); // i18n-ignore: Persian digits the filter looks for
 }
 
 /** Why a message can't be sent yet, checked before asking the server. */
@@ -81,21 +82,21 @@ export function messageProblem(body: string, hasChart = false): 'empty' | 'long'
 }
 
 const ERRORS: Record<string, string> = {
-  links: 'لینک، آیدی و شماره تماس توی گفتگوها مجاز نیست.',
-  muted: 'فعلاً امکان فرستادن پیام توی گفتگوها برات بسته شده.',
-  rate: 'یه کم آروم‌تر! چند ثانیه صبر کن و دوباره بفرست.',
-  long: `پیام حداکثر ${fa(MAX_MESSAGE)} حرف می‌تونه باشه.`,
-  not_member: 'اول عضو گروه شو.',
-  invalid: 'این پیام قابل ارسال نیست.',
-  too_many_groups: 'بیشتر از این نمی‌تونی گروه بسازی؛ فعلاً با همین‌ها ادامه بده.',
-  too_many_rooms: 'توی گروه‌های زیادی عضوی؛ از چندتاش بیرون بیا.',
-  no_room: 'این گروه دیگه وجود نداره.',
-  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
-  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
+  links: 'لینک، آیدی و شماره تماس توی گفتگوها مجاز نیست.', // i18n-ignore: translated where shown
+  muted: 'فعلاً امکان فرستادن پیام توی گفتگوها برات بسته شده.', // i18n-ignore: translated where shown
+  rate: 'یه کم آروم‌تر! چند ثانیه صبر کن و دوباره بفرست.', // i18n-ignore: translated where shown
+  long: 'پیام حداکثر {n} حرف می‌تونه باشه.', // i18n-ignore: translated where shown
+  not_member: 'اول عضو گروه شو.', // i18n-ignore: translated where shown
+  invalid: 'این پیام قابل ارسال نیست.', // i18n-ignore: translated where shown
+  too_many_groups: 'بیشتر از این نمی‌تونی گروه بسازی؛ فعلاً با همین‌ها ادامه بده.', // i18n-ignore: translated where shown
+  too_many_rooms: 'توی گروه‌های زیادی عضوی؛ از چندتاش بیرون بیا.', // i18n-ignore: translated where shown
+  no_room: 'این گروه دیگه وجود نداره.', // i18n-ignore: translated where shown
+  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.', // i18n-ignore: translated where shown
+  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.', // i18n-ignore: translated where shown
 };
 
 export function chatErrorText(kind: string): string {
-  return ERRORS[kind] ?? 'یه مشکلی پیش اومد؛ دوباره امتحان کن.';
+  return ERRORS[kind] ? t(ERRORS[kind], { n: fa(MAX_MESSAGE) }) : t('یه مشکلی پیش اومد؛ دوباره امتحان کن.');
 }
 
 /** Adds newly fetched messages to a list: no duplicates, oldest first. */
@@ -174,7 +175,7 @@ export function buildChart(
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/** Message time in Persian digits, e.g. ۱۴:۰۵. */
+/** Message time in the app's digits, e.g. 14:05. */
 export function messageTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
@@ -188,23 +189,26 @@ export function whenText(iso: string, now = new Date()): string {
   return day === time ? time : `${day} ${time}`;
 }
 
-/** How long something closed stays closed: «تا ۵ ساعت دیگه», «تا ۳ روز دیگه»; '' once it's over. */
+/** How long something closed stays closed: "for 5 more hours", "for 3 more days"; '' once it's over. */
 export function untilText(iso: string, now = Date.now()): string {
   const left = new Date(iso).getTime() - now;
   if (!Number.isFinite(left) || left <= 0) return '';
   const hours = Math.ceil(left / 3_600_000);
-  if (hours <= 1) return 'تا کمتر از یه ساعت دیگه';
-  if (hours < 48) return `تا ${fa(hours)} ساعت دیگه`;
-  return `تا ${fa(Math.ceil(hours / 24))} روز دیگه`;
+  if (hours <= 1) return t('تا کمتر از یه ساعت دیگه');
+  if (hours < 48) return t('تا {n} ساعت دیگه', { n: fa(hours), count: hours });
+  const days = Math.ceil(hours / 24);
+  return t('تا {n} روز دیگه', { n: fa(days), count: days });
 }
 
 /** What someone whose chat an admin closed sees instead of the message box. */
 export function mutedNotice(muted: string, now = Date.now()): string {
   const until = muted === 'forever' ? '' : untilText(muted, now);
-  return `امکان فرستادن پیام ${until ? `${until} ` : ''}برات بسته شده. هنوز می‌تونی پیام‌ها رو بخونی.`;
+  return until
+    ? t('امکان فرستادن پیام {until} برات بسته شده. هنوز می‌تونی پیام‌ها رو بخونی.', { until })
+    : t('امکان فرستادن پیام برات بسته شده. هنوز می‌تونی پیام‌ها رو بخونی.');
 }
 
-/** A short "when" for the room list: the time today, «دیروز», or the date. */
+/** A short "when" for the room list: the time today, "yesterday", or the date. */
 export function roomTime(iso: string, now = new Date()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
@@ -212,6 +216,6 @@ export function roomTime(iso: string, now = new Date()): string {
   if (day(d) === day(now)) return messageTime(iso);
   const y = new Date(now);
   y.setDate(now.getDate() - 1);
-  if (day(d) === day(y)) return 'دیروز';
-  return new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(d);
+  if (day(d) === day(y)) return t('دیروز');
+  return new Intl.DateTimeFormat(dateLocale(), { month: 'short', day: 'numeric' }).format(d);
 }

@@ -71,10 +71,10 @@ export async function askCoach(earlier: CoachTurn[], question: string, context: 
 export type AnswerReportReason = 'wrong' | 'advice' | 'offensive' | 'other';
 
 export const ANSWER_REPORT_REASONS: { id: AnswerReportReason; label: string }[] = [
-  { id: 'wrong', label: 'اشتباه یا گمراه‌کننده' },
-  { id: 'advice', label: 'توصیه‌ی خرید و فروش یا سیگنال' },
-  { id: 'offensive', label: 'نامناسب یا توهین‌آمیز' },
-  { id: 'other', label: 'یه چیز دیگه' },
+  { id: 'wrong', label: 'اشتباه یا گمراه‌کننده' }, // i18n-ignore: translated where shown
+  { id: 'advice', label: 'توصیه‌ی خرید و فروش یا سیگنال' }, // i18n-ignore: translated where shown
+  { id: 'offensive', label: 'نامناسب یا توهین‌آمیز' }, // i18n-ignore: translated where shown
+  { id: 'other', label: 'یه چیز دیگه' }, // i18n-ignore: translated where shown
 ];
 
 /**

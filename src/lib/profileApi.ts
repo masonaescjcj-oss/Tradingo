@@ -3,6 +3,8 @@
  * Every account has a unique @ID, so two people with the same name can be told apart in the
  * chat, and anyone can open a learner's profile: picture, name, @ID and learning.
  */
+import { t } from '@/i18n';
+
 import { callRpc, rememberProfile, serverVersion, sessionToken, type RpcResult } from './cloud';
 import { latinDigits } from './phone';
 import { currentStreak } from './progress';
@@ -14,31 +16,31 @@ export function normalizeUsername(input: string): string {
   return latinDigits(input).trim().replace(/^@+/, '').toLowerCase();
 }
 
-/** Why an @ID can't be used, in Persian, or null when it can. */
+/** Why an @ID can't be used, in the app's language, or null when it can. */
 export function usernameProblem(username: string): string | null {
-  if (!username) return 'یه آیدی بنویس.';
-  if (/[^\x00-\x7F]/.test(username)) return 'آیدی فقط با حروف انگلیسی، عدد و _ ساخته می‌شه.';
-  if (username.length < 3) return 'آیدی حداقل ۳ حرف باشه.';
-  if (username.length > 20) return 'آیدی حداکثر ۲۰ حرف باشه.';
-  if (!/^[a-z]/.test(username)) return 'آیدی باید با یه حرف انگلیسی شروع بشه.';
-  if (!USERNAME_RULE.test(username)) return 'آیدی فقط با حروف انگلیسی، عدد و _ ساخته می‌شه.';
+  if (!username) return t('یه آیدی بنویس.');
+  if (/[^\x00-\x7F]/.test(username)) return t('آیدی فقط با حروف انگلیسی، عدد و _ ساخته می‌شه.');
+  if (username.length < 3) return t('آیدی حداقل ۳ حرف باشه.');
+  if (username.length > 20) return t('آیدی حداکثر ۲۰ حرف باشه.');
+  if (!/^[a-z]/.test(username)) return t('آیدی باید با یه حرف انگلیسی شروع بشه.');
+  if (!USERNAME_RULE.test(username)) return t('آیدی فقط با حروف انگلیسی، عدد و _ ساخته می‌شه.');
   return null;
 }
 
 const ERRORS: Record<string, string> = {
-  invalid_username: 'آیدی باید ۳ تا ۲۰ حرف انگلیسی، عدد یا _ باشه و با حرف شروع بشه.',
-  username_taken: 'این آیدی مال یکی دیگه‌ست؛ یه آیدی دیگه امتحان کن.',
-  username_reserved: 'این آیدی برای چارتون نگه داشته شده؛ یه آیدی دیگه انتخاب کن.',
-  invalid_avatar: 'این عکس پیدا نشد.',
-  not_found: 'این پروفایل پیدا نشد.',
-  self: 'خودت رو نمی‌تونی بلاک کنی.',
-  too_many: 'بیشتر از ۵۰۰ نفر رو نمی‌شه بلاک کرد.',
-  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
-  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
+  invalid_username: 'آیدی باید ۳ تا ۲۰ حرف انگلیسی، عدد یا _ باشه و با حرف شروع بشه.', // i18n-ignore: translated where shown
+  username_taken: 'این آیدی مال یکی دیگه‌ست؛ یه آیدی دیگه امتحان کن.', // i18n-ignore: translated where shown
+  username_reserved: 'این آیدی برای چارتون نگه داشته شده؛ یه آیدی دیگه انتخاب کن.', // i18n-ignore: translated where shown
+  invalid_avatar: 'این عکس پیدا نشد.', // i18n-ignore: translated where shown
+  not_found: 'این پروفایل پیدا نشد.', // i18n-ignore: translated where shown
+  self: 'خودت رو نمی‌تونی بلاک کنی.', // i18n-ignore: translated where shown
+  too_many: 'بیشتر از ۵۰۰ نفر رو نمی‌شه بلاک کرد.', // i18n-ignore: translated where shown
+  session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.', // i18n-ignore: translated where shown
+  network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.', // i18n-ignore: translated where shown
 };
 
 export function profileErrorText(kind: string): string {
-  return ERRORS[kind] ?? 'انجام نشد؛ دوباره امتحان کن.';
+  return ERRORS[kind] ? t(ERRORS[kind]) : t('انجام نشد؛ دوباره امتحان کن.');
 }
 
 /** Whether the server has @IDs and profiles (version 9). */

@@ -8,6 +8,7 @@ import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
 import { allCourses, CATEGORIES, LEVEL_LABEL, courseProgress, type Course, type CourseCategory } from '@/content';
+import { t, textStart } from '@/i18n';
 import { useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
 import { fa } from '@/utils/format';
@@ -37,27 +38,30 @@ export default function CoursesScreen() {
 
   return (
     <Screen>
-      <BackHeader caption={`${fa(allCourses().length)} دوره، ${fa(lessonCount)} درس`} title="همه‌ی دوره‌ها" />
+      <BackHeader
+        caption={t('{courses} دوره، {lessons} درس', { courses: fa(allCourses().length), lessons: fa(lessonCount) })}
+        title={t('همه‌ی دوره‌ها')}
+      />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.search}>
           <Icon name="search" size={20} color={colors.text3} />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="جست‌وجوی دوره، مثلاً «فیبوناچی»"
+            placeholder={t('جست‌وجوی دوره، مثلاً «فیبوناچی»')}
             placeholderTextColor={colors.faint}
-            style={styles.input}
-            accessibilityLabel="جست‌وجوی دوره"
+            style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
+            accessibilityLabel={t('جست‌وجوی دوره')}
           />
           {query ? (
-            <Pressable onPress={() => setQuery('')} accessibilityRole="button" accessibilityLabel="پاک کردن جست‌وجو" hitSlop={8}>
+            <Pressable onPress={() => setQuery('')} accessibilityRole="button" accessibilityLabel={t('پاک کردن جست‌وجو')} hitSlop={8}>
               <Icon name="close" size={18} color={colors.text3} />
             </Pressable>
           ) : null}
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {[{ id: 'all' as const, title: 'همه' }, ...CATEGORIES].map((c) => {
+          {[{ id: 'all' as const, title: 'همه' }, ...CATEGORIES].map((c) => { // i18n-ignore: translated where shown
             const on = category === c.id;
             return (
               <Pressable
@@ -68,7 +72,7 @@ export default function CoursesScreen() {
                 style={[styles.chip, on && styles.chipOn]}
               >
                 <Txt w={800} size={13} color={on ? colors.skyText : colors.text2}>
-                  {c.title}
+                  {t(c.title)}
                 </Txt>
               </Pressable>
             );
@@ -79,10 +83,10 @@ export default function CoursesScreen() {
           <View key={g.id} style={{ gap: 10 }}>
             <View style={styles.groupHead}>
               <Txt w={900} size={18}>
-                {g.title}
+                {t(g.title)}
               </Txt>
               <Txt w={700} size={13} color={colors.text3}>
-                {g.subtitle}
+                {t(g.subtitle)}
               </Txt>
             </View>
             {g.courses.map((course) => (
@@ -97,7 +101,7 @@ export default function CoursesScreen() {
         ))}
         {groups.length === 0 && (
           <Txt w={700} size={15} color={colors.text3} center style={{ marginTop: 32 }}>
-            دوره‌ای با این عنوان پیدا نشد.
+            {t('دوره‌ای با این عنوان پیدا نشد.')}
           </Txt>
         )}
       </ScrollView>
@@ -110,7 +114,11 @@ function CourseCard({ course, enrolled, progress }: { course: Course; enrolled: 
     <Pressable
       onPress={() => router.push(`/course/${course.id}`)}
       accessibilityRole="button"
-      accessibilityLabel={`${course.title}، ${LEVEL_LABEL[course.level]}${enrolled ? '، افزوده شده' : ''}`}
+      accessibilityLabel={
+        enrolled
+          ? t('{title}، {level}، افزوده شده', { title: course.title, level: t(LEVEL_LABEL[course.level]) })
+          : t('{title}، {level}', { title: course.title, level: t(LEVEL_LABEL[course.level]) })
+      }
       style={({ pressed }) => [styles.card, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]}
     >
       <CourseBadge course={course} size={56} />
@@ -123,11 +131,11 @@ function CourseCard({ course, enrolled, progress }: { course: Course; enrolled: 
         </Txt>
         <View style={styles.meta}>
           <Txt w={800} size={11} color={LEVEL_COLOR[course.level]}>
-            {LEVEL_LABEL[course.level]}
+            {t(LEVEL_LABEL[course.level])}
           </Txt>
           <View style={styles.dot} />
           <Txt w={700} size={11} color={colors.text3}>
-            {`${fa(course.units.length)} واحد، ${fa(progress.total)} درس`}
+            {t('{units} واحد، {lessons} درس', { units: fa(course.units.length), lessons: fa(progress.total) })}
           </Txt>
         </View>
       </View>
@@ -135,7 +143,7 @@ function CourseCard({ course, enrolled, progress }: { course: Course; enrolled: 
         <View style={styles.enrolled}>
           <Icon name="check" size={16} color={colors.bullInk} strokeWidth={3.4} />
           <Txt w={800} size={10} color={colors.bullInk}>
-            {`${fa(Math.round((progress.done / Math.max(1, progress.total)) * 100))}٪`}
+            {t('{n}٪', { n: fa(Math.round((progress.done / Math.max(1, progress.total)) * 100)) })}
           </Txt>
         </View>
       ) : (
@@ -168,8 +176,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 15,
-    textAlign: 'right',
-    writingDirection: 'rtl',
     outlineWidth: 0,
   },
   chips: {

@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Polygon, Rect } from 'react-native-svg';
 
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { colors } from '@/theme';
 
 const INK = '#0B1020';
@@ -52,7 +53,7 @@ type Design = { label: string; bg: string; art: ReactNode };
 /** The profile pictures learners can pick; the index in this list (from 1) is what the server keeps. */
 const DESIGNS: Design[] = [
   {
-    label: 'شمعک',
+    label: 'شمعک', // i18n-ignore: translated where shown
     bg: '#1B2543',
     art: (
       <>
@@ -63,7 +64,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک نزولی',
+    label: 'شمعک نزولی', // i18n-ignore: translated where shown
     bg: '#3A1620',
     art: (
       <>
@@ -76,7 +77,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شاه شمعک',
+    label: 'شاه شمعک', // i18n-ignore: translated where shown
     bg: '#3B2A00',
     art: (
       <>
@@ -88,7 +89,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک باحال',
+    label: 'شمعک باحال', // i18n-ignore: translated where shown
     bg: '#0F2A1E',
     art: (
       <>
@@ -102,7 +103,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک دی‌جی',
+    label: 'شمعک دی‌جی', // i18n-ignore: translated where shown
     bg: '#07233F',
     art: (
       <>
@@ -116,7 +117,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک چشمک',
+    label: 'شمعک چشمک', // i18n-ignore: translated where shown
     bg: '#1E1240',
     art: (
       <>
@@ -130,7 +131,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک درس‌خون',
+    label: 'شمعک درس‌خون', // i18n-ignore: translated where shown
     bg: '#062B28',
     art: (
       <>
@@ -144,7 +145,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شمعک جشن',
+    label: 'شمعک جشن', // i18n-ignore: translated where shown
     bg: '#3A1C00',
     art: (
       <>
@@ -158,7 +159,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'گاو صعودی',
+    label: 'گاو صعودی', // i18n-ignore: translated where shown
     bg: '#0F2A1E',
     art: (
       <>
@@ -174,7 +175,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'خرس',
+    label: 'خرس', // i18n-ignore: translated where shown
     bg: '#2F1218',
     art: (
       <>
@@ -191,7 +192,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'گربه',
+    label: 'گربه', // i18n-ignore: translated where shown
     bg: '#1F2940',
     art: (
       <>
@@ -208,7 +209,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'روباه',
+    label: 'روباه', // i18n-ignore: translated where shown
     bg: '#1B2543',
     art: (
       <>
@@ -224,7 +225,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'پاندا',
+    label: 'پاندا', // i18n-ignore: translated where shown
     bg: '#123A2A',
     art: (
       <>
@@ -241,7 +242,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'جغد دانا',
+    label: 'جغد دانا', // i18n-ignore: translated where shown
     bg: '#2A1E4A',
     art: (
       <>
@@ -260,7 +261,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'پنگوئن',
+    label: 'پنگوئن', // i18n-ignore: translated where shown
     bg: '#0B3A5B',
     art: (
       <>
@@ -274,7 +275,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'شیر',
+    label: 'شیر', // i18n-ignore: translated where shown
     bg: '#3B2A00',
     art: (
       <>
@@ -289,7 +290,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'قورباغه',
+    label: 'قورباغه', // i18n-ignore: translated where shown
     bg: '#0F2A1E',
     art: (
       <>
@@ -307,7 +308,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'ربات',
+    label: 'ربات', // i18n-ignore: translated where shown
     bg: '#07233F',
     art: (
       <>
@@ -324,7 +325,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'موشک ماه',
+    label: 'موشک ماه', // i18n-ignore: translated where shown
     bg: '#1E1240',
     art: (
       <>
@@ -344,7 +345,7 @@ const DESIGNS: Design[] = [
     ),
   },
   {
-    label: 'الماس',
+    label: 'الماس', // i18n-ignore: translated where shown
     bg: '#0B3A5B',
     art: (
       <>
@@ -374,16 +375,16 @@ export function Avatar({ id, name, size = 40 }: { id?: number | null; name: stri
     return (
       <View
         style={{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: LETTER_COLORS[h % LETTER_COLORS.length] }}
-        accessibilityLabel={`عکس پروفایل ${name}`}
+        accessibilityLabel={t('عکس پروفایل {name}', { name })}
       >
         <Txt w={900} size={size * 0.45} color={colors.bg}>
-          {name.trim().charAt(0) || '؟'}
+          {name.trim().charAt(0) || t('؟')}
         </Txt>
       </View>
     );
   }
   return (
-    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel={`عکس پروفایل ${name}: ${design.label}`}>
+    <Svg width={size} height={size} viewBox="0 0 100 100" accessibilityLabel={t('عکس پروفایل {name}: {picture}', { name, picture: t(design.label) })}>
       <Circle cx={50} cy={50} r={50} fill={design.bg} />
       {design.art}
     </Svg>

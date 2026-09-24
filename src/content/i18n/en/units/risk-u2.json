@@ -106,7 +106,7 @@
   "lessons/risk-u2-l2/steps/7/options/2": "2 losses",
   "lessons/risk-u2-l2/steps/7/options/3": "20 losses",
   "lessons/risk-u2-l2/steps/7/explanation": "1,000 ÷ 200 = 5. That's only 5 losses in a row, which isn't unusual for many systems. With $100 risk, you'd have room for 10 losses.",
-  "lessons/risk-u2-l2/steps/8/sentence": "Risking 2% of your balance per trade, 10 losses in a row cause about an ___ drawdown, and you need about a ___ gain to recover.",
+  "lessons/risk-u2-l2/steps/8/sentence": "Risking 2% of your balance per trade, 10 losses in a row cause a drawdown of about ___, and recovering it takes a gain of about ___.",
   "lessons/risk-u2-l2/steps/8/answers/0": "18%",
   "lessons/risk-u2-l2/steps/8/answers/1": "22%",
   "lessons/risk-u2-l2/steps/8/distractors/0": "20%",

@@ -16,6 +16,7 @@ import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
 import { Chest } from '@/components/Chest';
 import { allCourses, CHEST_AFTER, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
+import { t } from '@/i18n';
 import { chestPlan } from '@/lib/chest';
 import { useGame, type LessonRecord } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
@@ -76,21 +77,21 @@ export default function LearnScreen() {
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setToast(null), 2200);
+    return () => clearTimeout(timer);
   }, [toast]);
 
   const onItem = (item: PathItem) => {
     if (item.kind === 'chest') {
       if (item.status === 'locked') {
-        setToast('صندوق بعد از تموم کردن درس‌های قبلی باز می‌شه.');
+        setToast(t('صندوق بعد از تموم کردن درس‌های قبلی باز می‌شه.'));
         return;
       }
       router.push(`/chest/${item.id}`);
       return;
     }
     if (item.status === 'locked') {
-      setToast('اول درس‌های قبلی رو تموم کن.');
+      setToast(t('اول درس‌های قبلی رو تموم کن.'));
       return;
     }
     router.push(`/lesson/${item.id}`);
@@ -114,7 +115,7 @@ export default function LearnScreen() {
         <Pressable
           onPress={() => setPickerOpen(true)}
           accessibilityRole="button"
-          accessibilityLabel={`تغییر دوره، الان: ${course.title}`}
+          accessibilityLabel={t('تغییر دوره، الان: {course}', { course: course.title })}
           style={styles.courseChip}
         >
           <CourseBadge course={course} size={30} />
@@ -133,7 +134,7 @@ export default function LearnScreen() {
               {course.title}
             </Txt>
             <Txt w={700} size={12} color={colors.text3}>
-              {`${fa(progress.done)} از ${fa(progress.total)} درس، ${fa(course.units.length)} واحد`}
+              {t('{done} از {total} درس، {units} واحد', { done: fa(progress.done), total: fa(progress.total), units: fa(course.units.length) })}
             </Txt>
           </View>
           <View style={styles.courseTrack}>
@@ -157,12 +158,12 @@ export default function LearnScreen() {
           <View style={styles.finish}>
             <Mascot mood="party" size={120} />
             <Txt w={900} size={18} center>
-              همه‌ی درس‌های این دوره رو تموم کردی!
+              {t('همه‌ی درس‌های این دوره رو تموم کردی!')}
             </Txt>
             <Txt size={14} color={colors.text2} center>
-              یه دوره‌ی تازه اضافه کن، توی تب تمرین مرور کن یا مهارتت رو توی شبیه‌ساز محک بزن.
+              {t('یه دوره‌ی تازه اضافه کن، توی تب تمرین مرور کن یا مهارتت رو توی شبیه‌ساز محک بزن.')}
             </Txt>
-            <Button3D label="افزودن دوره‌ی جدید" onPress={() => router.push('/courses')} style={{ alignSelf: 'stretch', marginTop: 8 }} />
+            <Button3D label={t('افزودن دوره‌ی جدید')} onPress={() => router.push('/courses')} style={{ alignSelf: 'stretch', marginTop: 8 }} />
           </View>
         )}
       </ScrollView>
@@ -242,7 +243,7 @@ function UnitSection({
       >
         <View style={{ flex: 1, gap: 2 }}>
           <Txt w={800} size={13} color={unlocked ? unit.ink : colors.muted} style={{ opacity: 0.8 }}>
-            {`واحد ${fa(index + 1)}`}
+            {t('واحد {n}', { n: fa(index + 1) })}
           </Txt>
           <Txt w={900} size={20} color={unlocked ? unit.ink : colors.text2}>
             {unit.title}
@@ -252,7 +253,11 @@ function UnitSection({
           <Pressable
             onPress={() => router.push(`/lesson/master-${unit.id}`)}
             accessibilityRole="button"
-            accessibilityLabel={mastered ? `استاد واحد ${unit.title}؛ دوباره امتحان کن` : `آزمون استادی واحد ${unit.title}`}
+            accessibilityLabel={
+              mastered
+                ? t('استاد واحد {unit}؛ دوباره امتحان کن', { unit: unit.title })
+                : t('آزمون استادی واحد {unit}', { unit: unit.title })
+            }
             style={[styles.crownBtn, mastered && styles.crownOn]}
           >
             <Icon name="crown" size={22} color={mastered ? colors.goldInk : unit.ink} strokeWidth={2.4} />
@@ -262,19 +267,19 @@ function UnitSection({
           <Pressable
             onPress={() => router.push(`/lesson/test-${unit.id}`)}
             accessibilityRole="button"
-            accessibilityLabel={`آزمون پرش به واحد ${unit.title}`}
+            accessibilityLabel={t('آزمون پرش به واحد {unit}', { unit: unit.title })}
             style={styles.jumpBtn}
           >
             <Icon name="arrowUp" size={16} color={colors.skyText} strokeWidth={3} />
             <Txt w={800} size={13} color={colors.skyText}>
-              پرش
+              {t('پرش')}
             </Txt>
           </Pressable>
         )}
         <Pressable
           onPress={() => router.push(`/guide/${unit.id}`)}
           accessibilityRole="button"
-          accessibilityLabel={`راهنمای واحد ${unit.title}`}
+          accessibilityLabel={t('راهنمای واحد {unit}', { unit: unit.title })}
           style={[styles.guideBtn, { borderColor: unlocked ? 'rgba(0,0,0,0.18)' : colors.line }]}
         >
           <Icon name="book" size={24} color={unlocked ? unit.ink : colors.text2} />
@@ -337,7 +342,7 @@ function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: numbe
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={ready ? 'صندوق جایزه، آماده‌ی باز شدن' : claimed ? 'صندوق جایزه، باز شده' : 'صندوق جایزه، قفل'}
+        accessibilityLabel={ready ? t('صندوق جایزه، آماده‌ی باز شدن') : claimed ? t('صندوق جایزه، باز شده') : t('صندوق جایزه، قفل')}
         style={{ position: 'absolute', left: x - CHEST / 2, top: y - CHEST / 2 - 14, width: CHEST, height: CHEST + 12 }}
       >
         {({ pressed }) => (
@@ -354,14 +359,14 @@ function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: numbe
       <>
         <Animated.View style={[styles.startBubble, { left: x - 42, top: y - RING / 2 - 42, transform: [{ translateY: bounce }] }]}>
           <Txt w={900} size={15} color="#0B7A43">
-            شروع
+            {t('شروع')}
           </Txt>
           <View style={styles.startTail} />
         </Animated.View>
         <Pressable
           onPress={onPress}
           accessibilityRole="button"
-          accessibilityLabel={`شروع درس ${fa(item.number)}: ${item.title}`}
+          accessibilityLabel={t('شروع درس {n}: {title}', { n: fa(item.number), title: item.title })}
           style={{ position: 'absolute', left: x - RING / 2, top: y - RING / 2, width: RING, height: RING }}
         >
           {({ pressed }) => (
@@ -386,7 +391,9 @@ function PathNode({ item, x, y, onPress }: { item: PathItem; x: number; y: numbe
   const face = status === 'perfect' ? colors.gold : status === 'done' ? colors.bull : colors.raised;
   const edge = status === 'perfect' ? colors.goldEdge : status === 'done' ? colors.bullEdge : colors.raisedEdge;
   const label =
-    status === 'locked' ? `درس ${fa(item.number)}: ${item.title}، قفل` : `درس ${fa(item.number)}: ${item.title}، کامل‌شده. تمرین دوباره`;
+    status === 'locked'
+      ? t('درس {n}: {title}، قفل', { n: fa(item.number), title: item.title })
+      : t('درس {n}: {title}، کامل‌شده. تمرین دوباره', { n: fa(item.number), title: item.title });
   return (
     <NodeButton x={x} y={y} face={face} edge={edge} onPress={onPress} label={label}>
       {status === 'perfect' && <StarIcon size={32} />}

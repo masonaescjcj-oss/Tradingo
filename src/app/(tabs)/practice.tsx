@@ -9,6 +9,7 @@ import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
 import { findCourse } from '@/content';
+import { t } from '@/i18n';
 import { dueLessons } from '@/lib/review';
 import { practiceSteps, SPEED_SECONDS, type PracticeMode } from '@/lib/session';
 import { playSfx } from '@/lib/sfx';
@@ -18,10 +19,38 @@ import { dayKey } from '@/utils/date';
 import { fa } from '@/utils/format';
 
 const MODES: { mode: PracticeMode; title: string; sub: (count: number, due: number) => string; icon: IconName | 'bolt'; tint: string; bg: string }[] = [
-  { mode: 'mistakes', title: 'مرور اشتباه‌ها', sub: (n) => (n ? `${fa(n)} سؤالی که قبلاً غلط زدی` : 'فعلاً اشتباهی نداری'), icon: 'refresh', tint: '#FF7A8A', bg: 'rgba(255,90,110,0.14)' },
-  { mode: 'speed', title: 'تمرین سرعتی', sub: () => `${fa(SPEED_SECONDS)} ثانیه؛ هر چی بیشتر، بهتر`, icon: 'bolt', tint: colors.gold, bg: colors.goldSoft },
-  { mode: 'charts', title: 'شکار الگو', sub: () => 'سؤال‌های نموداری درس‌هایی که خوندی', icon: 'target', tint: colors.bull, bg: 'rgba(43,212,125,0.14)' },
-  { mode: 'mixed', title: 'مرور هوشمند', sub: (_, due) => (due ? `${fa(due)} درس امروز وقت مرورشه` : 'چند سؤال از همه‌ی درس‌هایی که خوندی'), icon: 'layers', tint: colors.sky, bg: 'rgba(90,176,255,0.14)' },
+  {
+    mode: 'mistakes',
+    title: 'مرور اشتباه‌ها', // i18n-ignore: translated where shown
+    sub: (n) => (n ? t('{n} سؤالی که قبلاً غلط زدی', { n: fa(n), count: n }) : t('فعلاً اشتباهی نداری')),
+    icon: 'refresh',
+    tint: '#FF7A8A',
+    bg: 'rgba(255,90,110,0.14)',
+  },
+  {
+    mode: 'speed',
+    title: 'تمرین سرعتی', // i18n-ignore: translated where shown
+    sub: () => t('{n} ثانیه؛ هر چی بیشتر، بهتر', { n: fa(SPEED_SECONDS) }),
+    icon: 'bolt',
+    tint: colors.gold,
+    bg: colors.goldSoft,
+  },
+  {
+    mode: 'charts',
+    title: 'شکار الگو', // i18n-ignore: translated where shown
+    sub: () => t('سؤال‌های نموداری درس‌هایی که خوندی'),
+    icon: 'target',
+    tint: colors.bull,
+    bg: 'rgba(43,212,125,0.14)',
+  },
+  {
+    mode: 'mixed',
+    title: 'مرور هوشمند', // i18n-ignore: translated where shown
+    sub: (_, due) => (due ? t('{n} درس امروز وقت مرورشه', { n: fa(due), count: due }) : t('چند سؤال از همه‌ی درس‌هایی که خوندی')),
+    icon: 'layers',
+    tint: colors.sky,
+    bg: 'rgba(90,176,255,0.14)',
+  },
 ];
 
 export default function PracticeScreen() {
@@ -54,7 +83,7 @@ export default function PracticeScreen() {
     <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
-          تمرین
+          {t('تمرین')}
         </Txt>
         <StatsRow showHearts={false} />
       </View>
@@ -63,16 +92,16 @@ export default function PracticeScreen() {
           <View style={{ flex: 1, gap: 8 }}>
             <View style={styles.dailyTag}>
               <Txt w={900} size={12} color={colors.gold}>
-                هدف روزانه
+                {t('هدف روزانه')}
               </Txt>
             </View>
             <Txt w={900} size={17} lh={1.6}>
-              {`امروز ${fa(dailyGoal)} امتیاز بگیر`}
+              {t('امروز {n} امتیاز بگیر', { n: fa(dailyGoal) })}
             </Txt>
             <View style={styles.dailyBar}>
-              <ProgressBar value={xpToday / dailyGoal} height={12} color={colors.gold} track="#3A2E10" label="پیشرفت هدف روزانه" />
+              <ProgressBar value={xpToday / dailyGoal} height={12} color={colors.gold} track="#3A2E10" label={t('پیشرفت هدف روزانه')} />
               <Txt w={800} size={13} color={colors.gold}>
-                {`${fa(Math.min(xpToday, dailyGoal))} از ${fa(dailyGoal)}`}
+                {t('{done} از {total}', { done: fa(Math.min(xpToday, dailyGoal)), total: fa(dailyGoal) })}
               </Txt>
             </View>
           </View>
@@ -84,7 +113,7 @@ export default function PracticeScreen() {
                 radius={12}
                 edge={4}
                 size={14}
-                label={`+${fa(DAILY_REWARD)} سکه`}
+                label={t('+{n} سکه', { n: fa(DAILY_REWARD), count: DAILY_REWARD })}
                 onPress={() => {
                   claimDaily();
                   playSfx('chest');
@@ -96,7 +125,7 @@ export default function PracticeScreen() {
                   <Icon name="gift" size={30} color={colors.gold} />
                 </View>
                 <Txt w={900} size={12} color={colors.gold}>
-                  {claimedToday ? 'گرفتی!' : `+${fa(DAILY_REWARD)} سکه`}
+                  {claimedToday ? t('گرفتی!') : t('+{n} سکه', { n: fa(DAILY_REWARD), count: DAILY_REWARD })}
                 </Txt>
               </>
             )}
@@ -105,23 +134,25 @@ export default function PracticeScreen() {
 
         <QuestsCard />
 
-        <Pressable onPress={() => router.push('/duel')} accessibilityRole="button" accessibilityLabel="دوئل چارتون" style={({ pressed }) => [styles.duel, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}>
+        <Pressable onPress={() => router.push('/duel')} accessibilityRole="button" accessibilityLabel={t('دوئل چارتون')} style={({ pressed }) => [styles.duel, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}>
           <View style={styles.duelIcon}>
             <Icon name="swords" size={28} color={colors.goldInk} strokeWidth={2.4} />
           </View>
           <View style={{ flex: 1, gap: 3 }}>
             <Txt w={900} size={17}>
-              دوئل چارتون
+              {t('دوئل چارتون')}
             </Txt>
             <Txt w={500} size={12.5} lh={1.6} color={colors.text2}>
-              {duels?.played ? `${fa(duels.wins)} برد از ${fa(duels.played)} دوئل · با شمعک یا دوستت` : 'سه راند با شمعک یا دوستت: سؤال، نمودار و معامله'}
+              {duels?.played
+                ? t('{wins} برد از {played} دوئل · با شمعک یا دوستت', { wins: fa(duels.wins), played: fa(duels.played), count: duels.played })
+                : t('سه راند با شمعک یا دوستت: سؤال، نمودار و معامله')}
             </Txt>
           </View>
           <Icon name="chevronBack" size={22} color={colors.text3} />
         </Pressable>
 
         <Txt w={900} size={16} color={colors.text2}>
-          حالت‌های تمرین
+          {t('حالت‌های تمرین')}
         </Txt>
         <View style={styles.grid}>
           {MODES.map((m) => {
@@ -133,7 +164,7 @@ export default function PracticeScreen() {
                 disabled={!available}
                 onPress={() => router.push(`/lesson/practice-${m.mode}`)}
                 accessibilityRole="button"
-                accessibilityLabel={m.title}
+                accessibilityLabel={t(m.title)}
                 accessibilityState={{ disabled: !available }}
                 style={({ pressed }) => [styles.mode, !available && { opacity: 0.5 }, pressed && { transform: [{ translateY: 3 }], borderBottomWidth: 2 }]}
               >
@@ -141,7 +172,7 @@ export default function PracticeScreen() {
                   {m.icon === 'bolt' ? <BoltIcon size={24} /> : <Icon name={m.icon} size={24} color={m.tint} strokeWidth={2.4} />}
                 </View>
                 <Txt w={900} size={16}>
-                  {m.title}
+                  {t(m.title)}
                 </Txt>
                 <Txt size={12.5} lh={1.6} color={colors.text2}>
                   {m.mode === 'mistakes' ? m.sub(mistakes.length, due) : m.sub(count, due)}
@@ -151,7 +182,7 @@ export default function PracticeScreen() {
           })}
         </View>
         <Txt size={13} color={colors.text3} center>
-          هر تمرین تموم‌شده یه قلب بهت برمی‌گردونه.
+          {t('هر تمرین تموم‌شده یه قلب بهت برمی‌گردونه.')}
         </Txt>
 
         {weakest && (
@@ -161,21 +192,21 @@ export default function PracticeScreen() {
             </View>
             <View style={{ flex: 1, gap: 6 }}>
               <Txt w={900} size={15}>
-                {`تمرکز بعدی: ${weakest.unit.title}`}
+                {t('تمرکز بعدی: {unit}', { unit: weakest.unit.title })}
               </Txt>
-              <ProgressBar value={weakest.ratio} height={10} color={colors.gold} label={`تسلط بر ${weakest.unit.title}`} />
+              <ProgressBar value={weakest.ratio} height={10} color={colors.gold} label={t('تسلط بر {unit}', { unit: weakest.unit.title })} />
               <Txt size={12} color={colors.text2}>
-                {`${fa(Math.round(weakest.ratio * 100))}٪ تسلط`}
+                {t('{n}٪ تسلط', { n: fa(Math.round(weakest.ratio * 100)) })}
               </Txt>
             </View>
             <Button3D
-              label="راهنما"
+              label={t('راهنما')}
               height={44}
               radius={12}
               edge={4}
               size={15}
               onPress={() => router.push(`/guide/${weakest.unit.id}`)}
-              accessibilityLabel={`راهنمای ${weakest.unit.title}`}
+              accessibilityLabel={t('راهنمای {unit}', { unit: weakest.unit.title })}
             />
           </View>
         )}

@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { AppState, Linking, Platform } from 'react-native';
 
+import { t } from '@/i18n';
 import { useGame } from '@/store/game';
 
 import { planReminders } from './reminderPlan';
@@ -18,8 +19,8 @@ const CHANNEL = 'reminders';
 async function ensureChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(CHANNEL, {
-    name: 'یادآوری تمرین',
-    description: 'یادآوری روزانه برای این‌که روزهای پیاپیت قطع نشه',
+    name: t('یادآوری تمرین'),
+    description: t('یادآوری روزانه برای این‌که روزهای پیاپیت قطع نشه'),
     importance: Notifications.AndroidImportance.DEFAULT,
     lightColor: '#2BD47D',
   });

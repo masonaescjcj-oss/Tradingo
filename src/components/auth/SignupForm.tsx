@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { MIN_PASSWORD, register } from '@/lib/auth';
 import { DEFAULT_COUNTRY } from '@/lib/countries';
 import { normalizeLogin, type LoginMethod } from '@/lib/login';
@@ -34,9 +35,9 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const normalized = normalizeLogin(method, typed[method], country);
-  const nameError = touched && !name.trim() ? 'اسمت رو بنویس.' : null;
+  const nameError = touched && !name.trim() ? t('اسمت رو بنویس.') : null;
   const loginError = touched && !normalized ? loginInvalid(method, country) : null;
-  const passwordError = touched && password.length < MIN_PASSWORD ? `رمز باید حداقل ${fa(MIN_PASSWORD)} کاراکتر باشه.` : null;
+  const passwordError = touched && password.length < MIN_PASSWORD ? t('رمز باید حداقل {n} کاراکتر باشه.', { n: fa(MIN_PASSWORD) }) : null;
 
   const submit = async () => {
     setTouched(true);
@@ -59,33 +60,33 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
         }}
       />
       <AuthField
-        label="اسمت"
+        label={t('اسمت')}
         icon="user"
         value={name}
         onChangeText={setName}
-        placeholder="مثلاً سارا"
+        placeholder={t('مثلاً سارا')}
         maxLength={20}
         autoComplete="name"
         error={nameError}
-        hint="توی لیگ و پروفایلت نشون داده می‌شه."
+        hint={t('توی لیگ و پروفایلت نشون داده می‌شه.')}
       />
       <LoginField
         method={method}
         value={typed[method]}
-        onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))}
+        onChangeText={(text) => setTyped((prev) => ({ ...prev, [method]: text }))}
         country={country}
         onCountry={setCountry}
         error={loginError}
-        hint={method === 'email' ? 'به هیچ کاربری نشون داده نمی‌شه؛ کد تأیید هم لازم نیست.' : 'کد تأیید لازم نیست؛ برای شماره‌ی کشورهای دیگه روی پرچم بزن.'}
+        hint={method === 'email' ? t('به هیچ کاربری نشون داده نمی‌شه؛ کد تأیید هم لازم نیست.') : t('کد تأیید لازم نیست؛ برای شماره‌ی کشورهای دیگه روی پرچم بزن.')}
       />
       <AuthField
-        label="رمز عبور"
+        label={t('رمز عبور')}
         icon="lock"
         ltr
         secret
         value={password}
         onChangeText={setPassword}
-        placeholder={`حداقل ${fa(MIN_PASSWORD)} کاراکتر`}
+        placeholder={t('حداقل {n} کاراکتر', { n: fa(MIN_PASSWORD) })}
         autoComplete="new-password"
         onSubmitEditing={submit}
         error={passwordError}
@@ -97,20 +98,21 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
           </Txt>
         </View>
       ) : null}
-      <Button3D label={busy ? 'چند لحظه…' : 'ساخت حساب'} disabled={busy} onPress={submit} />
+      <Button3D label={busy ? t('چند لحظه…') : t('ساخت حساب')} disabled={busy} onPress={submit} />
       {onSkip && (
-        <Button3D label="فعلاً بدون حساب ادامه می‌دم" variant="secondary" size={16} disabled={busy} onPress={() => onSkip(name.trim())} />
+        <Button3D label={t('فعلاً بدون حساب ادامه می‌دم')} variant="secondary" size={16} disabled={busy} onPress={() => onSkip(name.trim())} />
       )}
       <Txt size={12} lh={1.8} color={colors.text3} center>
-        با ساخت حساب،{' '}
+        {t('با ساخت حساب،')}{' '}
         <Txt size={12} w={800} color={colors.skyText} onPress={() => router.push('/legal/terms')}>
-          شرایط استفاده
+          {t('شرایط استفاده')}
         </Txt>{' '}
-        و{' '}
+        {t('و')}{' '}
         <Txt size={12} w={800} color={colors.skyText} onPress={() => router.push('/legal/privacy')}>
-          سیاست حریم خصوصی
-        </Txt>{' '}
-        رو قبول می‌کنی.{cloudEnabled ? '' : ' فعلاً حساب روی همین دستگاه ذخیره می‌شه.'}
+          {t('سیاست حریم خصوصی')}
+        </Txt>
+        {t(' رو قبول می‌کنی.')}
+        {cloudEnabled ? '' : t(' فعلاً حساب روی همین دستگاه ذخیره می‌شه.')}
       </Txt>
     </View>
   );

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
+import { t } from '@/i18n';
 import { pickData, useGame, type GameData } from '@/store/game';
 
 import { loginMethod, type LoginMethod } from './login';
@@ -202,14 +203,14 @@ async function pullAndMerge() {
 }
 
 function describe(e: unknown): string {
-  if (e instanceof CloudError && e.kind === 'network') return 'ارتباط با سرور برقرار نشد؛ پیشرفتت روی دستگاه امنه و بعداً همگام می‌شه.';
-  return 'همگام‌سازی با سرور انجام نشد.';
+  if (e instanceof CloudError && e.kind === 'network') return t('ارتباط با سرور برقرار نشد؛ پیشرفتت روی دستگاه امنه و بعداً همگام می‌شه.');
+  return t('همگام‌سازی با سرور انجام نشد.');
 }
 
 async function handleFailure(e: unknown) {
   if (e instanceof CloudError && e.kind === 'session') {
     await setSession(null);
-    useCloud.setState({ error: 'نشستت روی سرور تموم شده؛ برای همگام‌سازی دوباره وارد شو.' });
+    useCloud.setState({ error: t('نشستت روی سرور تموم شده؛ برای همگام‌سازی دوباره وارد شو.') });
     return;
   }
   useCloud.setState({ status: 'error', error: describe(e) });
@@ -295,22 +296,22 @@ export function startCloudSync() {
 }
 
 const AUTH_ERRORS: Record<string, string> = {
-  mobile_taken: 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.',
-  email_taken: 'با این ایمیل قبلاً حساب ساخته شده؛ وارد شو.',
-  locked: 'چند بار رمز اشتباه زده شده؛ ۱۵ دقیقه‌ی دیگه دوباره امتحان کن.',
-  weak_password: 'رمز باید بین ۶ تا ۷۲ کاراکتر باشه.',
-  invalid_mobile: 'شماره موبایل درست نیست.',
-  invalid_name: 'اسم باید بین ۱ تا ۲۰ حرف باشه.',
-  rate_limited: 'الان ثبت‌نام‌ها زیاده؛ یه دقیقه‌ی دیگه امتحان کن.',
-  banned: 'این حساب به خاطر نقض قوانین چارتون مسدود شده.',
+  mobile_taken: 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.', // i18n-ignore: translated where shown
+  email_taken: 'با این ایمیل قبلاً حساب ساخته شده؛ وارد شو.', // i18n-ignore: translated where shown
+  locked: 'چند بار رمز اشتباه زده شده؛ ۱۵ دقیقه‌ی دیگه دوباره امتحان کن.', // i18n-ignore: translated where shown
+  weak_password: 'رمز باید بین ۶ تا ۷۲ کاراکتر باشه.', // i18n-ignore: translated where shown
+  invalid_mobile: 'شماره موبایل درست نیست.', // i18n-ignore: translated where shown
+  invalid_name: 'اسم باید بین ۱ تا ۲۰ حرف باشه.', // i18n-ignore: translated where shown
+  rate_limited: 'الان ثبت‌نام‌ها زیاده؛ یه دقیقه‌ی دیگه امتحان کن.', // i18n-ignore: translated where shown
+  banned: 'این حساب به خاطر نقض قوانین چارتون مسدود شده.', // i18n-ignore: translated where shown
 };
 
 /** A server error as the learner reads it; wrong-login errors name the email or the number. */
-export function authErrorText(code: string, method: LoginMethod, fallback = 'انجام نشد؛ دوباره امتحان کن.'): string {
-  const what = method === 'email' ? 'ایمیل' : 'شماره موبایل';
-  if (code === 'invalid_credentials') return `${what} یا رمز عبور درست نیست.`;
-  if (code === 'invalid_login') return `${what} درست نیست.`;
-  return AUTH_ERRORS[code] ?? fallback;
+export function authErrorText(code: string, method: LoginMethod, fallback = t('انجام نشد؛ دوباره امتحان کن.')): string {
+  const email = method === 'email';
+  if (code === 'invalid_credentials') return email ? t('ایمیل یا رمز عبور درست نیست.') : t('شماره موبایل یا رمز عبور درست نیست.');
+  if (code === 'invalid_login') return email ? t('ایمیل درست نیست.') : t('شماره موبایل درست نیست.');
+  return AUTH_ERRORS[code] ? t(AUTH_ERRORS[code]) : fallback;
 }
 
 /** `code` is the server's error, for callers that act on it (an account that already exists). */
@@ -322,7 +323,7 @@ async function emailSignIn(): Promise<boolean | null> {
   return v === 0 ? null : v >= 8;
 }
 
-const EMAIL_NOT_READY = 'ورود با ایمیل هنوز روی سرور فعال نشده؛ فعلاً با شماره موبایل ادامه بده.';
+const emailNotReady = () => t('ورود با ایمیل هنوز روی سرور فعال نشده؛ فعلاً با شماره موبایل ادامه بده.');
 
 async function authenticate(fn: string, args: Record<string, unknown>, login: string, fallback: string): Promise<AuthResult> {
   // Without the server functions (not installed yet, or unreachable) the account stays on this device.
@@ -335,26 +336,26 @@ async function authenticate(fn: string, args: Record<string, unknown>, login: st
     return { error: null, name: res.name };
   } catch (e) {
     if (e instanceof CloudError && (e.kind === 'network' || e.kind === 'missing')) return { error: null, offline: true };
-    return { error: 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.' };
+    return { error: t('ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.') };
   }
 }
 
 /** Creates the server account. `offline` means the server isn't available and the caller keeps a device-only account. */
 export async function cloudSignUp(login: string, password: string, name: string): Promise<AuthResult> {
   const modern = await emailSignIn();
-  if (modern === false && loginMethod(login) === 'email') return { error: EMAIL_NOT_READY };
+  if (modern === false && loginMethod(login) === 'email') return { error: emailNotReady() };
   return modern === false
-    ? authenticate('tradingo_sign_up', { p_mobile: login, p_password: password, p_name: name }, login, 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.')
-    : authenticate('tradingo_register', { p_login: login, p_password: password, p_name: name }, login, 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.');
+    ? authenticate('tradingo_sign_up', { p_mobile: login, p_password: password, p_name: name }, login, t('ثبت‌نام انجام نشد؛ دوباره امتحان کن.'))
+    : authenticate('tradingo_register', { p_login: login, p_password: password, p_name: name }, login, t('ثبت‌نام انجام نشد؛ دوباره امتحان کن.'));
 }
 
 /** Signs in on the server and merges the saved progress. */
 export async function cloudSignIn(login: string, password: string): Promise<AuthResult> {
   const modern = await emailSignIn();
-  if (modern === false && loginMethod(login) === 'email') return { error: EMAIL_NOT_READY };
+  if (modern === false && loginMethod(login) === 'email') return { error: emailNotReady() };
   return modern === false
-    ? authenticate('tradingo_sign_in', { p_mobile: login, p_password: password }, login, 'ورود انجام نشد؛ دوباره امتحان کن.')
-    : authenticate('tradingo_login', { p_login: login, p_password: password }, login, 'ورود انجام نشد؛ دوباره امتحان کن.');
+    ? authenticate('tradingo_sign_in', { p_mobile: login, p_password: password }, login, t('ورود انجام نشد؛ دوباره امتحان کن.'))
+    : authenticate('tradingo_login', { p_login: login, p_password: password }, login, t('ورود انجام نشد؛ دوباره امتحان کن.'));
 }
 
 export async function cloudSignOut() {
@@ -376,16 +377,16 @@ export async function cloudDeleteAccount(login: string, password: string): Promi
         modern ? 'tradingo_login' : 'tradingo_sign_in',
         modern ? { p_login: login, p_password: password } : { p_mobile: login, p_password: password },
       );
-      if (!res.token) return authErrorText(res.error ?? '', loginMethod(login), 'ورود انجام نشد؛ دوباره امتحان کن.');
+      if (!res.token) return authErrorText(res.error ?? '', loginMethod(login), t('ورود انجام نشد؛ دوباره امتحان کن.'));
       token = res.token;
     }
     const res = await rpc<{ ok?: boolean; error?: string }>('tradingo_delete_account', { p_token: token, p_password: password });
-    if (res.error === 'invalid_credentials') return 'رمز عبور درست نیست.';
-    if (res.error) return authErrorText(res.error, loginMethod(login), 'حذف حساب انجام نشد؛ دوباره امتحان کن.');
+    if (res.error === 'invalid_credentials') return t('رمز عبور درست نیست.');
+    if (res.error) return authErrorText(res.error, loginMethod(login), t('حذف حساب انجام نشد؛ دوباره امتحان کن.'));
     await setSession(null);
     return null;
   } catch {
-    return 'ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.';
+    return t('ارتباط با سرور برقرار نشد؛ دوباره امتحان کن.');
   }
 }
 

@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { addDays, dayKey } from '@/utils/date';
 import { fa } from '@/utils/format';
 
@@ -14,12 +15,12 @@ export type PlannedReminder = { date: Date; title: string; body: string };
 
 // For days when there's no streak to save; picked by date so they vary from day to day.
 const NUDGES: [string, string][] = [
-  ['شمعک منتظرته 🕯️', 'یه درس ۵ دقیقه‌ای، یه قدم جلوتر توی ترید.'],
-  ['بازار منتظر کسی نمی‌مونه 📈', 'امروز یه الگوی تازه یاد بگیر؛ فقط چند دقیقه طول می‌کشه.'],
-  ['دوئل امروزت رو زدی؟ ⚔️', 'با شمعک یه دوئل سه‌راندی بزن و سکه جمع کن.'],
-  ['مأموریت‌های امروزت آماده‌ست 🎯', 'سه تا مأموریت و یه صندوق جایزه منتظرته.'],
-  ['شمعک دلش برات تنگ شده 🥺', 'چند روزه ندیدیمت. یه درس کوتاه چطوره؟'],
-  ['هر روز یه قدم کوچیک 🚀', 'تریدرهای خوب هر روز یه چیز تازه یاد می‌گیرن.'],
+  ['شمعک منتظرته 🕯️', 'یه درس ۵ دقیقه‌ای، یه قدم جلوتر توی ترید.'], // i18n-ignore: translated where used
+  ['بازار منتظر کسی نمی‌مونه 📈', 'امروز یه الگوی تازه یاد بگیر؛ فقط چند دقیقه طول می‌کشه.'], // i18n-ignore: translated where used
+  ['دوئل امروزت رو زدی؟ ⚔️', 'با شمعک یه دوئل سه‌راندی بزن و سکه جمع کن.'], // i18n-ignore: translated where used
+  ['مأموریت‌های امروزت آماده‌ست 🎯', 'سه تا مأموریت و یه صندوق جایزه منتظرته.'], // i18n-ignore: translated where used
+  ['شمعک دلش برات تنگ شده 🥺', 'چند روزه ندیدیمت. یه درس کوتاه چطوره؟'], // i18n-ignore: translated where used
+  ['هر روز یه قدم کوچیک 🚀', 'تریدرهای خوب هر روز یه چیز تازه یاد می‌گیرن.'], // i18n-ignore: translated where used
 ];
 
 /**
@@ -38,10 +39,10 @@ export function planReminders(s: ReminderState, hour: number, now: Date = new Da
     // The streak still alive on that day if the learner hasn't practised yet by then.
     const alive = i === 0 ? currentStreak(s, today) : i === 1 && practisedToday ? s.streak : 0;
     if (alive > 0) {
-      out.push({ date, title: `🔥 شعله‌ی ${fa(alive)} روزه‌ت داره خاموش می‌شه!`, body: 'یه درس ۵ دقیقه‌ای بزن که روشن بمونه.' });
+      out.push({ date, title: t('🔥 شعله‌ی {n} روزه‌ت داره خاموش می‌شه!', { n: fa(alive), count: alive }), body: t('یه درس ۵ دقیقه‌ای بزن که روشن بمونه.') });
     } else {
       const [title, body] = NUDGES[Math.floor(date.getTime() / 86_400_000) % NUDGES.length];
-      out.push({ date, title, body });
+      out.push({ date, title: t(title), body: t(body) });
     }
   }
   return out;

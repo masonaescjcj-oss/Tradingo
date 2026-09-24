@@ -3,6 +3,7 @@
  * challenge, trading stats, overall progress), drawn as one SVG picture. The app shows
  * the SVG as a preview; on the web it is turned into a PNG to share or save.
  */
+import { isEn, t } from '@/i18n';
 import { colors } from '@/theme';
 import { FA_WEEKDAYS_SHORT } from '@/utils/date';
 import { fa, faNum, usd } from '@/utils/format';
@@ -42,7 +43,8 @@ export type ShareCard = {
   text: string;
 };
 
-const PLAY_MONEY = 'حساب تمرینی با پول مجازی؛ توصیه‌ی مالی نیست';
+const playMoney = () => t('حساب تمرینی با پول مجازی؛ توصیه‌ی مالی نیست');
+const percent = (n: number) => t('{n}٪', { n: fa(n) });
 
 // ---------- cards ----------
 
@@ -52,15 +54,15 @@ export function streakCard(p: { name: string; streak: number; best: number; week
     kind: 'streak',
     accent: colors.flame,
     ink: '#3A1C00',
-    kicker: record ? 'رکورد جدید!' : 'روزهای پیاپی',
+    kicker: record ? t('رکورد جدید!') : t('روزهای پیاپی'),
     hero: fa(p.streak),
-    heroLabel: 'روز پشت سر هم',
-    title: 'هر روز یه قدم نزدیک‌تر به تریدر شدن',
+    heroLabel: t('روز پشت سر هم', { count: p.streak }),
+    title: t('هر روز یه قدم نزدیک‌تر به تریدر شدن'),
     stats: [],
     week: p.week,
     mood: 'party',
     name: p.name,
-    text: `${fa(p.streak)} روزه که هر روز با چارتون ترید یاد می‌گیرم 🔥\n${APP_URL}`,
+    text: `${t('{n} روزه که هر روز با چارتون ترید یاد می‌گیرم 🔥', { n: fa(p.streak), count: p.streak })}\n${APP_URL}`,
   };
 }
 
@@ -70,17 +72,17 @@ export function unitCard(p: { name: string; unitTitle: string; courseTitle: stri
     kind: 'unit',
     accent: p.color,
     ink: colors.bg,
-    kicker: 'یه واحد دیگه تموم شد',
-    hero: `${fa(pct)}٪`,
-    heroLabel: `از دوره‌ی ${p.courseTitle}`,
-    title: `واحد «${p.unitTitle}» رو تموم کردم!`,
+    kicker: t('یه واحد دیگه تموم شد'),
+    hero: percent(pct),
+    heroLabel: t('از دوره‌ی {course}', { course: p.courseTitle }),
+    title: t('واحد «{unit}» رو تموم کردم!', { unit: p.unitTitle }),
     stats: [
-      { label: 'درس این واحد', value: fa(p.lessons) },
-      { label: 'درس‌های دوره', value: `${fa(p.done)} از ${fa(p.total)}` },
+      { label: t('درس این واحد'), value: fa(p.lessons) },
+      { label: t('درس‌های دوره'), value: t('{n} از {total}', { n: fa(p.done), total: fa(p.total) }) },
     ],
     mood: 'happy',
     name: p.name,
-    text: `واحد «${p.unitTitle}» از دوره‌ی ${p.courseTitle} رو توی چارتون تموم کردم 💪\n${APP_URL}`,
+    text: `${t('واحد «{unit}» از دوره‌ی {course} رو توی چارتون تموم کردم 💪', { unit: p.unitTitle, course: p.courseTitle })}\n${APP_URL}`,
   };
 }
 
@@ -89,38 +91,40 @@ export function courseCard(p: { name: string; courseTitle: string; color: string
     kind: 'course',
     accent: p.color,
     ink: colors.bg,
-    kicker: 'دوره کامل شد!',
-    hero: '۱۰۰٪',
-    heroLabel: `دوره‌ی ${p.courseTitle}`,
-    title: `کل دوره‌ی ${p.courseTitle} رو تموم کردم!`,
+    kicker: t('دوره کامل شد!'),
+    hero: percent(100),
+    heroLabel: t('دوره‌ی {course}', { course: p.courseTitle }),
+    title: t('کل دوره‌ی {course} رو تموم کردم!', { course: p.courseTitle }),
     stats: [
-      { label: 'درس', value: fa(p.lessons) },
-      { label: 'واحد', value: fa(p.units) },
+      { label: t('درس'), value: fa(p.lessons) },
+      { label: t('واحد'), value: fa(p.units) },
     ],
     mood: 'party',
     name: p.name,
-    text: `دوره‌ی ${p.courseTitle} رو توی چارتون کامل تموم کردم 🎓\n${APP_URL}`,
+    text: `${t('دوره‌ی {course} رو توی چارتون کامل تموم کردم 🎓', { course: p.courseTitle })}\n${APP_URL}`,
   };
 }
 
 export function challengeCard(p: { name: string; title: string; coins: number; xp: number }): ShareCard {
+  // The challenge's own title may arrive in Persian from the table.
+  const title = t(p.title);
   return {
     kind: 'challenge',
     accent: colors.gold,
     ink: colors.goldInk,
-    kicker: 'چالش شبیه‌ساز',
+    kicker: t('چالش شبیه‌ساز'),
     hero: '',
     trophy: true,
-    heroLabel: 'چالش رو بردم!',
-    title: `«${p.title}»`,
+    heroLabel: t('چالش رو بردم!'),
+    title: t('«{title}»', { title }),
     stats: [
-      { label: 'سکه', value: `+${fa(p.coins)}` },
-      { label: 'امتیاز', value: `+${fa(p.xp)}` },
+      { label: t('سکه'), value: `+${fa(p.coins)}` },
+      { label: t('امتیاز'), value: `+${fa(p.xp)}` },
     ],
     mood: 'party',
     name: p.name,
-    note: PLAY_MONEY,
-    text: `چالش «${p.title}» رو توی شبیه‌ساز چارتون بردم 🏆\n${APP_URL}`,
+    note: playMoney(),
+    text: `${t('چالش «{title}» رو توی شبیه‌ساز چارتون بردم 🏆', { title })}\n${APP_URL}`,
   };
 }
 
@@ -130,39 +134,45 @@ export function tradingCard(p: { name: string; count: number; winRate: number | 
     kind: 'trading',
     accent: colors.bull,
     ink: colors.bullInk,
-    kicker: 'آمار معامله‌هام',
-    hero: p.winRate == null ? '—' : `${fa(Math.round(p.winRate * 100))}٪`,
-    heroLabel: 'درصد برد',
-    title: 'توی شبیه‌ساز معامله‌ی چارتون',
+    kicker: t('آمار معامله‌هام'),
+    hero: p.winRate == null ? '—' : percent(Math.round(p.winRate * 100)),
+    heroLabel: t('درصد برد'),
+    title: t('توی شبیه‌ساز معامله‌ی چارتون'),
     stats: [
-      { label: 'معامله', value: faNum(p.count) },
-      { label: 'سود خالص', value: usd(p.net, true), ltr: true, color: p.net >= 0 ? colors.bullText : colors.bearText },
-      { label: 'فاکتور سود', value: pf, ltr: true },
+      { label: t('معامله'), value: faNum(p.count) },
+      { label: t('سود خالص'), value: usd(p.net, true), ltr: true, color: p.net >= 0 ? colors.bullText : colors.bearText },
+      { label: t('فاکتور سود'), value: pf, ltr: true },
     ],
     mood: p.net >= 0 ? 'party' : 'think',
     name: p.name,
-    note: PLAY_MONEY,
-    text: `آمار معامله‌هام توی شبیه‌ساز چارتون: ${faNum(p.count)} معامله${p.winRate == null ? '' : `، ${fa(Math.round(p.winRate * 100))}٪ برد`} 📈\n${APP_URL}`,
+    note: playMoney(),
+    text: `${
+      p.winRate == null
+        ? t('آمار معامله‌هام توی شبیه‌ساز چارتون: {n} معامله 📈', { n: faNum(p.count), count: p.count })
+        : t('آمار معامله‌هام توی شبیه‌ساز چارتون: {n} معامله، {rate}٪ برد 📈', { n: faNum(p.count), count: p.count, rate: fa(Math.round(p.winRate * 100)) })
+    }\n${APP_URL}`,
   };
 }
 
 export function profileCard(p: { name: string; xp: number; streak: number; league: string; lessons: number }): ShareCard {
+  // The league's name may arrive in Persian from the table.
+  const league = t(p.league);
   return {
     kind: 'profile',
     accent: colors.sky,
     ink: colors.skyInk,
-    kicker: 'پیشرفت من',
+    kicker: t('پیشرفت من'),
     hero: faNum(p.xp),
-    heroLabel: 'امتیاز',
-    title: `توی لیگ ${p.league} چارتون`,
+    heroLabel: t('امتیاز'),
+    title: t('توی لیگ {league} چارتون', { league }),
     stats: [
-      { label: 'روز پیاپی', value: fa(p.streak) },
-      { label: 'درس', value: fa(p.lessons) },
-      { label: 'لیگ', value: p.league },
+      { label: t('روز پیاپی'), value: fa(p.streak) },
+      { label: t('درس'), value: fa(p.lessons) },
+      { label: t('لیگ'), value: league },
     ],
     mood: 'happy',
     name: p.name,
-    text: `${faNum(p.xp)} امتیاز و ${fa(p.lessons)} درس توی چارتون 🚀\n${APP_URL}`,
+    text: `${t('{xp} امتیاز و {n} درس توی چارتون 🚀', { xp: faNum(p.xp), n: fa(p.lessons), count: p.lessons })}\n${APP_URL}`,
   };
 }
 
@@ -177,24 +187,29 @@ export function duelCard(p: {
   pnl: number;
 }): ShareCard {
   const won = p.outcome === 'win';
+  const duelScore = { mine: fa(p.mine), theirs: fa(p.theirs), opponent: p.opponent };
   return {
     kind: 'duel',
     accent: won ? colors.gold : p.outcome === 'tie' ? colors.sky : colors.bear,
     ink: won ? colors.goldInk : p.outcome === 'tie' ? colors.skyInk : colors.bearInk,
-    kicker: 'دوئل چارتون',
+    kicker: t('دوئل چارتون'),
     hero: `${fa(p.mine)} - ${fa(p.theirs)}`,
     heroLtr: true,
-    heroLabel: won ? 'بردم!' : p.outcome === 'tie' ? 'مساوی شد' : 'این بار باختم',
-    title: `در برابر ${p.opponent}`,
+    heroLabel: won ? t('بردم!') : p.outcome === 'tie' ? t('مساوی شد') : t('این بار باختم'),
+    title: t('در برابر {opponent}', { opponent: p.opponent }),
     stats: [
-      { label: 'سؤال سرعتی', value: fa(p.quiz) },
-      { label: 'پیش‌بینی نمودار', value: fa(p.chart) },
-      { label: 'معامله', value: usd(p.pnl, true), ltr: true, color: p.pnl >= 0 ? colors.bullText : colors.bearText },
+      { label: t('سؤال سرعتی'), value: fa(p.quiz) },
+      { label: t('پیش‌بینی نمودار'), value: fa(p.chart) },
+      { label: t('معامله'), value: usd(p.pnl, true), ltr: true, color: p.pnl >= 0 ? colors.bullText : colors.bearText },
     ],
     mood: won ? 'party' : p.outcome === 'tie' ? 'happy' : 'think',
     name: p.name,
-    note: PLAY_MONEY,
-    text: `${won ? 'توی دوئل چارتون' : 'دوئل چارتون'} ${fa(p.mine)} به ${fa(p.theirs)} ${won ? `${p.opponent} رو بردم ⚔️` : `با ${p.opponent} بازی کردم ⚔️`} تو هم بیا!\n${APP_URL}`,
+    note: playMoney(),
+    text: `${
+      won
+        ? t('توی دوئل چارتون {mine} به {theirs} {opponent} رو بردم ⚔️ تو هم بیا!', duelScore)
+        : t('دوئل چارتون {mine} به {theirs} با {opponent} بازی کردم ⚔️ تو هم بیا!', duelScore)
+    }\n${APP_URL}`,
   };
 }
 
@@ -204,7 +219,7 @@ export function weekDots(start: Date, activeDays: string[], frozenDays: string[]
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
     const key = keyOf(d);
     const state = activeDays.includes(key) ? 'on' : frozenDays.includes(key) ? 'frozen' : 'off';
-    return { label, state, today: i === todayIndex };
+    return { label: t(label), state, today: i === todayIndex };
   });
 }
 
@@ -224,7 +239,7 @@ function text(
   fill: string,
   opts: { ltr?: boolean; anchor?: 'start' | 'middle' | 'end'; opacity?: number } = {},
 ): string {
-  const dir = opts.ltr ? 'ltr' : 'rtl';
+  const dir = opts.ltr || isEn() ? 'ltr' : 'rtl';
   const op = opts.opacity != null ? ` opacity="${opts.opacity}"` : '';
   return `<text x="${x}" y="${y}" font-family="${family}, Tahoma, sans-serif" font-size="${size}" fill="${fill}" text-anchor="${opts.anchor ?? 'middle'}" direction="${dir}" unicode-bidi="embed"${op}>${esc(t)}</text>`;
 }
@@ -329,7 +344,7 @@ export function cardSvg(card: ShareCard, fontCss = ''): string {
     `<circle cx="540" cy="470" r="360" fill="url(#glow)"/>`,
     `<rect x="24" y="24" width="${CARD_W - 48}" height="${CARD_H - 48}" rx="56" fill="none" stroke="${card.accent}" stroke-opacity="0.35" stroke-width="4"/>`,
     // Brand, with a small candle on each side.
-    text('چارتون', 540, 128, 64, 'Lalezar_400Regular', colors.text),
+    text(t('چارتون'), 540, 128, 64, 'Lalezar_400Regular', colors.text),
     `<line x1="428" x2="428" y1="72" y2="140" stroke="${colors.bull}" stroke-width="5"/><rect x="416" y="86" width="24" height="40" rx="5" fill="${colors.bull}"/>`,
     `<line x1="652" x2="652" y1="78" y2="136" stroke="${colors.bear}" stroke-width="5"/><rect x="640" y="92" width="24" height="30" rx="5" fill="${colors.bear}"/>`,
     `<rect x="${540 - kickerW / 2}" y="170" width="${kickerW}" height="66" rx="33" fill="${card.accent}"/>`,

@@ -9,6 +9,7 @@ import { DuelResultView } from '@/components/duel/DuelResultView';
 import { InviteCard } from '@/components/duel/InviteCard';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { BOT_LEVELS, botResult, compareDuel, newSeed, type BotLevel, type DuelResult, type DuelRounds } from '@/lib/duel';
 import { createDuel, duelErrorText, duelsAvailable } from '@/lib/duelApi';
 import { loadRounds } from '@/lib/duelData';
@@ -70,27 +71,29 @@ export default function DuelPlayScreen() {
     setPhase({ at: 'result', mine, them, reward });
   };
 
-  const opponent = friend ? { name: 'دوستت' } : { name: `شمعک (${BOT_LEVELS.find((l) => l.level === level)?.label})`, bot: true };
-  const title = friend ? 'دوئل با دوست' : 'دوئل با شمعک';
+  const opponent = friend
+    ? { name: t('دوستت') }
+    : { name: t('شمعک ({level})', { level: t(BOT_LEVELS.find((l) => l.level === level)?.label ?? '') }), bot: true };
+  const title = friend ? t('دوئل با دوست') : t('دوئل با شمعک');
 
   let body;
   if (friend && !signedIn) {
     body = (
-      <Message text="برای دوئل با دوستت باید حساب داشته باشی تا نتیجه‌ها روی سرور ذخیره بشه. تا اون موقع می‌تونی با شمعک دوئل کنی.">
-        <Button3D label="ورود یا ساخت حساب" onPress={() => router.push(useGame.getState().user ? '/account' : '/login')} />
-        <Button3D variant="secondary" label="دوئل با شمعک" onPress={() => router.replace('/duel/play?mode=bot')} />
+      <Message text={t('برای دوئل با دوستت باید حساب داشته باشی تا نتیجه‌ها روی سرور ذخیره بشه. تا اون موقع می‌تونی با شمعک دوئل کنی.')}>
+        <Button3D label={t('ورود یا ساخت حساب')} onPress={() => router.push(useGame.getState().user ? '/account' : '/login')} />
+        <Button3D variant="secondary" label={t('دوئل با شمعک')} onPress={() => router.replace('/duel/play?mode=bot')} />
       </Message>
     );
   } else if (friend && serverOk === false) {
     body = (
-      <Message text="دوئل با دوست هنوز روی سرور فعال نشده. فعلاً با شمعک دوئل کن.">
-        <Button3D label="دوئل با شمعک" onPress={() => router.replace('/duel/play?mode=bot')} />
+      <Message text={t('دوئل با دوست هنوز روی سرور فعال نشده. فعلاً با شمعک دوئل کن.')}>
+        <Button3D label={t('دوئل با شمعک')} onPress={() => router.replace('/duel/play?mode=bot')} />
       </Message>
     );
   } else if (loadFailed) {
     body = (
-      <Message text="نمودارهای دوئل آماده نشد. اینترنتت رو چک کن و دوباره امتحان کن.">
-        <Button3D label="برگشت" onPress={() => router.back()} />
+      <Message text={t('نمودارهای دوئل آماده نشد. اینترنتت رو چک کن و دوباره امتحان کن.')}>
+        <Button3D label={t('برگشت')} onPress={() => router.back()} />
       </Message>
     );
   } else if (!rounds || serverOk == null) {
@@ -98,18 +101,32 @@ export default function DuelPlayScreen() {
       <View style={styles.center}>
         <ActivityIndicator color={colors.gold} size="large" />
         <Txt w={800} size={14} color={colors.text2}>
-          در حال آماده کردن نمودارهای دوئل…
+          {t('در حال آماده کردن نمودارهای دوئل…')}
         </Txt>
       </View>
     );
   } else if (phase.at === 'play') {
-    body = <DuelGame rounds={rounds} opponent={opponent} width={colW} onFinish={finish} note={friend ? <Txt w={700} size={12.5} lh={1.8} color={colors.text3} center>اول خودت بازی می‌کنی، بعد لینکش رو برای دوستت می‌فرستی تا همین دوئل رو بازی کنه.</Txt> : undefined} />;
+    body = (
+      <DuelGame
+        rounds={rounds}
+        opponent={opponent}
+        width={colW}
+        onFinish={finish}
+        note={
+          friend ? (
+            <Txt w={700} size={12.5} lh={1.8} color={colors.text3} center>
+              {t('اول خودت بازی می‌کنی، بعد لینکش رو برای دوستت می‌فرستی تا همین دوئل رو بازی کنه.')}
+            </Txt>
+          ) : undefined
+        }
+      />
+    );
   } else if (phase.at === 'saving') {
     body = (
       <View style={styles.center}>
         <ActivityIndicator color={colors.gold} size="large" />
         <Txt w={800} size={14} color={colors.text2}>
-          در حال ساختن دوئل…
+          {t('در حال ساختن دوئل…')}
         </Txt>
       </View>
     );
@@ -117,7 +134,7 @@ export default function DuelPlayScreen() {
     const mine = phase.mine;
     body = (
       <Message text={duelErrorText(phase.error)}>
-        <Button3D label="دوباره امتحان کن" onPress={() => save(mine)} />
+        <Button3D label={t('دوباره امتحان کن')} onPress={() => save(mine)} />
       </Message>
     );
   } else if (phase.at === 'invite') {
@@ -129,15 +146,15 @@ export default function DuelPlayScreen() {
   } else {
     body = (
       <DuelResultView me={phase.mine} them={phase.them} opponent={opponent} reward={phase.reward}>
-        <Button3D label="یه دوئل دیگه" onPress={() => router.replace(`/duel/play?mode=bot&level=${level}`)} />
-        <Button3D variant="secondary" label="دوئل‌ها" onPress={() => router.replace('/duel')} />
+        <Button3D label={t('یه دوئل دیگه')} onPress={() => router.replace(`/duel/play?mode=bot&level=${level}`)} />
+        <Button3D variant="secondary" label={t('دوئل‌ها')} onPress={() => router.replace('/duel')} />
       </DuelResultView>
     );
   }
 
   return (
     <Screen>
-      <BackHeader title={title} caption="دوئل چارتون" />
+      <BackHeader title={title} caption={t('دوئل چارتون')} />
       {body}
     </Screen>
   );

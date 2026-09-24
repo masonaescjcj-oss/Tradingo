@@ -9,7 +9,8 @@ import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { midsOf, useFeedSnapshot } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
-import { cleanReply, COACH_SUGGESTIONS, coachContext, coachErrorText, type CoachTurn } from '@/lib/coach';
+import { t, textStart } from '@/i18n';
+import { cleanReply, coachContext, coachErrorText, coachSuggestions, type CoachTurn } from '@/lib/coach';
 import { addTurn, ANSWER_REPORT_REASONS, askCoach, clearCoach, reportAnswer, useCoach, type AnswerReportReason } from '@/lib/coachApi';
 import { messageTime } from '@/lib/chat';
 import { useCloud } from '@/lib/cloud';
@@ -66,20 +67,20 @@ export default function CoachScreen() {
   return (
     <View style={styles.screen} onLayout={keyboard.onLayout}>
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="برگشت" hitSlop={8} style={styles.headerBtn}>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('برگشت')} hitSlop={8} style={styles.headerBtn}>
           <Icon name="chevronBack" size={24} color={colors.text} strokeWidth={2.6} />
         </Pressable>
         <CoachAvatar size={40} />
         <View style={{ flex: 1, gap: 1 }}>
           <Txt w={900} size={16}>
-            شمعک
+            {t('شمعک')}
           </Txt>
           <Txt w={700} size={12} color={colors.bullText} numberOfLines={1}>
-            {thinking ? 'داره می‌نویسه…' : 'دستیار هوش مصنوعی چارتون'}
+            {thinking ? t('داره می‌نویسه…') : t('دستیار هوش مصنوعی چارتون')}
           </Txt>
         </View>
         {turns.length > 0 ? (
-          <Pressable onPress={() => setMenu(true)} accessibilityRole="button" accessibilityLabel="گزینه‌های گفتگو" hitSlop={8} style={styles.headerBtn}>
+          <Pressable onPress={() => setMenu(true)} accessibilityRole="button" accessibilityLabel={t('گزینه‌های گفتگو')} hitSlop={8} style={styles.headerBtn}>
             <Icon name="list" size={22} color={colors.text2} strokeWidth={2.4} />
           </Pressable>
         ) : null}
@@ -89,7 +90,7 @@ export default function CoachScreen() {
         <View style={styles.intro}>
           <Icon name="bulb" size={16} color={colors.gold} strokeWidth={2.4} />
           <Txt w={700} size={12} lh={1.7} color={colors.text2} style={{ flex: 1 }}>
-            شمعک دوره‌ها و جایی که هستی، اشتباه‌های درس‌ها، و پوزیشن‌ها، سفارش‌ها و معامله‌های شبیه‌سازت رو می‌بینه. ممکنه اشتباه کنه؛ جواب‌هاش آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.
+            {t('شمعک دوره‌ها و جایی که هستی، اشتباه‌های درس‌ها، و پوزیشن‌ها، سفارش‌ها و معامله‌های شبیه‌سازت رو می‌بینه. ممکنه اشتباه کنه؛ جواب‌هاش آموزشیه و توصیه‌ی سرمایه‌گذاری نیست.')}
           </Txt>
         </View>
 
@@ -97,13 +98,13 @@ export default function CoachScreen() {
           <View style={styles.empty}>
             <Mascot mood="happy" size={110} />
             <Txt w={900} size={18} center>
-              سلام! من شمعکم.
+              {t('سلام! من شمعکم.')}
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2} center>
-              هر سؤالی درباره‌ی ترید، درس‌هات یا معامله‌های شبیه‌سازت داری بپرس. مثلاً:
+              {t('هر سؤالی درباره‌ی ترید، درس‌هات یا معامله‌های شبیه‌سازت داری بپرس. مثلاً:')}
             </Txt>
             <View style={styles.suggestions}>
-              {COACH_SUGGESTIONS.map((s) => (
+              {coachSuggestions().map((s) => (
                 <Pressable key={s} onPress={() => (signedIn ? ask(s) : setText(s))} accessibilityRole="button" style={styles.suggestion}>
                   <Txt w={800} size={13.5} color={colors.text}>
                     {s}
@@ -114,8 +115,14 @@ export default function CoachScreen() {
           </View>
         ) : null}
 
-        {turns.map((t, i) => (
-          <Bubble key={t.id} turn={t} grouped={i > 0 && turns[i - 1].role === t.role} width={bubbleW} onReport={t.role === 'assistant' && signedIn ? () => setReporting(t) : undefined} />
+        {turns.map((turn, i) => (
+          <Bubble
+            key={turn.id}
+            turn={turn}
+            grouped={i > 0 && turns[i - 1].role === turn.role}
+            width={bubbleW}
+            onReport={turn.role === 'assistant' && signedIn ? () => setReporting(turn) : undefined}
+          />
         ))}
         {thinking ? <Typing /> : null}
       </ScrollView>
@@ -124,31 +131,36 @@ export default function CoachScreen() {
         {error || remaining != null ? (
           <Pressable onPress={() => setError(null)} style={styles.notePill}>
             <Txt w={700} size={12.5} color={error ? colors.gold : colors.text3}>
-              {error ?? `${fa(remaining ?? 0)} پیام دیگه برای امروز`}
+              {error ?? t('{n} پیام دیگه برای امروز', { n: fa(remaining ?? 0), count: remaining ?? 0 })}
             </Txt>
           </Pressable>
         ) : null}
         {!signedIn ? (
-          <Button3D label={user ? 'برای گفتگو با شمعک، حسابت رو به سرور وصل کن' : 'برای گفتگو با شمعک، وارد حسابت شو'} size={15} height={48} onPress={() => router.push(user ? '/account' : '/login')} />
+          <Button3D
+            label={user ? t('برای گفتگو با شمعک، حسابت رو به سرور وصل کن') : t('برای گفتگو با شمعک، وارد حسابت شو')}
+            size={15}
+            height={48}
+            onPress={() => router.push(user ? '/account' : '/login')}
+          />
         ) : (
           <View style={styles.inputRow}>
             <TextInput
               value={text}
               onChangeText={setText}
-              placeholder="از شمعک بپرس…"
+              placeholder={t('از شمعک بپرس…')}
               placeholderTextColor={colors.faint}
               maxLength={MAX_QUESTION}
               returnKeyType="send"
               submitBehavior="submit"
               onSubmitEditing={() => ask(text)}
               editable={!thinking}
-              style={styles.input}
+              style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
             />
             <Pressable
               onPress={() => ask(text)}
               disabled={thinking || !text.trim()}
               accessibilityRole="button"
-              accessibilityLabel="ارسال"
+              accessibilityLabel={t('ارسال')}
               style={[styles.send, (thinking || !text.trim()) && styles.sendIdle]}
             >
               <View style={{ transform: [{ scaleX: -1 }] }}>
@@ -169,13 +181,13 @@ export default function CoachScreen() {
         <Pressable style={styles.backdrop} onPress={() => setMenu(false)}>
           <View style={styles.dialog}>
             <Txt w={900} size={17} center>
-              گفتگو با شمعک
+              {t('گفتگو با شمعک')}
             </Txt>
             <Txt size={13.5} lh={1.8} color={colors.text2} center>
-              گفتگو فقط روی همین دستگاه ذخیره می‌شه.
+              {t('گفتگو فقط روی همین دستگاه ذخیره می‌شه.')}
             </Txt>
             <Button3D
-              label="پاک کردن گفتگو"
+              label={t('پاک کردن گفتگو')}
               variant="danger"
               size={16}
               onPress={() => {
@@ -184,7 +196,7 @@ export default function CoachScreen() {
               }}
               style={{ alignSelf: 'stretch' }}
             />
-            <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={() => setMenu(false)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={() => setMenu(false)} style={{ alignSelf: 'stretch' }} />
           </View>
         </Pressable>
       </Modal>
@@ -192,8 +204,8 @@ export default function CoachScreen() {
   );
 }
 
-function Bubble({ turn: t, grouped, width, onReport }: { turn: CoachTurn; grouped: boolean; width: number; onReport?: () => void }) {
-  const mine = t.role === 'user';
+function Bubble({ turn, grouped, width, onReport }: { turn: CoachTurn; grouped: boolean; width: number; onReport?: () => void }) {
+  const mine = turn.role === 'user';
   return (
     <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowOther, grouped && { marginTop: -6 }]}>
       {!mine ? <View style={{ width: 32 }}>{!grouped ? <CoachAvatar size={32} /> : null}</View> : null}
@@ -201,23 +213,23 @@ function Bubble({ turn: t, grouped, width, onReport }: { turn: CoachTurn; groupe
         onLongPress={onReport}
         delayLongPress={350}
         disabled={!onReport}
-        accessibilityHint={onReport ? 'برای گزارش این جواب، نگه دار' : undefined}
+        accessibilityHint={onReport ? t('برای گزارش این جواب، نگه دار') : undefined}
         style={[styles.bubble, { maxWidth: width }, mine ? styles.bubbleMine : styles.bubbleOther]}
       >
         <Txt w={500} size={14.5} lh={1.8} selectable>
-          {t.text}
+          {turn.text}
         </Txt>
         <View style={styles.meta}>
           {onReport ? (
-            <Pressable onPress={onReport} hitSlop={8} accessibilityRole="button" accessibilityLabel="گزارش این جواب" style={styles.reportBtn}>
+            <Pressable onPress={onReport} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('گزارش این جواب')} style={styles.reportBtn}>
               <Icon name="flag" size={12} color={colors.text3} strokeWidth={2.4} />
               <Txt w={700} size={10.5} color={colors.text3}>
-                گزارش
+                {t('گزارش')}
               </Txt>
             </Pressable>
           ) : null}
           <Txt w={500} size={10.5} color={mine ? 'rgba(241,244,249,0.65)' : colors.text3}>
-            {messageTime(new Date(t.at).toISOString())}
+            {messageTime(new Date(turn.at).toISOString())}
           </Txt>
         </View>
       </Pressable>
@@ -248,32 +260,38 @@ function ReportAnswerSheet({ turn, question, onClose }: { turn: CoachTurn | null
     const res = await reportAnswer(question, turn.text, reason, note);
     if (res.ok) return setPhase('done');
     setPhase('form');
-    setError(res.error === 'rate' ? 'امروز گزارش زیادی فرستادی؛ فردا دوباره امتحان کن.' : res.error === 'network' ? 'به سرور وصل نشد؛ دوباره امتحان کن.' : 'گزارش فرستاده نشد؛ دوباره امتحان کن.');
+    setError(
+      res.error === 'rate'
+        ? t('امروز گزارش زیادی فرستادی؛ فردا دوباره امتحان کن.')
+        : res.error === 'network'
+          ? t('به سرور وصل نشد؛ دوباره امتحان کن.')
+          : t('گزارش فرستاده نشد؛ دوباره امتحان کن.'),
+    );
   };
 
   return (
     <Modal visible={turn != null} transparent animationType="slide" onRequestClose={close}>
       <View style={[styles.sheetBackdrop, { paddingBottom: keyboard.overlap }]} onLayout={keyboard.onLayout}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel="بستن" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityLabel={t('بستن')} />
         <View style={[styles.sheet, { paddingBottom: 20 + (keyboard.overlap ? 0 : insets.bottom) }]}>
           {phase === 'done' ? (
             <>
               <Mascot mood="happy" size={80} />
               <Txt w={900} size={18} center>
-                ممنون که گزارش دادی
+                {t('ممنون که گزارش دادی')}
               </Txt>
               <Txt size={13.5} lh={1.9} color={colors.text2} center>
-                مدیرهای چارتون این جواب رو بررسی می‌کنن تا شمعک بهتر بشه.
+                {t('مدیرهای چارتون این جواب رو بررسی می‌کنن تا شمعک بهتر بشه.')}
               </Txt>
-              <Button3D label="باشه" size={16} onPress={close} />
+              <Button3D label={t('باشه')} size={16} onPress={close} />
             </>
           ) : (
             <>
               <Txt w={900} size={18}>
-                گزارش این جواب
+                {t('گزارش این جواب')}
               </Txt>
               <Txt size={12.5} lh={1.8} color={colors.text3}>
-                این جواب و سؤالت برای بررسی به مدیرهای چارتون فرستاده می‌شه؛ بقیه‌ی گفتگو روی گوشیت می‌مونه.
+                {t('این جواب و سؤالت برای بررسی به مدیرهای چارتون فرستاده می‌شه؛ بقیه‌ی گفتگو روی گوشیت می‌مونه.')}
               </Txt>
               <View style={{ gap: 8 }}>
                 {ANSWER_REPORT_REASONS.map((r) => {
@@ -281,7 +299,7 @@ function ReportAnswerSheet({ turn, question, onClose }: { turn: CoachTurn | null
                   return (
                     <Pressable key={r.id} onPress={() => setReason(r.id)} accessibilityRole="radio" accessibilityState={{ checked: on }} style={[styles.reason, on && styles.reasonOn]}>
                       <Txt w={800} size={14} color={on ? colors.skyText : colors.text}>
-                        {r.label}
+                        {t(r.label)}
                       </Txt>
                     </Pressable>
                   );
@@ -290,19 +308,19 @@ function ReportAnswerSheet({ turn, question, onClose }: { turn: CoachTurn | null
               <TextInput
                 value={note}
                 onChangeText={setNote}
-                placeholder="توضیح (اختیاری)"
+                placeholder={t('توضیح (اختیاری)')}
                 placeholderTextColor={colors.faint}
                 maxLength={300}
                 multiline
-                style={styles.noteInput}
+                style={[styles.noteInput, { textAlign: textStart() }]}
               />
               {error ? (
                 <Txt w={700} size={13} color={colors.bearText}>
                   {error}
                 </Txt>
               ) : null}
-              <Button3D label={phase === 'sending' ? 'در حال فرستادن…' : 'فرستادن گزارش'} disabled={!reason || phase === 'sending'} onPress={send} />
-              <Button3D label="بی‌خیال" variant="secondary" size={16} onPress={close} />
+              <Button3D label={phase === 'sending' ? t('در حال فرستادن…') : t('فرستادن گزارش')} disabled={!reason || phase === 'sending'} onPress={send} />
+              <Button3D label={t('بی‌خیال')} variant="secondary" size={16} onPress={close} />
             </>
           )}
         </View>
@@ -333,7 +351,7 @@ function Typing() {
       <View style={{ width: 32 }}>
         <CoachAvatar size={32} />
       </View>
-      <View style={[styles.bubble, styles.bubbleOther, styles.typing]} accessibilityLabel="شمعک داره می‌نویسه">
+      <View style={[styles.bubble, styles.bubbleOther, styles.typing]} accessibilityLabel={t('شمعک داره می‌نویسه')}>
         {dots.map((d, i) => (
           <Animated.View key={i} style={[styles.dot, { transform: [{ translateY: d }] }]} />
         ))}
@@ -455,7 +473,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 14,
-    textAlign: 'right',
     textAlignVertical: 'top',
   },
   bubble: {
@@ -523,8 +540,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.bold,
     fontSize: 15,
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
   send: {
     width: 46,

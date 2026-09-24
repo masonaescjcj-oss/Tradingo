@@ -9,6 +9,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
+import { byLang, dateLocale, t } from '@/i18n';
 import { MAX_FREEZES, streakRepair } from '@/lib/progress';
 import { streakCard, weekDots, type ShareCard } from '@/lib/shareCard';
 import { PRICES } from '@/lib/shop';
@@ -21,10 +22,10 @@ import { fa } from '@/utils/format';
 const MILESTONES = [3, 7, 14, 30, 50, 100, 200, 365];
 const WEEKS = 5;
 
-/** Day of the month in the Persian calendar where the platform supports it. */
+/** Day of the month (in the Persian calendar in Persian, where the platform supports it). */
 function persianDay(d: Date): string {
   try {
-    return new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric' }).format(d);
+    return new Intl.DateTimeFormat(byLang('fa-IR-u-ca-persian', dateLocale()), { day: 'numeric' }).format(d);
   } catch {
     return '';
   }
@@ -56,7 +57,13 @@ export default function StreakScreen() {
   const doRepair = () => {
     const result = buy('repair');
     playSfx(result === 'ok' ? 'chest' : 'wrong');
-    setMessage(result === 'ok' ? 'شعله‌ت دوباره روشن شد!' : result === 'coins' ? 'سکه‌ت برای ترمیم کافی نیست.' : 'الان چیزی برای ترمیم نیست.');
+    setMessage(
+      result === 'ok'
+        ? t('شعله‌ت دوباره روشن شد!')
+        : result === 'coins'
+          ? t('سکه‌ت برای ترمیم کافی نیست.')
+          : t('الان چیزی برای ترمیم نیست.'),
+    );
   };
 
   const share = () =>
@@ -71,7 +78,7 @@ export default function StreakScreen() {
 
   return (
     <Screen>
-      <BackHeader title="روزهای پیاپی" />
+      <BackHeader title={t('روزهای پیاپی')} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <FlameIcon size={84} color={streak > 0 ? colors.flame : colors.faint} inner={streak > 0 ? '#FFD27A' : colors.muted} />
@@ -80,10 +87,10 @@ export default function StreakScreen() {
               {fa(streak)}
             </Txt>
             <Txt w={900} size={17}>
-              {streak > 0 ? 'روز پشت سر هم' : 'شعله‌ت خاموشه'}
+              {streak > 0 ? t('روز پشت سر هم') : t('شعله‌ت خاموشه')}
             </Txt>
             <Txt w={700} size={13} color={colors.text3}>
-              {`بهترین رکوردت: ${fa(game.bestStreak)} روز`}
+              {t('بهترین رکوردت: {n} روز', { n: fa(game.bestStreak), count: game.bestStreak })}
             </Txt>
           </View>
         </View>
@@ -97,15 +104,18 @@ export default function StreakScreen() {
         {repair ? (
           <View style={styles.repair}>
             <Txt w={900} size={15} color={colors.flame}>
-              شعله‌ت هنوز نجات پیدا می‌کنه!
+              {t('شعله‌ت هنوز نجات پیدا می‌کنه!')}
             </Txt>
             <Txt w={500} size={13} lh={1.7} color={colors.text2}>
-              {`چند روز جا موندی، ولی هنوز دیر نشده. با ترمیم، شعله‌ت به ${fa(repair.streak)} روز برمی‌گرده و از همین‌جا ادامه می‌دی.`}
+              {t('چند روز جا موندی، ولی هنوز دیر نشده. با ترمیم، شعله‌ت به {n} روز برمی‌گرده و از همین‌جا ادامه می‌دی.', {
+                n: fa(repair.streak),
+                count: repair.streak,
+              })}
             </Txt>
-            <Button3D variant="gold" height={44} radius={12} edge={4} onPress={doRepair} accessibilityLabel={`ترمیم شعله با ${fa(PRICES.repair)} سکه`}>
+            <Button3D variant="gold" height={44} radius={12} edge={4} onPress={doRepair} accessibilityLabel={t('ترمیم شعله با {n} سکه', { n: fa(PRICES.repair), count: PRICES.repair })}>
               <View style={styles.price}>
                 <Txt w={900} size={15} color={colors.goldInk}>
-                  ترمیم شعله
+                  {t('ترمیم شعله')}
                 </Txt>
                 <CoinIcon size={16} />
                 <Txt w={900} size={15} color={colors.goldInk}>
@@ -116,18 +126,24 @@ export default function StreakScreen() {
           </View>
         ) : null}
 
-        <View style={styles.calendar} accessibilityLabel="تقویم پنج هفته‌ی اخیر">
+        <View style={styles.calendar} accessibilityLabel={t('تقویم پنج هفته‌ی اخیر')}>
           <View style={styles.week}>
             {FA_WEEKDAYS_SHORT.map((d) => (
               <Txt key={d} w={800} size={12} color={colors.text3} center style={styles.cell}>
-                {d}
+                {t(d)}
               </Txt>
             ))}
           </View>
           {weeks.map((week, w) => (
             <View key={w} style={styles.week}>
               {week.map((d) => (
-                <View key={d.key} style={styles.cell} accessible accessibilityLabel={`${d.day || d.key}${d.on ? '، فعال' : d.frozen ? '، یخ شعله' : ''}`}>
+                <View key={d.key} style={styles.cell} accessible accessibilityLabel={
+                    d.on
+                      ? t('{day}، فعال', { day: d.day || d.key })
+                      : d.frozen
+                        ? t('{day}، یخ شعله', { day: d.day || d.key })
+                        : d.day || d.key
+                  }>
                   <View style={[styles.dot, d.on && styles.dotOn, d.frozen && !d.on && styles.dotFrozen, d.today && styles.dotToday, d.future && { opacity: 0.35 }]}>
                     {d.frozen && !d.on ? (
                       <Icon name="snow" size={16} color={colors.skyInk} strokeWidth={2.6} />
@@ -142,8 +158,8 @@ export default function StreakScreen() {
             </View>
           ))}
           <View style={styles.legend}>
-            <Legend color={colors.flame} label="روز فعال" />
-            <Legend color={colors.sky} label="یخ شعله" />
+            <Legend color={colors.flame} label={t('روز فعال')} />
+            <Legend color={colors.sky} label={t('یخ شعله')} />
           </View>
         </View>
 
@@ -153,26 +169,26 @@ export default function StreakScreen() {
           </View>
           <View style={{ flex: 1, gap: 2 }}>
             <Txt w={900} size={15}>
-              {`یخ شعله: ${fa(freezes)} از ${fa(MAX_FREEZES)}`}
+              {t('یخ شعله: {n} از {max}', { n: fa(freezes), max: fa(MAX_FREEZES) })}
             </Txt>
             <Txt w={500} size={12.5} lh={1.6} color={colors.text2}>
-              روزی که نیای، یکی خودکار استفاده می‌شه تا شعله‌ت خاموش نشه.
+              {t('روزی که نیای، یکی خودکار استفاده می‌شه تا شعله‌ت خاموش نشه.')}
             </Txt>
           </View>
-          <Button3D variant="secondary" label="فروشگاه" height={40} radius={12} edge={3} size={14} onPress={() => router.push('/shop')} />
+          <Button3D variant="secondary" label={t('فروشگاه')} height={40} radius={12} edge={3} size={14} onPress={() => router.push('/shop')} />
         </View>
 
         <View style={styles.row}>
           <Icon name="trophy" size={28} color={colors.gold} />
           <View style={{ flex: 1, gap: 6 }}>
             <Txt w={900} size={15}>
-              {`${fa(next - streak)} روز تا رکورد ${fa(next)} روزه`}
+              {t('{n} روز تا رکورد {goal} روزه', { n: fa(next - streak), goal: fa(next), count: next - streak })}
             </Txt>
-            <ProgressBar value={(streak - prev) / Math.max(1, next - prev)} height={10} color={colors.flame} label="پیشرفت تا رکورد بعدی" />
+            <ProgressBar value={(streak - prev) / Math.max(1, next - prev)} height={10} color={colors.flame} label={t('پیشرفت تا رکورد بعدی')} />
           </View>
         </View>
 
-        {streak > 0 ? <Button3D label="اشتراک رکوردم" onPress={share} /> : null}
+        {streak > 0 ? <Button3D label={t('اشتراک رکوردم')} onPress={share} /> : null}
       </ScrollView>
       <ShareSheet card={card} onClose={() => setCard(null)} />
     </Screen>

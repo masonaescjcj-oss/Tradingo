@@ -8,6 +8,7 @@ import { BackHeader } from '@/components/BackHeader';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { adminAvailable, adminErrorText, fetchOverview, type AdminOverview, type AdminRoom, type AdminUser } from '@/lib/adminApi';
 import { useCloud } from '@/lib/cloud';
 import { colors } from '@/theme';
@@ -41,11 +42,11 @@ export default function AdminScreen() {
   if (!admin || missing) {
     return (
       <Screen>
-        <BackHeader title="پنل مدیریت" />
+        <BackHeader title={t('پنل مدیریت')} />
         <View style={styles.center}>
           <Mascot mood="think" size={110} />
           <Txt size={15} lh={1.9} color={colors.text2} center>
-            {missing ? 'بخش مدیریت هنوز روی سرور نصب نشده.' : 'این بخش فقط برای مدیرهاست.'}
+            {missing ? t('بخش مدیریت هنوز روی سرور نصب نشده.') : t('این بخش فقط برای مدیرهاست.')}
           </Txt>
         </View>
       </Screen>
@@ -54,25 +55,25 @@ export default function AdminScreen() {
 
   return (
     <Screen>
-      <BackHeader caption="چارتون" title="پنل مدیریت" />
+      <BackHeader caption={t('چارتون')} title={t('پنل مدیریت')} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {overview ? (
           <View style={styles.stats}>
-            <Stat label="گزارش باز" value={overview.open_reports} tone={overview.open_reports ? colors.bearText : colors.text} />
-            <Stat label="کاربر" value={overview.accounts} />
-            <Stat label="کاربر جدید امروز" value={overview.new_today} />
-            <Stat label="پیام امروز" value={overview.messages_today} />
-            <Stat label="چت بسته" value={overview.muted} />
-            <Stat label="مسدود" value={overview.banned} />
+            <Stat label={t('گزارش باز')} value={overview.open_reports} tone={overview.open_reports ? colors.bearText : colors.text} />
+            <Stat label={t('کاربر')} value={overview.accounts} />
+            <Stat label={t('کاربر جدید امروز')} value={overview.new_today} />
+            <Stat label={t('پیام امروز')} value={overview.messages_today} />
+            <Stat label={t('چت بسته')} value={overview.muted} />
+            <Stat label={t('مسدود')} value={overview.banned} />
           </View>
         ) : null}
 
         <AdminTabsHeader
           tab={tab}
           reports={overview?.open_reports ?? 0}
-          onChange={(t) => {
-            setTab(t);
-            if (t !== 'messages') {
+          onChange={(next) => {
+            setTab(next);
+            if (next !== 'messages') {
               setAccount(null);
               setRoom(null);
             }
