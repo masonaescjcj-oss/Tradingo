@@ -41,7 +41,8 @@ const privacy: LegalDoc = {
     {
       title: 'چیزهایی که بقیه‌ی کاربرها می‌بینن',
       body: [
-        'اسم و امتیاز هفتگیت توی جدول لیگ؛ اسم و پیام‌ها و تحلیل‌هایی که توی گروه‌های گفتگو می‌فرستی، برای اعضای همون گروه؛ و اسم و امتیازهای دوئل، برای دوستی که دوئلت رو بازی می‌کنه.',
+        'اسم و امتیاز هفتگیت توی جدول لیگ؛ اسم، آیدی، عکس پروفایل و پیام‌ها و تحلیل‌هایی که توی گروه‌های گفتگو می‌فرستی، برای اعضای همون گروه؛ و اسم و امتیازهای دوئل، برای دوستی که دوئلت رو بازی می‌کنه.',
+        'پروفایل عمومی: با زدن روی اسمت توی گفتگوها، بقیه اسم، آیدی، عکس پروفایل، ماه عضویت و پیشرفت آموزشیت (امتیاز، روزهای پیاپی، لیگ، درس‌ها و دوره‌ها و بردهای دوئل) رو می‌بینن. معامله‌های شبیه‌ساز، موجودی و ایمیل یا شماره‌ت توی پروفایل نیست.',
         'ایمیل و شماره‌ی موبایلت به هیچ کاربری نشون داده نمی‌شه. فقط مدیرهای چارتون، برای رسیدگی به گزارش‌ها و تخلف‌ها، اسم، ایمیل یا شماره و پیام‌های گروه هر حساب رو می‌بینن و کارهاشون توی سابقه‌ی مدیریت ثبت می‌شه.',
       ],
     },
@@ -184,7 +185,7 @@ export const ACCOUNT_DELETION = {
     {
       title: 'چه چیزهایی پاک می‌شه',
       body: [
-        'حساب کاربری (ایمیل یا شماره‌ی موبایل، اسم و هش رمز عبور) و همه‌ی ورودهای فعالش روی دستگاه‌های دیگه.',
+        'حساب کاربری (ایمیل یا شماره‌ی موبایل، اسم، آیدی، عکس پروفایل و هش رمز عبور) و همه‌ی ورودهای فعالش روی دستگاه‌های دیگه.',
         'پیشرفت ذخیره‌شده روی سرور: امتیاز، درس‌ها، روزهای پیاپی، سکه، مأموریت‌ها، معامله‌های شبیه‌ساز و تنظیمات.',
         'امتیاز لیگ، عضویت در گروه‌ها، همه‌ی پیام‌ها و تحلیل‌هایی که توی گروه‌ها فرستادی، دوئل‌هایی که ساختی و آمار استفاده از دستیار هوش مصنوعی.',
         'پیشرفت ذخیره‌شده روی همون دستگاهی که باهاش حساب رو حذف می‌کنی.',
@@ -214,7 +215,7 @@ export const ACCOUNT_DELETION = {
   /** For store reviewers who don't read Persian. */
   english: [
     'Delete your Chartoon account: in the Android app or at app.chartoon.net, sign in and open Profile → Account → Delete account, then confirm with your password. Deletion is immediate and permanent.',
-    'Deleted: your account (email or mobile number, name, password hash) and sessions; progress saved on the server (XP, lessons, streaks, coins, quests, simulator trades, settings); league points, group memberships and all your chat messages; duels you created; AI assistant usage counts; and progress on the device you delete from.',
+    'Deleted: your account (email or mobile number, name, @ID, profile picture, password hash) and sessions; progress saved on the server (XP, lessons, streaks, coins, quests, simulator trades, settings); league points, group memberships and all your chat messages; duels you created; AI assistant usage counts; and progress on the device you delete from.',
     'Kept: in duels you played against a friend, the friend keeps the result with your name replaced by "deleted account"; lesson problem reports are kept without any link to you; automatic database backups kept by our server provider (Supabase) expire on its schedule after a few days.',
     'Guest users (no account) have no data on our servers. If you cannot sign in, write to the support email on our store page with your account\'s email or mobile number.',
   ],

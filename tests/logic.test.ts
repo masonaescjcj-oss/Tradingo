@@ -119,6 +119,7 @@ const STATE: GameData = {
   activeCourse: 'basics',
   level: 'new',
   name: 'تریدر',
+  avatar: 0,
   xp: 0,
   coins: 50,
   hearts: 5,

@@ -1,6 +1,12 @@
 -- Removes everything Chartoon (formerly Tradingo) added to the project (its accounts, progress, leaderboard, chat, duels, problem reports and admin settings).
 -- Nothing belonging to other apps is touched. The tradingo-coach Edge Function is removed
 -- separately (Supabase → Edge Functions → tradingo-coach → Delete).
+drop trigger if exists tradingo_accounts_username_fill on public.tradingo_accounts;
+drop function if exists
+  public.tradingo_set_profile(text, text, integer),
+  public.tradingo_profile(text, text),
+  public.tradingo_accounts_username_fill(),
+  public.tradingo_new_username();
 drop function if exists
   public.tradingo_register(text, text, text),
   public.tradingo_login(text, text),

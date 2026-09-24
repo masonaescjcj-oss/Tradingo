@@ -2,12 +2,14 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
 import { Button3D } from '@/components/Button3D';
 import { BoltIcon, FlameIcon, Icon, type IconName } from '@/components/Icon';
 import { Hexagon } from '@/components/Hexagon';
 import { InstallRow } from '@/components/InstallApp';
 import { CourseBadge } from '@/components/CourseBadge';
 import { MarketPicker, marketLabel } from '@/components/MarketPicker';
+import { AvatarSheet, UsernameSheet } from '@/components/ProfileSheets';
 import { ProgressBar } from '@/components/ProgressBar';
 import { ReminderRow } from '@/components/Reminders';
 import { Screen } from '@/components/Screen';
@@ -32,6 +34,9 @@ export default function ProfileScreen() {
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(game.name);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [usernameOpen, setUsernameOpen] = useState(false);
+  const username = game.user?.username;
   const [confirmReset, setConfirmReset] = useState(false);
   const [card, setCard] = useState<ShareCard | null>(null);
 
@@ -70,11 +75,12 @@ export default function ProfileScreen() {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.identity}>
-          <View style={styles.avatar}>
-            <Txt display size={40} color={colors.skyText}>
-              {game.name.charAt(0)}
-            </Txt>
-          </View>
+          <Pressable onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel="تغییر عکس پروفایل" style={styles.avatar}>
+            <Avatar id={game.avatar} name={game.name} size={80} />
+            <View style={styles.avatarEdit}>
+              <Icon name="pencil" size={13} color={colors.bg} strokeWidth={2.8} />
+            </View>
+          </Pressable>
           <View style={{ flex: 1, gap: 4 }}>
             {editingName ? (
               <View style={styles.nameEdit}>
@@ -109,6 +115,19 @@ export default function ProfileScreen() {
                 <Icon name="pencil" size={16} color={colors.text3} />
               </Pressable>
             )}
+            {username ? (
+              <View style={styles.usernameRow}>
+                <Pressable onPress={() => setUsernameOpen(true)} accessibilityRole="button" accessibilityLabel={`آیدی: ${username}. برای تغییر بزن`} style={styles.usernameChip}>
+                  <Txt mono w={700} size={13} color={colors.skyText} numberOfLines={1}>
+                    {`@${username}`}
+                  </Txt>
+                  <Icon name="pencil" size={13} color={colors.text3} />
+                </Pressable>
+                <Txt w={700} size={12} color={colors.text3} onPress={() => router.push({ pathname: '/u/[username]', params: { username } })}>
+                  پروفایل عمومی
+                </Txt>
+              </View>
+            ) : null}
             <Pressable onPress={() => setPickerOpen(true)} accessibilityRole="button" style={styles.marketRow}>
               <View style={styles.marketChip}>
                 <Txt w={800} size={12} color={colors.skyText}>
@@ -327,6 +346,8 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <MarketPicker visible={pickerOpen} value={game.market} onChange={game.setMarket} onClose={() => setPickerOpen(false)} />
+      <AvatarSheet visible={avatarOpen} onClose={() => setAvatarOpen(false)} />
+      <UsernameSheet visible={usernameOpen} onClose={() => setUsernameOpen(false)} />
 
       <Modal visible={confirmReset} transparent animationType="fade" onRequestClose={() => setConfirmReset(false)}>
         <View style={styles.backdrop}>
@@ -400,14 +421,37 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    borderWidth: 4,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
     borderColor: colors.sky,
-    backgroundColor: '#1B3A5C',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarEdit: {
+    position: 'absolute',
+    bottom: -2,
+    left: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.bg,
+    backgroundColor: colors.sky,
+  },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  usernameChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
   },
   nameRow: {
     flexDirection: 'row',

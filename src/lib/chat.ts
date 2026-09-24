@@ -55,6 +55,9 @@ export type ChatMessage = {
   mine: boolean;
   /** The author's account; only admins get it, to act on it from the chat. */
   author_id?: string;
+  /** The author's @ID and picture (servers from version 9), to tell people apart and open their profile. */
+  author_username?: string;
+  author_avatar?: number;
 };
 
 export const MAX_MESSAGE = 1000;
@@ -143,6 +146,8 @@ export function parseMessage(raw: Record<string, unknown>): ChatMessage {
     created_at: String(raw.created_at ?? ''),
     mine: raw.mine === true,
     ...(typeof raw.author_id === 'string' ? { author_id: raw.author_id } : {}),
+    ...(typeof raw.author_username === 'string' ? { author_username: raw.author_username } : {}),
+    ...(typeof raw.author_avatar === 'number' ? { author_avatar: raw.author_avatar } : {}),
   };
 }
 

@@ -229,12 +229,35 @@ export async function syncNow() {
   }
 }
 
-/** Whether the account is an admin and whether its chat is closed (servers with the admin panel, version 6). */
+/** Keeps the account's @ID and picture on this device (as the server has them). */
+export function rememberProfile(username: string | null | undefined, avatar: number | null | undefined) {
+  const s = useGame.getState();
+  const next: Partial<GameData> = {};
+  if (typeof avatar === 'number' && avatar !== s.avatar) next.avatar = avatar;
+  if (username && s.user && s.user.username !== username) next.user = { ...s.user, username };
+  if (Object.keys(next).length) useGame.setState(next);
+}
+
+type AccountStatus = { admin?: boolean; muted?: boolean; muted_until?: string | null; username?: string; avatar?: number };
+
+/**
+ * Whether the account is an admin and whether its chat is closed (servers with the admin panel,
+ * version 6), and its @ID and picture (version 9). A picture chosen on this device before the
+ * account existed goes up to the server once.
+ */
 export async function refreshStatus(): Promise<void> {
   if (!session || (await serverVersion()) < 6) return;
-  const res = await callRpc<{ admin?: boolean; muted?: boolean; muted_until?: string | null }>('tradingo_account_status', { p_token: session.token });
+  const res = await callRpc<AccountStatus>('tradingo_account_status', { p_token: session.token });
   if (!res.ok) return;
   useCloud.setState({ admin: res.value.admin === true, muted: res.value.muted ? (res.value.muted_until ?? 'forever') : null });
+  const { username, avatar } = res.value;
+  if (!username) return;
+  const local = useGame.getState().avatar;
+  if (avatar === 0 && local > 0) {
+    const up = await callRpc<{ username: string; avatar: number }>('tradingo_set_profile', { p_token: session.token, p_username: username, p_avatar: local });
+    if (up.ok) return rememberProfile(up.value.username, up.value.avatar);
+  }
+  rememberProfile(username, avatar);
 }
 
 let started = false;

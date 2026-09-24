@@ -136,7 +136,7 @@ cd android && ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armea
 ### جواب فرم‌های کنسول
 
 - **Data safety:**
-  - جمع‌آوری: *Personal info → Email address، Phone number و Name* (برای حساب کاربری؛ ایمیل یا شماره، اختیاری چون حالت مهمان هست)؛ *Messages → Other in-app messages* (پیام گروه‌ها)؛ *App activity → Other user-generated content و App interactions* (پیشرفت، معامله‌های شبیه‌ساز، دوئل‌ها). هدف همه: App functionality و Account management.
+  - جمع‌آوری: *Personal info → Email address، Phone number، Name و User IDs* (برای حساب کاربری؛ ایمیل یا شماره، اختیاری چون حالت مهمان هست؛ آیدی و پیشرفت آموزشی توی پروفایل عمومی برای بقیه دیده می‌شه)؛ *Messages → Other in-app messages* (پیام گروه‌ها)؛ *App activity → Other user-generated content و App interactions* (پیشرفت، معامله‌های شبیه‌ساز، دوئل‌ها). هدف همه: App functionality و Account management.
   - اشتراک با شخص ثالث: خیر (سرویس‌های Supabase، Vercel و هوش مصنوعی از طرف ما پردازش می‌کنن و طبق تعریف گوگل «اشتراک» حساب نمی‌شن).
   - رمزگذاری در انتقال: بله (HTTPS). درخواست حذف: بله؛ از داخل اپ و از https://chartoon.net/delete-account/
   - موقعیت، مخاطبین، عکس، اطلاعات مالی، شناسه‌ی دستگاه و گزارش کرش: جمع نمی‌شن.

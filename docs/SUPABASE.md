@@ -183,6 +183,8 @@ EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 | `supabase/migrations/20261001000000_tradingo_admin_rooms.sql` | تب گروه‌ها (فهرست و حذف گروه) |
 | `supabase/migrations/20261002000000_tradingo_email_login.sql` | ورود با ایمیل یا شماره، و مدیرِ صاحب اپ از فهرست روی سرور |
 | `src/lib/login.ts`، `src/components/auth/LoginField.tsx` | ایمیل یا شماره‌ی ایران توی فرم‌های ورود و ثبت‌نام |
+| `supabase/migrations/20261003000000_tradingo_profiles.sql` | آیدی یکتا و عکس پروفایل هر حساب، پروفایل عمومی و آیدی و عکس نویسنده‌ی پیام‌ها |
+| `src/lib/profileApi.ts`، `src/components/Avatar.tsx`، `src/components/ProfileSheets.tsx`، `src/app/u/[username].tsx` | آیدی، ۲۰ عکس پروفایل و صفحه‌ی پروفایل عمومی |
 | `src/lib/adminApi.ts`، `src/app/admin.tsx`، `src/components/admin/` | پنل مدیریت |
 
 ## قدم‌های بعدی (مرحله‌ی ۳ نقشه‌ی راه)

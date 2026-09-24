@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
 import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
-import { AnalysisChart, NameDot, TopicAvatar } from '@/components/chat/ChatBits';
+import { Avatar } from '@/components/Avatar';
+import { AnalysisChart, TopicAvatar } from '@/components/chat/ChatBits';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
 import { chatErrorText, MAX_MESSAGE, mergeMessages, messageProblem, messageTime, mutedNotice, type ChatMessage } from '@/lib/chat';
@@ -333,9 +334,19 @@ export default function RoomScreen() {
 
 function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMessage; grouped: boolean; width: number; onLongPress: () => void }) {
   const chartW = width - 24;
+  // Tapping the picture or the name opens the author's profile (servers with @IDs).
+  const openProfile = m.author_username ? () => router.push({ pathname: '/u/[username]', params: { username: m.author_username! } }) : undefined;
   return (
     <View style={[styles.bubbleRow, m.mine ? styles.rowMine : styles.rowOther, grouped && { marginTop: -6 }]}>
-      {!m.mine ? <View style={{ width: 32 }}>{!grouped ? <NameDot name={m.author_name} /> : null}</View> : null}
+      {!m.mine ? (
+        <View style={{ width: 32 }}>
+          {!grouped ? (
+            <Pressable onPress={openProfile} disabled={!openProfile} accessibilityRole="button" accessibilityLabel={`پروفایل ${m.author_name}`} hitSlop={4}>
+              <Avatar id={m.author_avatar} name={m.author_name} size={32} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <Pressable
         onLongPress={onLongPress}
         delayLongPress={350}
@@ -343,9 +354,16 @@ function Bubble({ message: m, grouped, width, onLongPress }: { message: ChatMess
         style={[styles.bubble, { maxWidth: width }, m.mine ? styles.bubbleMine : styles.bubbleOther, m.chart && { width }]}
       >
         {!m.mine && !grouped ? (
-          <Txt w={900} size={12.5} color={colors.skyText}>
-            {m.author_name}
-          </Txt>
+          <Pressable onPress={openProfile} disabled={!openProfile} style={styles.author}>
+            <Txt w={900} size={12.5} color={colors.skyText} numberOfLines={1} style={{ flexShrink: 1 }}>
+              {m.author_name}
+            </Txt>
+            {m.author_username ? (
+              <Txt mono w={700} size={10.5} color={colors.text3} numberOfLines={1}>
+                {`@${m.author_username}`}
+              </Txt>
+            ) : null}
+          </Pressable>
         ) : null}
         {m.chart ? <AnalysisChart chart={m.chart} width={chartW} /> : null}
         {m.body ? (
@@ -451,6 +469,11 @@ const styles = StyleSheet.create({
   bubbleMine: {
     backgroundColor: '#1D5A3C',
     borderBottomLeftRadius: 6,
+  },
+  author: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
   },
   composer: {
     position: 'absolute',

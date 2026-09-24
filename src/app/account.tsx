@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 
 import { AuthField } from '@/components/auth/AuthField';
+import { Avatar } from '@/components/Avatar';
 import { BackHeader } from '@/components/BackHeader';
 import { Button3D } from '@/components/Button3D';
 import { Icon, type IconName } from '@/components/Icon';
@@ -52,6 +53,7 @@ function Guest() {
 
 function SignedIn() {
   const user = useGame((s) => s.user)!;
+  const avatar = useGame((s) => s.avatar);
   const cloud = useCloud();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -74,15 +76,16 @@ function SignedIn() {
   return (
     <View style={{ gap: 16 }}>
       <View style={styles.card}>
-        <View style={styles.avatar}>
-          <Txt display size={30} color={colors.skyText}>
-            {user.name.charAt(0)}
-          </Txt>
-        </View>
+        <Avatar id={avatar} name={user.name} size={60} />
         <View style={{ flex: 1, gap: 4 }}>
           <Txt w={900} size={18}>
             {user.name}
           </Txt>
+          {user.username ? (
+            <Txt mono w={700} size={13} color={colors.skyText} numberOfLines={1}>
+              {`@${user.username}`}
+            </Txt>
+          ) : null}
           <Txt mono w={700} size={14} color={colors.text2} numberOfLines={1}>
             {loginText(user.login)}
           </Txt>
@@ -234,14 +237,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.skySoft,
   },
   rows: {
     gap: 12,

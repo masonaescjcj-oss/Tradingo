@@ -45,6 +45,8 @@ export type UserAccount = {
   name: string;
   /** What the learner signs in with: an email in lower case, or a mobile number as 09XXXXXXXXX. */
   login: string;
+  /** The account's public @ID (without the @), once the server has sent it. */
+  username?: string;
   /** Salted SHA-256, only for signing back in on this device. */
   passwordHash: string;
   createdAt: number;
@@ -87,6 +89,8 @@ type Data = {
   activeCourse: string;
   level: Level;
   name: string;
+  /** Profile picture: 0 is the first letter of the name, 1 and up are the drawn pictures (components/Avatar). */
+  avatar: number;
   xp: number;
   coins: number;
   hearts: number;
@@ -173,6 +177,8 @@ type Actions = {
   openCourse: (courseId: string) => void;
   leaveCourse: (courseId: string) => void;
   setName: (name: string) => void;
+  /** Profile picture on this device; the account's copy is saved by profileApi.saveProfile. */
+  setAvatar: (avatar: number) => void;
   setDailyGoal: (goal: number) => void;
   setSound: (on: boolean) => void;
   setReminders: (patch: Partial<GameState['reminders']>) => void;
@@ -235,6 +241,7 @@ function initialData(): Data {
     activeCourse: 'basics',
     level: 'new',
     name: 'تریدر',
+    avatar: 0,
     xp: 0,
     coins: 50,
     hearts: MAX_HEARTS,
@@ -355,6 +362,7 @@ export const useGame = create<GameState>()(
         const clean = name.trim() || 'تریدر';
         set((s) => ({ name: clean, user: s.user ? { ...s.user, name: clean } : null }));
       },
+      setAvatar: (avatar) => set({ avatar }),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setSound: (sound) => set({ sound }),
       setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
