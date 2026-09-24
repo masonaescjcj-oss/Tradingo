@@ -45,7 +45,8 @@ export type IconName =
   | 'send'
   | 'users'
   | 'flag'
-  | 'trash';
+  | 'trash'
+  | 'pin';
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
@@ -235,6 +236,8 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
       );
     case 'flag':
       return <Path {...p} d="M5 21V4M5 4h11l-2 4 2 4H5" />;
+    case 'pin':
+      return <Path {...p} d="M9 3h6M10 3v6l-3 4h10l-3-4V3M12 13v8" />;
     case 'trash':
       return <Path {...p} d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />;
   }

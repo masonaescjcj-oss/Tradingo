@@ -3,7 +3,7 @@ import { useEffect, useEffectEvent, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
-import { RoomRow } from '@/components/chat/ChatBits';
+import { CoachRow, RoomRow } from '@/components/chat/ChatBits';
 import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
@@ -11,6 +11,7 @@ import { Hint } from '@/components/sim/ui';
 import { Txt } from '@/components/Txt';
 import { CHAT_TOPICS, chatErrorText, hasBlockedContent, type ChatTopic } from '@/lib/chat';
 import { chatAvailable, createRoom, joinRoom, loadRooms, useChat } from '@/lib/chatApi';
+import { useCoach } from '@/lib/coachApi';
 import { useCloud } from '@/lib/cloud';
 import { cloudEnabled } from '@/lib/supabase';
 import { useGame } from '@/store/game';
@@ -31,6 +32,7 @@ export default function ChatScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const lastCoach = useCoach((s) => s.turns.at(-1));
 
   const refresh = async () => {
     if (!(await chatAvailable())) {
@@ -101,6 +103,8 @@ export default function ChatScreen() {
           />
         }
       >
+        <CoachRow preview={lastCoach?.text ?? null} at={lastCoach?.at ?? null} onPress={() => router.push('/chat/coach')} />
+
         {available === false ? (
           <View style={styles.empty}>
             <Mascot mood="think" size={110} />

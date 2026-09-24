@@ -1,5 +1,8 @@
 -- Removes everything Tradingo added to the project (its accounts, progress, leaderboard and chat).
--- Nothing belonging to other apps is touched.
+-- Nothing belonging to other apps is touched. The tradingo-coach Edge Function is removed
+-- separately (Supabase → Edge Functions → tradingo-coach → Delete).
+drop function if exists public.tradingo_ai_allow(text, integer);
+drop table if exists public.tradingo_ai_usage;
 drop function if exists
   public.tradingo_chat_rooms(text),
   public.tradingo_chat_join(text, uuid),

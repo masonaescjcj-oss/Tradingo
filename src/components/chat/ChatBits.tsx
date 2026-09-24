@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, type IconName } from '@/components/Icon';
+import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { ProChart, type ProLine } from '@/components/sim/ProChart';
 import { CHART_SHIFT } from '@/lib/chartMath';
@@ -24,6 +25,48 @@ export function TopicAvatar({ topic, size = 48 }: { topic: ChatTopic; size?: num
     <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: look.color }]}>
       <Icon name={look.icon} size={size * 0.5} color={look.ink} strokeWidth={2.4} />
     </View>
+  );
+}
+
+/** The mascot in a round badge: the AI coach's picture in the chat list and its chat. */
+export function CoachAvatar({ size = 48 }: { size?: number }) {
+  return (
+    <View style={[styles.coachAvatar, { width: size, height: size, borderRadius: size / 2 }]}>
+      <View style={{ marginTop: size * 0.12 }}>
+        <Mascot mood="happy" size={size * 0.72} />
+      </View>
+    </View>
+  );
+}
+
+/** The AI coach, pinned first in the chat list like an ordinary conversation. */
+export function CoachRow({ preview, at, onPress }: { preview: string | null; at: number | null; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="گفتگو با شمعک، دستیار هوش مصنوعی" style={({ pressed }) => [styles.row, styles.coachRow, pressed && { opacity: 0.8 }]}>
+      <CoachAvatar />
+      <View style={{ flex: 1, gap: 3 }}>
+        <View style={styles.titleLine}>
+          <Txt w={900} size={15.5} numberOfLines={1} style={{ flexShrink: 1 }}>
+            شمعک
+          </Txt>
+          <View style={styles.aiBadge}>
+            <Txt w={900} size={10.5} color={colors.bullInk}>
+              هوش مصنوعی
+            </Txt>
+          </View>
+          <View style={{ flex: 1 }} />
+          {at ? (
+            <Txt w={700} size={11.5} color={colors.text3}>
+              {roomTime(new Date(at).toISOString())}
+            </Txt>
+          ) : null}
+          <Icon name="pin" size={15} color={colors.text3} strokeWidth={2.4} />
+        </View>
+        <Txt w={500} size={13} color={colors.text2} numberOfLines={1}>
+          {preview ?? 'دستیار شخصی‌ات: درباره‌ی درس‌ها، پوزیشن‌ها و معامله‌هات بپرس.'}
+        </Txt>
+      </View>
+    </Pressable>
   );
 }
 
@@ -171,6 +214,23 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.bullSheetLine,
     backgroundColor: colors.bullSheet,
+  },
+  coachAvatar: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    overflow: 'hidden',
+    backgroundColor: colors.bullSheet,
+    borderWidth: 2,
+    borderColor: colors.bullSheetLine,
+  },
+  coachRow: {
+    borderColor: colors.bullSheetLine,
+  },
+  aiBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    backgroundColor: colors.bull,
   },
   still: {
     borderRadius: 12,
