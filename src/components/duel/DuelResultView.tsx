@@ -8,6 +8,7 @@ import { BoltIcon, CoinIcon, Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
+import { byLang, t } from '@/i18n';
 import { compareDuel, ROUNDS, type DuelOutcome, type DuelResult, type RoundKey } from '@/lib/duel';
 import { duelCard, type ShareCard } from '@/lib/shareCard';
 import { useGame } from '@/store/game';
@@ -16,7 +17,7 @@ import { fa, usd } from '@/utils/format';
 
 import { OpponentAvatar, ROUND_ICON, type Opponent } from './DuelGame';
 
-const HEADLINE: Record<DuelOutcome, string> = { win: 'بردی!', loss: 'این بار باختی', tie: 'مساوی!' };
+const HEADLINE: Record<DuelOutcome, string> = { win: 'بردی!', loss: 'این بار باختی', tie: 'مساوی!' }; // i18n-ignore: translated where shown
 
 function scoreText(r: DuelResult, key: RoundKey): string {
   return key === 'trade' ? usd(r.trade.pnl, true) : key === 'quiz' ? fa(r.quiz.points) : fa(r.chart.points);
@@ -49,7 +50,7 @@ export function DuelResultView({
       <View style={styles.top}>
         <Mascot mood={c.outcome === 'win' ? 'party' : c.outcome === 'tie' ? 'happy' : 'sad'} size={110} />
         <Txt display size={40} color={color} style={{ lineHeight: 54 }}>
-          {HEADLINE[c.outcome]}
+          {t(HEADLINE[c.outcome])}
         </Txt>
         <View style={styles.score}>
           <View style={styles.player}>
@@ -58,9 +59,9 @@ export function DuelResultView({
               {myName}
             </Txt>
           </View>
-          {/* Left to right, so each number sits on its player's side (you're on the right). */}
+          {/* Left to right, so each number sits on its player's side (you're on the right in Persian, on the left in English). */}
           <Txt mono w={900} size={32} color={color}>
-            {`${fa(c.theirs)} - ${fa(c.mine)}`}
+            {byLang(`${fa(c.theirs)} - ${fa(c.mine)}`, `${fa(c.mine)} - ${fa(c.theirs)}`)}
           </Txt>
           <View style={styles.player}>
             <OpponentAvatar opponent={opponent} size={40} />
@@ -82,11 +83,11 @@ export function DuelResultView({
               <View style={styles.roundName}>
                 <Icon name={ROUND_ICON[r.key]} size={16} color={colors.gold} strokeWidth={2.4} />
                 <Txt w={800} size={12.5} color={colors.text2}>
-                  {r.title}
+                  {t(r.title)}
                 </Txt>
                 <View style={[styles.badge, { backgroundColor: o === 'win' ? colors.bull : o === 'loss' ? colors.bear : colors.raised }]}>
                   <Txt w={900} size={10.5} color={o === 'win' ? colors.bullInk : o === 'loss' ? colors.bearInk : colors.text2}>
-                    {o === 'win' ? 'تو' : o === 'loss' ? 'حریف' : 'مساوی'}
+                    {o === 'win' ? t('تو') : o === 'loss' ? t('حریف') : t('مساوی')}
                   </Txt>
                 </View>
               </View>
@@ -98,7 +99,7 @@ export function DuelResultView({
         })}
         {c.mine === c.theirs && c.outcome !== 'tie' ? (
           <Txt w={700} size={12} color={colors.text3} center>
-            راندها مساوی بود؛ سود معامله تعیین‌کننده شد.
+            {t('راندها مساوی بود؛ سود معامله تعیین‌کننده شد.')}
           </Txt>
         ) : null}
       </View>
@@ -109,26 +110,26 @@ export function DuelResultView({
             <>
               <CoinIcon size={22} />
               <Txt w={900} size={15} color={colors.gold}>
-                {`+${fa(reward.coins)} سکه`}
+                {t('+{n} سکه', { n: fa(reward.coins), count: reward.coins })}
               </Txt>
               <BoltIcon size={20} />
               <Txt w={900} size={15} color={colors.gold}>
-                {`+${fa(reward.xp)} امتیاز`}
+                {t('+{n} امتیاز', { n: fa(reward.xp) })}
               </Txt>
             </>
           ) : (
             <Txt w={700} size={13} color={colors.text3}>
-              جایزه‌ی دوئل‌های امروز تموم شده؛ فردا دوباره جایزه داره.
+              {t('جایزه‌ی دوئل‌های امروز تموم شده؛ فردا دوباره جایزه داره.')}
             </Txt>
           )}
         </View>
       ) : null}
 
-      <Button3D variant="secondary" onPress={share} accessibilityLabel="اشتراک نتیجه‌ی دوئل">
+      <Button3D variant="secondary" onPress={share} accessibilityLabel={t('اشتراک نتیجه‌ی دوئل')}>
         <View style={styles.shareRow}>
           <Icon name="share" size={18} color={colors.text} strokeWidth={2.6} />
           <Txt w={900} size={16}>
-            اشتراک نتیجه
+            {t('اشتراک نتیجه')}
           </Txt>
         </View>
       </Button3D>

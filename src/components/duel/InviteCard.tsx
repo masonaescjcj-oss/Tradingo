@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { ROUNDS, type DuelResult } from '@/lib/duel';
 import { duelLink } from '@/lib/duelApi';
 import { shareText } from '@/lib/shareImage';
@@ -16,8 +17,8 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
   const [note, setNote] = useState<string | null>(null);
 
   const invite = async () => {
-    const outcome = await shareText(`بیا با من دوئل چارتون بازی کن! سه راند: سؤال، پیش‌بینی نمودار و معامله. کد دوئل: ${code}`, duelLink(code));
-    setNote(outcome === 'copied' ? 'لینک دعوت کپی شد؛ برای دوستت بفرستش.' : outcome === 'failed' ? `کد رو خودت بفرست: ${code}` : null);
+    const outcome = await shareText(t('بیا با من دوئل چارتون بازی کن! سه راند: سؤال، پیش‌بینی نمودار و معامله. کد دوئل: {code}', { code }), duelLink(code));
+    setNote(outcome === 'copied' ? t('لینک دعوت کپی شد؛ برای دوستت بفرستش.') : outcome === 'failed' ? t('کد رو خودت بفرست: {code}', { code }) : null);
   };
 
   return (
@@ -25,12 +26,12 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
       <View style={styles.card}>
         <Icon name="swords" size={36} color={colors.gold} strokeWidth={2.2} />
         <Txt display size={28} color={colors.gold}>
-          {fresh ? 'دوئل ساخته شد!' : 'منتظر حریف'}
+          {fresh ? t('دوئل ساخته شد!') : t('منتظر حریف')}
         </Txt>
         <Txt w={700} size={14} lh={1.8} color={colors.text2} center>
-          لینک رو برای یه دوست بفرست. هر وقت بازی کنه، نتیجه‌ی دوئل همین‌جا و توی «دوئل‌های من» میاد.
+          {t('لینک رو برای یه دوست بفرست. هر وقت بازی کنه، نتیجه‌ی دوئل همین‌جا و توی «دوئل‌های من» میاد.')}
         </Txt>
-        <View style={styles.code} accessible accessibilityLabel={`کد دوئل ${code.split('').join(' ')}`}>
+        <View style={styles.code} accessible accessibilityLabel={t('کد دوئل {code}', { code: code.split('').join(' ') })}>
           <Txt mono w={900} size={30} color={colors.text} style={{ letterSpacing: 6 }}>
             {code}
           </Txt>
@@ -39,7 +40,7 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
       {mine ? (
         <View style={styles.mine}>
           <Txt w={800} size={13} color={colors.text3}>
-            امتیازهای تو
+            {t('امتیازهای تو')}
           </Txt>
           <View style={styles.scores}>
             {ROUNDS.map((r) => (
@@ -48,18 +49,18 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
                   {r.key === 'trade' ? usd(mine.trade.pnl, true) : r.key === 'quiz' ? fa(mine.quiz.points) : fa(mine.chart.points)}
                 </Txt>
                 <Txt w={700} size={11} color={colors.text3}>
-                  {r.title}
+                  {t(r.title)}
                 </Txt>
               </View>
             ))}
           </View>
         </View>
       ) : null}
-      <Button3D variant="gold" onPress={invite} accessibilityLabel="فرستادن دعوت دوئل">
+      <Button3D variant="gold" onPress={invite} accessibilityLabel={t('فرستادن دعوت دوئل')}>
         <View style={styles.row}>
           <Icon name="share" size={18} color={colors.goldInk} strokeWidth={2.6} />
           <Txt w={900} size={17} color={colors.goldInk}>
-            فرستادن دعوت
+            {t('فرستادن دعوت')}
           </Txt>
         </View>
       </Button3D>
@@ -68,7 +69,7 @@ export function InviteCard({ code, mine, fresh }: { code: string; mine: DuelResu
           {note}
         </Txt>
       ) : null}
-      <Button3D variant="secondary" label="دوئل‌های من" onPress={() => router.replace('/duel')} />
+      <Button3D variant="secondary" label={t('دوئل‌های من')} onPress={() => router.replace('/duel')} />
     </View>
   );
 }

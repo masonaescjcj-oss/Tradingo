@@ -2,8 +2,192 @@
 import type { Overlay } from '..';
 
 import courses from './courses.json';
+import u_basics_u2 from './units/basics-u2.json';
+import u_basics_u3 from './units/basics-u3.json';
+import u_basics from './units/basics.json';
+import u_breakout_u1 from './units/breakout-u1.json';
+import u_breakout_u2 from './units/breakout-u2.json';
+import u_breakout_u3 from './units/breakout-u3.json';
+import u_candles_u2 from './units/candles-u2.json';
+import u_candles_u3 from './units/candles-u3.json';
+import u_candles from './units/candles.json';
+import u_chart_patterns_u1 from './units/chart-patterns-u1.json';
+import u_chart_patterns_u2 from './units/chart-patterns-u2.json';
+import u_chart_patterns_u3 from './units/chart-patterns-u3.json';
+import u_crypto_u2 from './units/crypto-u2.json';
+import u_crypto_u3 from './units/crypto-u3.json';
+import u_crypto from './units/crypto.json';
+import u_day_trading_u1 from './units/day-trading-u1.json';
+import u_day_trading_u2 from './units/day-trading-u2.json';
+import u_day_trading_u3 from './units/day-trading-u3.json';
+import u_defi_u1 from './units/defi-u1.json';
+import u_defi_u2 from './units/defi-u2.json';
+import u_defi_u3 from './units/defi-u3.json';
+import u_elliott_u1 from './units/elliott-u1.json';
+import u_elliott_u2 from './units/elliott-u2.json';
+import u_elliott_u3 from './units/elliott-u3.json';
+import u_fibonacci_u1 from './units/fibonacci-u1.json';
+import u_fibonacci_u2 from './units/fibonacci-u2.json';
+import u_fibonacci_u3 from './units/fibonacci-u3.json';
+import u_forex_u2 from './units/forex-u2.json';
+import u_forex_u3 from './units/forex-u3.json';
+import u_forex from './units/forex.json';
+import u_fundamental_u1 from './units/fundamental-u1.json';
+import u_fundamental_u2 from './units/fundamental-u2.json';
+import u_fundamental_u3 from './units/fundamental-u3.json';
+import u_gold_u1 from './units/gold-u1.json';
+import u_gold_u2 from './units/gold-u2.json';
+import u_gold_u3 from './units/gold-u3.json';
+import u_harmonics_u1 from './units/harmonics-u1.json';
+import u_harmonics_u2 from './units/harmonics-u2.json';
+import u_harmonics_u3 from './units/harmonics-u3.json';
+import u_ichimoku_u1 from './units/ichimoku-u1.json';
+import u_ichimoku_u2 from './units/ichimoku-u2.json';
+import u_ichimoku_u3 from './units/ichimoku-u3.json';
+import u_leverage_u1 from './units/leverage-u1.json';
+import u_leverage_u2 from './units/leverage-u2.json';
+import u_leverage_u3 from './units/leverage-u3.json';
+import u_mean_reversion_u1 from './units/mean-reversion-u1.json';
+import u_mean_reversion_u2 from './units/mean-reversion-u2.json';
+import u_mean_reversion_u3 from './units/mean-reversion-u3.json';
+import u_moving_averages_u1 from './units/moving-averages-u1.json';
+import u_moving_averages_u2 from './units/moving-averages-u2.json';
+import u_moving_averages_u3 from './units/moving-averages-u3.json';
+import u_multi_timeframe_u1 from './units/multi-timeframe-u1.json';
+import u_multi_timeframe_u2 from './units/multi-timeframe-u2.json';
+import u_multi_timeframe_u3 from './units/multi-timeframe-u3.json';
+import u_onchain_u1 from './units/onchain-u1.json';
+import u_onchain_u2 from './units/onchain-u2.json';
+import u_orders_u1 from './units/orders-u1.json';
+import u_orders_u2 from './units/orders-u2.json';
+import u_orders_u3 from './units/orders-u3.json';
+import u_oscillators_u1 from './units/oscillators-u1.json';
+import u_oscillators_u2 from './units/oscillators-u2.json';
+import u_oscillators_u3 from './units/oscillators-u3.json';
+import u_price_action_u1 from './units/price-action-u1.json';
+import u_price_action_u2 from './units/price-action-u2.json';
+import u_price_action_u3 from './units/price-action-u3.json';
+import u_psychology_u2 from './units/psychology-u2.json';
+import u_psychology_u3 from './units/psychology-u3.json';
+import u_psychology from './units/psychology.json';
+import u_risk_u2 from './units/risk-u2.json';
+import u_risk_u3 from './units/risk-u3.json';
+import u_risk from './units/risk.json';
+import u_scalping_u1 from './units/scalping-u1.json';
+import u_scalping_u2 from './units/scalping-u2.json';
+import u_scalping_u3 from './units/scalping-u3.json';
+import u_smc_u1 from './units/smc-u1.json';
+import u_smc_u2 from './units/smc-u2.json';
+import u_smc_u3 from './units/smc-u3.json';
+import u_supply_demand_u1 from './units/supply-demand-u1.json';
+import u_supply_demand_u2 from './units/supply-demand-u2.json';
+import u_supply_demand_u3 from './units/supply-demand-u3.json';
+import u_swing_u1 from './units/swing-u1.json';
+import u_swing_u2 from './units/swing-u2.json';
+import u_swing_u3 from './units/swing-u3.json';
+import u_trading_system_u1 from './units/trading-system-u1.json';
+import u_trading_system_u2 from './units/trading-system-u2.json';
+import u_trading_system_u3 from './units/trading-system-u3.json';
+import u_trend_u2 from './units/trend-u2.json';
+import u_trend_u3 from './units/trend-u3.json';
+import u_trend from './units/trend.json';
+import u_volume_u1 from './units/volume-u1.json';
+import u_volume_u2 from './units/volume-u2.json';
+import u_volume_u3 from './units/volume-u3.json';
 
 export const EN_COURSES: Record<string, Overlay> = courses;
 
 export const EN_UNITS: Record<string, Overlay> = {
+  'basics-u2': u_basics_u2,
+  'basics-u3': u_basics_u3,
+  'basics': u_basics,
+  'breakout-u1': u_breakout_u1,
+  'breakout-u2': u_breakout_u2,
+  'breakout-u3': u_breakout_u3,
+  'candles-u2': u_candles_u2,
+  'candles-u3': u_candles_u3,
+  'candles': u_candles,
+  'chart-patterns-u1': u_chart_patterns_u1,
+  'chart-patterns-u2': u_chart_patterns_u2,
+  'chart-patterns-u3': u_chart_patterns_u3,
+  'crypto-u2': u_crypto_u2,
+  'crypto-u3': u_crypto_u3,
+  'crypto': u_crypto,
+  'day-trading-u1': u_day_trading_u1,
+  'day-trading-u2': u_day_trading_u2,
+  'day-trading-u3': u_day_trading_u3,
+  'defi-u1': u_defi_u1,
+  'defi-u2': u_defi_u2,
+  'defi-u3': u_defi_u3,
+  'elliott-u1': u_elliott_u1,
+  'elliott-u2': u_elliott_u2,
+  'elliott-u3': u_elliott_u3,
+  'fibonacci-u1': u_fibonacci_u1,
+  'fibonacci-u2': u_fibonacci_u2,
+  'fibonacci-u3': u_fibonacci_u3,
+  'forex-u2': u_forex_u2,
+  'forex-u3': u_forex_u3,
+  'forex': u_forex,
+  'fundamental-u1': u_fundamental_u1,
+  'fundamental-u2': u_fundamental_u2,
+  'fundamental-u3': u_fundamental_u3,
+  'gold-u1': u_gold_u1,
+  'gold-u2': u_gold_u2,
+  'gold-u3': u_gold_u3,
+  'harmonics-u1': u_harmonics_u1,
+  'harmonics-u2': u_harmonics_u2,
+  'harmonics-u3': u_harmonics_u3,
+  'ichimoku-u1': u_ichimoku_u1,
+  'ichimoku-u2': u_ichimoku_u2,
+  'ichimoku-u3': u_ichimoku_u3,
+  'leverage-u1': u_leverage_u1,
+  'leverage-u2': u_leverage_u2,
+  'leverage-u3': u_leverage_u3,
+  'mean-reversion-u1': u_mean_reversion_u1,
+  'mean-reversion-u2': u_mean_reversion_u2,
+  'mean-reversion-u3': u_mean_reversion_u3,
+  'moving-averages-u1': u_moving_averages_u1,
+  'moving-averages-u2': u_moving_averages_u2,
+  'moving-averages-u3': u_moving_averages_u3,
+  'multi-timeframe-u1': u_multi_timeframe_u1,
+  'multi-timeframe-u2': u_multi_timeframe_u2,
+  'multi-timeframe-u3': u_multi_timeframe_u3,
+  'onchain-u1': u_onchain_u1,
+  'onchain-u2': u_onchain_u2,
+  'orders-u1': u_orders_u1,
+  'orders-u2': u_orders_u2,
+  'orders-u3': u_orders_u3,
+  'oscillators-u1': u_oscillators_u1,
+  'oscillators-u2': u_oscillators_u2,
+  'oscillators-u3': u_oscillators_u3,
+  'price-action-u1': u_price_action_u1,
+  'price-action-u2': u_price_action_u2,
+  'price-action-u3': u_price_action_u3,
+  'psychology-u2': u_psychology_u2,
+  'psychology-u3': u_psychology_u3,
+  'psychology': u_psychology,
+  'risk-u2': u_risk_u2,
+  'risk-u3': u_risk_u3,
+  'risk': u_risk,
+  'scalping-u1': u_scalping_u1,
+  'scalping-u2': u_scalping_u2,
+  'scalping-u3': u_scalping_u3,
+  'smc-u1': u_smc_u1,
+  'smc-u2': u_smc_u2,
+  'smc-u3': u_smc_u3,
+  'supply-demand-u1': u_supply_demand_u1,
+  'supply-demand-u2': u_supply_demand_u2,
+  'supply-demand-u3': u_supply_demand_u3,
+  'swing-u1': u_swing_u1,
+  'swing-u2': u_swing_u2,
+  'swing-u3': u_swing_u3,
+  'trading-system-u1': u_trading_system_u1,
+  'trading-system-u2': u_trading_system_u2,
+  'trading-system-u3': u_trading_system_u3,
+  'trend-u2': u_trend_u2,
+  'trend-u3': u_trend_u3,
+  'trend': u_trend,
+  'volume-u1': u_volume_u1,
+  'volume-u2': u_volume_u2,
+  'volume-u3': u_volume_u3,
 };

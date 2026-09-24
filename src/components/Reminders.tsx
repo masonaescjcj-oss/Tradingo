@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { t } from '@/i18n';
 import { REMINDER_HOURS } from '@/lib/reminderPlan';
 import { enableReminders, openNotificationSettings, remindersSupported } from '@/lib/reminders';
 import { useGame } from '@/store/game';
@@ -12,7 +13,7 @@ import { Icon } from './Icon';
 import { Mascot } from './Mascot';
 import { Txt } from './Txt';
 
-const hourLabel = (h: number) => `${fa(h)}:۰۰`;
+const hourLabel = (h: number) => fa(`${h}:00`);
 
 /** Profile setting: the daily reminder on or off, and its hour. Phones only. */
 export function ReminderRow() {
@@ -35,20 +36,20 @@ export function ReminderRow() {
         onPress={toggle}
         accessibilityRole="switch"
         accessibilityState={{ checked: reminders.enabled }}
-        accessibilityLabel="یادآوری تمرین روزانه"
+        accessibilityLabel={t('یادآوری تمرین روزانه')}
         style={styles.head}
       >
         <Icon name="bell" size={22} color={reminders.enabled ? colors.bull : colors.text3} />
         <View style={{ flex: 1, gap: 2 }}>
           <Txt w={800} size={14}>
-            یادآوری تمرین روزانه
+            {t('یادآوری تمرین روزانه')}
           </Txt>
           <Txt w={500} size={12} lh={1.6} color={denied ? colors.bearText : colors.text3}>
             {denied
-              ? 'اجازه‌ی اعلان داده نشده؛ از تنظیمات گوشی روشنش کن'
+              ? t('اجازه‌ی اعلان داده نشده؛ از تنظیمات گوشی روشنش کن')
               : reminders.enabled
-                ? `هر روز ساعت ${hourLabel(reminders.hour)}، اگه هنوز تمرین نکرده باشی`
-                : 'خاموشه'}
+                ? t('هر روز ساعت {time}، اگه هنوز تمرین نکرده باشی', { time: hourLabel(reminders.hour) })
+                : t('خاموشه')}
           </Txt>
         </View>
         <View style={[styles.toggle, reminders.enabled && styles.toggleOn]}>
@@ -58,7 +59,7 @@ export function ReminderRow() {
       {denied ? (
         <Pressable onPress={openNotificationSettings} accessibilityRole="button" style={styles.settings}>
           <Txt w={800} size={13} color={colors.skyText}>
-            باز کردن تنظیمات
+            {t('باز کردن تنظیمات')}
           </Txt>
         </Pressable>
       ) : null}
@@ -72,7 +73,7 @@ export function ReminderRow() {
                 onPress={() => setReminders({ hour: h })}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
-                accessibilityLabel={`ساعت ${hourLabel(h)}`}
+                accessibilityLabel={t('ساعت {time}', { time: hourLabel(h) })}
                 style={[styles.hour, on && styles.hourOn]}
               >
                 <Txt w={900} size={14} color={on ? colors.skyText : colors.text}>
@@ -99,14 +100,14 @@ export function ReminderOffer() {
       <Mascot mood="happy" size={54} />
       <View style={{ flex: 1, gap: 8 }}>
         <Txt w={900} size={15}>
-          بذار هر روز یادت بندازم!
+          {t('بذار هر روز یادت بندازم!')}
         </Txt>
         <Txt w={500} size={12.5} lh={1.7} color={colors.text2}>
-          شبا اگه هنوز تمرین نکرده باشی، یه پیام کوچیک می‌فرستم که روزهای پیاپیت قطع نشه.
+          {t('شبا اگه هنوز تمرین نکرده باشی، یه پیام کوچیک می‌فرستم که روزهای پیاپیت قطع نشه.')}
         </Txt>
         <View style={styles.offerActions}>
           <Button3D
-            label="آره، یادم بنداز"
+            label={t('آره، یادم بنداز')}
             size={14}
             onPress={async () => {
               await enableReminders();
@@ -116,7 +117,7 @@ export function ReminderOffer() {
           />
           <Pressable onPress={() => setReminders({ offered: true })} accessibilityRole="button" style={styles.later}>
             <Txt w={800} size={13} color={colors.text3}>
-              الان نه
+              {t('الان نه')}
             </Txt>
           </Pressable>
         </View>

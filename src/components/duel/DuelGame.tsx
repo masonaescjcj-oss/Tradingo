@@ -5,6 +5,7 @@ import { Button3D } from '@/components/Button3D';
 import { CoachAvatar, NameDot } from '@/components/chat/ChatBits';
 import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { ROUNDS, type DuelResult, type DuelRounds, type RoundKey } from '@/lib/duel';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -68,7 +69,7 @@ export function DuelGame({ rounds, opponent, width, note, onFinish }: { rounds: 
           <View style={styles.vs}>
             <Icon name="swords" size={30} color={colors.gold} strokeWidth={2.4} />
             <Txt display size={24} color={colors.gold}>
-              دوئل
+              {t('دوئل')}
             </Txt>
           </View>
           <View style={styles.side}>
@@ -85,11 +86,11 @@ export function DuelGame({ rounds, opponent, width, note, onFinish }: { rounds: 
       {stage.at === 'intro' ? (
         <View style={{ gap: 10 }}>
           {ROUNDS.map((r, i) => (
-            <RoundCard key={r.key} index={i} title={r.title} hint={r.hint} icon={ROUND_ICON[r.key]} />
+            <RoundCard key={r.key} index={i} title={t(r.title)} hint={r.hint} icon={ROUND_ICON[r.key]} />
           ))}
           {note}
           <Txt w={700} size={12.5} lh={1.8} color={colors.text3} center>
-            هر راند رو هر کی امتیاز بیشتری بگیره می‌بره. دو راند از سه، یعنی بردی!
+            {t('هر راند رو هر کی امتیاز بیشتری بگیره می‌بره. دو راند از سه، یعنی بردی!')}
           </Txt>
         </View>
       ) : (
@@ -98,17 +99,17 @@ export function DuelGame({ rounds, opponent, width, note, onFinish }: { rounds: 
             <Icon name={ROUND_ICON[round.key]} size={40} color={colors.gold} strokeWidth={2.2} />
           </View>
           <Txt w={800} size={14} color={colors.text3}>
-            {`راند ${fa(index + 1)} از ${fa(ROUNDS.length)}`}
+            {t('راند {n} از {total}', { n: fa(index + 1), total: fa(ROUNDS.length) })}
           </Txt>
           <Txt display size={34} color={colors.gold}>
-            {round.title}
+            {t(round.title)}
           </Txt>
           <Txt w={700} size={14.5} lh={1.8} color={colors.text2} center>
             {round.hint}
           </Txt>
         </View>
       )}
-      <Button3D label={stage.at === 'intro' ? 'شروع دوئل' : 'بریم'} onPress={() => setStage({ at: 'round', index })} />
+      <Button3D label={stage.at === 'intro' ? t('شروع دوئل') : t('بریم')} onPress={() => setStage({ at: 'round', index })} />
     </ScrollView>
   );
 }
@@ -133,12 +134,12 @@ function RoundCard({ index, title, hint, icon }: { index: number; title: string;
 
 export function RoundDots({ current }: { current: number }) {
   return (
-    <View style={styles.dots} accessibilityLabel={`راند ${fa(current + 1)} از ${fa(ROUNDS.length)}`}>
+    <View style={styles.dots} accessibilityLabel={t('راند {n} از {total}', { n: fa(current + 1), total: fa(ROUNDS.length) })}>
       {ROUNDS.map((r, i) => (
         <View key={r.key} style={[styles.dot, i < current && styles.dotDone, i === current && styles.dotNow]}>
           <Icon name={ROUND_ICON[r.key]} size={14} color={i <= current ? colors.goldInk : colors.faint} strokeWidth={2.6} />
           <Txt w={800} size={11.5} color={i <= current ? colors.goldInk : colors.faint}>
-            {r.title}
+            {t(r.title)}
           </Txt>
         </View>
       ))}

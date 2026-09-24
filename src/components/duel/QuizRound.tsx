@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/components/ProgressBar';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import { quizPoints, QUIZ_SECONDS, type DuelQuestion, type DuelResult } from '@/lib/duel';
 import { playSfx } from '@/lib/sfx';
 import { colors } from '@/theme';
@@ -23,7 +24,7 @@ export function QuizRound({ questions, onDone }: { questions: DuelQuestion[]; on
   const answered = picked != null;
   // True/false answers are 0 (true) and 1 (false), like two options.
   const rightIndex = q.kind === 'choice' ? q.answer : q.answer ? 0 : 1;
-  const options = q.kind === 'choice' ? q.options : ['درسته', 'غلطه'];
+  const options = q.kind === 'choice' ? q.options : [t('درسته'), t('غلطه')];
 
   const answer = (choice: number) => {
     if (answered) return;
@@ -56,7 +57,7 @@ export function QuizRound({ questions, onDone }: { questions: DuelQuestion[]; on
   // After an answer (or time out), a short pause, then the next question or the round's end.
   useEffect(() => {
     if (picked == null) return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (index + 1 >= questions.length) {
         finish();
         return;
@@ -66,21 +67,21 @@ export function QuizRound({ questions, onDone }: { questions: DuelQuestion[]; on
       setGain(0);
       setLeft(QUIZ_SECONDS);
     }, PAUSE_MS);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [picked, index, questions.length]);
 
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Txt w={800} size={13} color={colors.text3}>
-          {`سؤال ${fa(index + 1)} از ${fa(questions.length)}`}
+          {t('سؤال {n} از {total}', { n: fa(index + 1), total: fa(questions.length) })}
         </Txt>
         <View style={{ flex: 1 }} />
         <Txt w={900} size={14} color={colors.gold}>
-          {`${fa(score.points)} امتیاز`}
+          {t('{n} امتیاز', { n: fa(score.points) })}
         </Txt>
       </View>
-      <ProgressBar value={left / QUIZ_SECONDS} height={10} color={left < 5 ? colors.bear : colors.sky} label="زمان باقی‌مونده" />
+      <ProgressBar value={left / QUIZ_SECONDS} height={10} color={left < 5 ? colors.bear : colors.sky} label={t('زمان باقی‌مونده')} />
 
       <View style={styles.card}>
         <Txt w={900} size={17} lh={1.8}>
@@ -98,7 +99,7 @@ export function QuizRound({ questions, onDone }: { questions: DuelQuestion[]; on
               onPress={() => answer(i)}
               disabled={answered}
               accessibilityRole="button"
-              accessibilityLabel={`گزینه‌ی ${fa(i + 1)}: ${text}`}
+              accessibilityLabel={t('گزینه‌ی {n}: {text}', { n: fa(i + 1), text })}
               accessibilityState={{ disabled: answered, selected: picked === i }}
               style={({ pressed }) => [styles.option, right && styles.right, wrong && styles.wrong, pressed && !answered && { transform: [{ translateY: 2 }] }]}
             >
@@ -113,7 +114,7 @@ export function QuizRound({ questions, onDone }: { questions: DuelQuestion[]; on
 
       {answered ? (
         <Txt w={900} size={15} center color={gain > 0 ? colors.bullText : colors.bearText}>
-          {gain > 0 ? `+${fa(gain)} امتیاز` : picked === -1 ? 'وقت تموم شد!' : 'این یکی نشد'}
+          {gain > 0 ? t('+{n} امتیاز', { n: fa(gain) }) : picked === -1 ? t('وقت تموم شد!') : t('این یکی نشد')}
         </Txt>
       ) : null}
     </View>

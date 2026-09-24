@@ -4,6 +4,7 @@ import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { ProChart, type ProLine } from '@/components/sim/ProChart';
 import { Txt } from '@/components/Txt';
+import { t } from '@/i18n';
 import {
   STOP_ATR,
   TRADE_BALANCE,
@@ -43,8 +44,8 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
 
   useEffect(() => {
     if (!running || over) return;
-    const t = setInterval(() => setS((prev) => tradeStep(trade, prev)), TRADE_CANDLE_MS);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setS((prev) => tradeStep(trade, prev)), TRADE_CANDLE_MS);
+    return () => clearInterval(timer);
   }, [running, over, trade]);
 
   const spec = specOf(trade);
@@ -53,10 +54,11 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
   const equity = tradeEquity(trade, s);
   const pnl = equity - TRADE_BALANCE;
   const secondsLeft = Math.ceil(((trade.candles.length - 1 - s.shown) * TRADE_CANDLE_MS) / 1000);
+  const secondsAll = Math.round(((trade.candles.length - 1 - s.shown) * TRADE_CANDLE_MS) / 1000);
   const lines: ProLine[] = s.pos
     ? [
-        { price: s.pos.entry, label: s.pos.side === 1 ? 'خرید' : 'فروش', detail: usd(pnl, true), detailColor: pnl >= 0 ? colors.bullText : colors.bearText, color: colors.text2, ink: colors.bg, solid: true },
-        { price: s.pos.stop, label: 'حد ضرر', color: colors.bear, ink: colors.bearInk },
+        { price: s.pos.entry, label: s.pos.side === 1 ? t('خرید') : t('فروش'), detail: usd(pnl, true), detailColor: pnl >= 0 ? colors.bullText : colors.bearText, color: colors.text2, ink: colors.bg, solid: true },
+        { price: s.pos.stop, label: t('حد ضرر'), color: colors.bear, ink: colors.bearInk },
       ]
     : [];
   const result = over ? tradeResult(trade, s) : null;
@@ -69,9 +71,13 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
   return (
     <View style={{ gap: 12 }}>
       <View style={styles.bar}>
-        <Stat label="سرمایه" value={usd(equity)} />
-        <Stat label="سود و زیان" value={usd(pnl, true)} color={pnl > 0 ? colors.bullText : pnl < 0 ? colors.bearText : colors.text} />
-        <Stat label="زمان" mono={false} value={running && !over ? `${fa(secondsLeft)} ثانیه` : over ? 'تموم' : `${fa(Math.round(((trade.candles.length - 1 - s.shown) * TRADE_CANDLE_MS) / 1000))} ثانیه`} />
+        <Stat label={t('سرمایه')} value={usd(equity)} />
+        <Stat label={t('سود و زیان')} value={usd(pnl, true)} color={pnl > 0 ? colors.bullText : pnl < 0 ? colors.bearText : colors.text} />
+        <Stat
+          label={t('زمان')}
+          mono={false}
+          value={running && !over ? t('{n} ثانیه', { n: fa(secondsLeft), count: secondsLeft }) : over ? t('تموم') : t('{n} ثانیه', { n: fa(secondsAll), count: secondsAll })}
+        />
       </View>
 
       <View style={styles.chart}>
@@ -81,9 +87,14 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
       {!running ? (
         <View style={{ gap: 10 }}>
           <Txt w={700} size={13.5} lh={1.8} color={colors.text2}>
-            {`${fa(TRADE_BALANCE)} دلار داری با اهرم ${fa(TRADE_LEVERAGE)}. وقتی «شروع» رو بزنی، ${fa(trade.candles.length - s.shown - 1)} کندل بعدی یکی‌یکی میان. هر معامله خودش یه حد ضرر (${fa(STOP_ATR)} برابر اندازه‌ی یه کندل) داره. بیشترین سود برنده‌ست.`}
+            {t('{balance} دلار داری با اهرم {leverage}. وقتی «شروع» رو بزنی، {n} کندل بعدی یکی‌یکی میان. هر معامله خودش یه حد ضرر ({atr} برابر اندازه‌ی یه کندل) داره. بیشترین سود برنده‌ست.', {
+              balance: fa(TRADE_BALANCE),
+              leverage: fa(TRADE_LEVERAGE),
+              n: fa(trade.candles.length - s.shown - 1),
+              atr: fa(STOP_ATR),
+            })}
           </Txt>
-          <Button3D label="شروع" onPress={() => setRunning(true)} />
+          <Button3D label={t('شروع')} onPress={() => setRunning(true)} />
         </View>
       ) : result ? (
         <View style={{ gap: 10 }}>
@@ -92,22 +103,26 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
               {usd(result.pnl, true)}
             </Txt>
             <Txt w={700} size={13} color={colors.text2}>
-              {result.trades ? `${fa(result.trades)} معامله${s.stops ? `، ${fa(s.stops)} بار حد ضرر خورد` : ''}` : 'معامله‌ای نکردی'}
+              {result.trades
+                ? `${t('{n} معامله', { n: fa(result.trades), count: result.trades })}${s.stops ? t('، {n} بار حد ضرر خورد', { n: fa(s.stops), count: s.stops }) : ''}`
+                : t('معامله‌ای نکردی')}
             </Txt>
           </View>
-          <Button3D label="دیدن نتیجه" onPress={() => onDone(result)} />
+          <Button3D label={t('دیدن نتیجه')} onPress={() => onDone(result)} />
         </View>
       ) : s.pos ? (
-        <Button3D variant="secondary" label={`بستن معامله (${usd(pnl, true)})`} onPress={() => setS((prev) => tradeClose(trade, prev))} />
+        <Button3D variant="secondary" label={t('بستن معامله ({pnl})', { pnl: usd(pnl, true) })} onPress={() => setS((prev) => tradeClose(trade, prev))} />
       ) : (
         <View style={{ gap: 8 }}>
           <View style={styles.actions}>
-            <Button3D variant="danger" label="فروش" onPress={() => open(-1)} style={{ flex: 1 }} />
-            <Button3D label="خرید" onPress={() => open(1)} style={{ flex: 1 }} />
+            <Button3D variant="danger" label={t('فروش')} onPress={() => open(-1)} style={{ flex: 1 }} />
+            <Button3D label={t('خرید')} onPress={() => open(1)} style={{ flex: 1 }} />
           </View>
           {s.stops ? (
             <Txt w={800} size={13} color={colors.bearText} center>
-              {`حد ضرر خورد و معامله بسته شد${s.stops > 1 ? ` (${fa(s.stops)} بار)` : ''}. می‌تونی دوباره وارد بشی.`}
+              {s.stops > 1
+                ? t('حد ضرر خورد و معامله بسته شد ({n} بار). می‌تونی دوباره وارد بشی.', { n: fa(s.stops) })
+                : t('حد ضرر خورد و معامله بسته شد. می‌تونی دوباره وارد بشی.')}
             </Txt>
           ) : null}
         </View>

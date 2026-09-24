@@ -5,6 +5,7 @@ import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
+import { t, textStart } from '@/i18n';
 import { MAX_REPORT_MESSAGE, parseStepRef, REPORT_REASONS, sendReport, type ReportReason } from '@/lib/reportApi';
 import { useKeyboardOverlap } from '@/lib/keyboard';
 import { colors, fonts } from '@/theme';
@@ -41,16 +42,16 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
             <>
               <Mascot mood={phase.at === 'done' ? 'party' : 'think'} size={90} />
               <Txt w={900} size={19} center>
-                {phase.at === 'done' ? 'ممنون که گفتی!' : 'گزارش ثبت نشد'}
+                {phase.at === 'done' ? t('ممنون که گفتی!') : t('گزارش ثبت نشد')}
               </Txt>
               <Txt w={500} size={14} lh={1.8} color={colors.text2} center>
                 {phase.at === 'refused'
-                  ? 'امروز گزارش زیادی فرستادی یا مشکلی پیش اومد. فردا دوباره امتحان کن.'
+                  ? t('امروز گزارش زیادی فرستادی یا مشکلی پیش اومد. فردا دوباره امتحان کن.')
                   : phase.queued
-                    ? 'الان اینترنت نداری؛ گزارشت ذخیره شد و وقتی وصل شدی خودش فرستاده می‌شه.'
-                    : 'گزارشت رسید. این مرحله رو بررسی و درست می‌کنیم.'}
+                    ? t('الان اینترنت نداری؛ گزارشت ذخیره شد و وقتی وصل شدی خودش فرستاده می‌شه.')
+                    : t('گزارشت رسید. این مرحله رو بررسی و درست می‌کنیم.')}
               </Txt>
-              <Button3D label="برگشت به درس" onPress={close} style={{ alignSelf: 'stretch' }} />
+              <Button3D label={t('برگشت به درس')} onPress={close} style={{ alignSelf: 'stretch' }} />
             </>
           ) : (
             <>
@@ -58,13 +59,13 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
                 <Icon name="flag" size={22} color={colors.gold} strokeWidth={2.4} />
                 <View style={{ flex: 1, gap: 2 }}>
                   <Txt w={900} size={18}>
-                    گزارش مشکل
+                    {t('گزارش مشکل')}
                   </Txt>
                   <Txt w={500} size={12.5} color={colors.text3}>
-                    این مرحله چه مشکلی داره؟
+                    {t('این مرحله چه مشکلی داره؟')}
                   </Txt>
                 </View>
-                <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="بستن" hitSlop={8}>
+                <Pressable onPress={close} accessibilityRole="button" accessibilityLabel={t('بستن')} hitSlop={8}>
                   <Icon name="close" size={22} color={colors.text3} />
                 </Pressable>
               </View>
@@ -81,7 +82,7 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
                     >
                       <View style={[styles.radio, on && styles.radioOn]}>{on ? <View style={styles.radioDot} /> : null}</View>
                       <Txt w={800} size={14.5} color={on ? colors.skyText : colors.text}>
-                        {r.label}
+                        {t(r.label)}
                       </Txt>
                     </Pressable>
                   );
@@ -89,14 +90,14 @@ export function ReportSheet({ stepRef, stepType, visible, onClose }: { stepRef: 
               </View>
               <TextInput
                 value={message}
-                onChangeText={(t) => setMessage(t.slice(0, MAX_REPORT_MESSAGE))}
-                placeholder="توضیح بیشتر (اختیاری)"
+                onChangeText={(text) => setMessage(text.slice(0, MAX_REPORT_MESSAGE))}
+                placeholder={t('توضیح بیشتر (اختیاری)')}
                 placeholderTextColor={colors.faint}
                 multiline
-                accessibilityLabel="توضیح بیشتر"
-                style={styles.input}
+                accessibilityLabel={t('توضیح بیشتر')}
+                style={[styles.input, { textAlign: textStart() }]}
               />
-              <Button3D label={phase.at === 'sending' ? 'در حال فرستادن…' : 'فرستادن گزارش'} disabled={!reason || !where || phase.at === 'sending'} onPress={send} style={{ alignSelf: 'stretch' }} />
+              <Button3D label={phase.at === 'sending' ? t('در حال فرستادن…') : t('فرستادن گزارش')} disabled={!reason || !where || phase.at === 'sending'} onPress={send} style={{ alignSelf: 'stretch' }} />
             </>
           )}
         </View>
@@ -174,7 +175,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.medium,
     fontSize: 14,
-    textAlign: 'right',
     textAlignVertical: 'top',
     outlineWidth: 0,
   },

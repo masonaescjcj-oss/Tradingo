@@ -17,6 +17,7 @@ import { Screen } from '@/components/Screen';
 import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
+import { t, textStart } from '@/i18n';
 import { cloudSetName, useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
 import { loginText } from '@/lib/login';
@@ -51,14 +52,14 @@ export default function ProfileScreen() {
   });
 
   const achievements: { title: string; icon: IconName | 'flame'; color: string; ink: string; earned: boolean }[] = [
-    { title: '۷ روز پیاپی', icon: 'flame', color: colors.flame, ink: '#3A1C00', earned: game.bestStreak >= 7 },
-    { title: 'شکارچی الگو', icon: 'target', color: colors.bull, ink: colors.bullInk, earned: unitDone('candles') },
-    { title: 'اولین معامله', icon: 'candles', color: colors.sky, ink: colors.skyInk, earned: trades > 0 },
-    { title: 'استاد ریسک', icon: 'shield', color: colors.gold, ink: colors.goldInk, earned: unitDone('risk') },
-    { title: 'کلکسیونر دوره', icon: 'grid', color: '#A78BFA', ink: '#1E1240', earned: game.enrolled.length >= 8 },
-    { title: 'دوره‌ی کامل', icon: 'trophy', color: '#F472B6', ink: '#3D0A24', earned: courseDone },
-    { title: 'صد درس', icon: 'book', color: '#4FD1C5', ink: '#062B28', earned: studied >= 100 },
-    { title: 'تمرین‌کار', icon: 'refresh', color: '#A3E635', ink: '#1F3300', earned: game.practiceSessions >= 20 },
+    { title: t('۷ روز پیاپی'), icon: 'flame', color: colors.flame, ink: '#3A1C00', earned: game.bestStreak >= 7 },
+    { title: t('شکارچی الگو'), icon: 'target', color: colors.bull, ink: colors.bullInk, earned: unitDone('candles') },
+    { title: t('اولین معامله'), icon: 'candles', color: colors.sky, ink: colors.skyInk, earned: trades > 0 },
+    { title: t('استاد ریسک'), icon: 'shield', color: colors.gold, ink: colors.goldInk, earned: unitDone('risk') },
+    { title: t('کلکسیونر دوره'), icon: 'grid', color: '#A78BFA', ink: '#1E1240', earned: game.enrolled.length >= 8 },
+    { title: t('دوره‌ی کامل'), icon: 'trophy', color: '#F472B6', ink: '#3D0A24', earned: courseDone },
+    { title: t('صد درس'), icon: 'book', color: '#4FD1C5', ink: '#062B28', earned: studied >= 100 },
+    { title: t('تمرین‌کار'), icon: 'refresh', color: '#A3E635', ink: '#1F3300', earned: game.practiceSessions >= 20 },
   ];
 
   const saveName = () => {
@@ -71,12 +72,12 @@ export default function ProfileScreen() {
     <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
-          پروفایل
+          {t('پروفایل')}
         </Txt>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.identity}>
-          <Pressable onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel="تغییر عکس پروفایل" style={styles.avatar}>
+          <Pressable onPress={() => setAvatarOpen(true)} accessibilityRole="button" accessibilityLabel={t('تغییر عکس پروفایل')} style={styles.avatar}>
             <Avatar id={game.avatar} name={game.name} size={80} />
             <View style={styles.avatarEdit}>
               <Icon name="pencil" size={13} color={colors.bg} strokeWidth={2.8} />
@@ -91,12 +92,12 @@ export default function ProfileScreen() {
                   onSubmitEditing={saveName}
                   autoFocus
                   maxLength={20}
-                  accessibilityLabel="اسمت"
-                  placeholder="اسمت"
+                  accessibilityLabel={t('اسمت')}
+                  placeholder={t('اسمت')}
                   placeholderTextColor={colors.text3}
-                  style={styles.input}
+                  style={[styles.input, { textAlign: textStart() }]}
                 />
-                <Pressable onPress={saveName} accessibilityRole="button" accessibilityLabel="ذخیره‌ی اسم" style={styles.smallBtn}>
+                <Pressable onPress={saveName} accessibilityRole="button" accessibilityLabel={t('ذخیره‌ی اسم')} style={styles.smallBtn}>
                   <Icon name="check" size={20} color={colors.bullInk} strokeWidth={3.2} />
                 </Pressable>
               </View>
@@ -107,7 +108,7 @@ export default function ProfileScreen() {
                   setEditingName(true);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`اسم: ${game.name}. برای ویرایش بزن`}
+                accessibilityLabel={t('اسم: {name}. برای ویرایش بزن', { name: game.name })}
                 style={styles.nameRow}
               >
                 <Txt w={900} size={22}>
@@ -118,25 +119,25 @@ export default function ProfileScreen() {
             )}
             {username ? (
               <View style={styles.usernameRow}>
-                <Pressable onPress={() => setUsernameOpen(true)} accessibilityRole="button" accessibilityLabel={`آیدی: ${username}. برای تغییر بزن`} style={styles.usernameChip}>
+                <Pressable onPress={() => setUsernameOpen(true)} accessibilityRole="button" accessibilityLabel={t('آیدی: {username}. برای تغییر بزن', { username })} style={styles.usernameChip}>
                   <Txt mono w={700} size={13} color={colors.skyText} numberOfLines={1}>
                     {`@${username}`}
                   </Txt>
                   <Icon name="pencil" size={13} color={colors.text3} />
                 </Pressable>
                 <Txt w={700} size={12} color={colors.text3} onPress={() => router.push({ pathname: '/u/[username]', params: { username } })}>
-                  پروفایل عمومی
+                  {t('پروفایل عمومی')}
                 </Txt>
               </View>
             ) : null}
             <Pressable onPress={() => setPickerOpen(true)} accessibilityRole="button" style={styles.marketRow}>
               <View style={styles.marketChip}>
                 <Txt w={800} size={12} color={colors.skyText}>
-                  {`بازار شبیه‌ساز: ${marketLabel(game.market).title}`}
+                  {t('بازار شبیه‌ساز: {market}', { market: t(marketLabel(game.market).title) })}
                 </Txt>
               </View>
               <Txt w={700} size={12} color={colors.text3}>
-                تغییر
+                {t('تغییر')}
               </Txt>
             </Pressable>
           </View>
@@ -146,23 +147,23 @@ export default function ProfileScreen() {
           <Icon name={game.user ? 'shield' : 'user'} size={22} color={game.user ? colors.bull : colors.skyText} />
           <View style={{ flex: 1, gap: 2 }}>
             <Txt w={800} size={14}>
-              {game.user ? 'حساب کاربری' : 'ساخت حساب یا ورود'}
+              {game.user ? t('حساب کاربری') : t('ساخت حساب یا ورود')}
             </Txt>
             {game.user ? (
-              // Mono text reads left to right, so an email or a number's groups don't flip in the RTL row.
+              // Mono text reads left to right, so an email or a number's groups don't flip in a Persian (RTL) row.
               <Txt mono size={12} color={colors.text3} numberOfLines={1} style={{ alignSelf: 'flex-start' }}>
                 {loginText(game.user.login)}
               </Txt>
             ) : (
               <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>
-                پیشرفتت رو به اسم خودت ذخیره کن؛ کد تأیید لازم نیست
+                {t('پیشرفتت رو به اسم خودت ذخیره کن؛ کد تأیید لازم نیست')}
               </Txt>
             )}
           </View>
           <Icon name="chevronBack" size={20} color={colors.text3} />
         </Pressable>
 
-        <Pressable onPress={() => router.push('/league')} accessibilityRole="button" accessibilityLabel={`لیگ هفتگی: لیگ ${LEAGUES[game.league].name}`} style={styles.leagueCard}>
+        <Pressable onPress={() => router.push('/league')} accessibilityRole="button" accessibilityLabel={t('لیگ هفتگی: لیگ {name}', { name: t(LEAGUES[game.league].name) })} style={styles.leagueCard}>
           <Hexagon size={46} color={LEAGUES[game.league].color}>
             <Txt display size={22} color={LEAGUES[game.league].ink}>
               {fa(game.league + 1)}
@@ -170,10 +171,10 @@ export default function ProfileScreen() {
           </Hexagon>
           <View style={{ flex: 1, gap: 2 }}>
             <Txt w={900} size={16}>
-              {`لیگ ${LEAGUES[game.league].name}`}
+              {t('لیگ {name}', { name: t(LEAGUES[game.league].name) })}
             </Txt>
             <Txt w={700} size={12.5} color={colors.text2}>
-              {`${faNum(game.weeklyXp)} امتیاز این هفته · جدول رتبه‌ها`}
+              {t('{xp} امتیاز این هفته · جدول رتبه‌ها', { xp: faNum(game.weeklyXp) })}
             </Txt>
           </View>
           <Icon name="trophy" size={24} color={colors.gold} />
@@ -181,28 +182,28 @@ export default function ProfileScreen() {
         </Pressable>
 
         <View style={styles.stats}>
-          <StatCard icon={<FlameIcon size={28} />} value={fa(streak)} label="روز پیاپی" />
-          <StatCard icon={<BoltIcon size={28} />} value={faNum(game.xp)} label="کل امتیاز" />
-          <StatCard icon={<Hexagon size={26} color={LEAGUES[game.league].color} />} value={LEAGUES[game.league].name} label="لیگ فعلی" />
-          <StatCard icon={<Icon name="book" size={28} color={colors.bull} />} value={fa(studied)} label="درس خونده‌شده" />
+          <StatCard icon={<FlameIcon size={28} />} value={fa(streak)} label={t('روز پیاپی')} />
+          <StatCard icon={<BoltIcon size={28} />} value={faNum(game.xp)} label={t('کل امتیاز')} />
+          <StatCard icon={<Hexagon size={26} color={LEAGUES[game.league].color} />} value={t(LEAGUES[game.league].name)} label={t('لیگ فعلی')} />
+          <StatCard icon={<Icon name="book" size={28} color={colors.bull} />} value={fa(studied)} label={t('درس خونده‌شده')} />
         </View>
 
         <View style={styles.actions}>
           <Pressable onPress={() => router.push('/shop')} accessibilityRole="button" style={styles.action}>
             <Icon name="bag" size={20} color={colors.gold} strokeWidth={2.4} />
             <Txt w={900} size={14}>
-              فروشگاه
+              {t('فروشگاه')}
             </Txt>
           </Pressable>
           <Pressable
-            onPress={() => setCard(profileCard({ name: game.name, xp: game.xp, streak, league: LEAGUES[game.league].name, lessons: studied }))}
+            onPress={() => setCard(profileCard({ name: game.name, xp: game.xp, streak, league: t(LEAGUES[game.league].name), lessons: studied }))}
             accessibilityRole="button"
-            accessibilityLabel="اشتراک پیشرفتم"
+            accessibilityLabel={t('اشتراک پیشرفتم')}
             style={styles.action}
           >
             <Icon name="share" size={20} color={colors.skyText} strokeWidth={2.4} />
             <Txt w={900} size={14}>
-              اشتراک پیشرفتم
+              {t('اشتراک پیشرفتم')}
             </Txt>
           </Pressable>
         </View>
@@ -210,11 +211,11 @@ export default function ProfileScreen() {
         <View style={{ gap: 12 }}>
           <View style={styles.skillHead}>
             <Txt w={900} size={16}>
-              دوره‌های من
+              {t('دوره‌های من')}
             </Txt>
             <Pressable onPress={() => router.push('/courses')} accessibilityRole="button" hitSlop={8}>
               <Txt w={800} size={13} color={colors.skyText}>
-                + افزودن دوره
+                {t('+ افزودن دوره')}
               </Txt>
             </Pressable>
           </View>
@@ -226,7 +227,7 @@ export default function ProfileScreen() {
                 key={course.id}
                 onPress={() => router.push(`/course/${course.id}`)}
                 accessibilityRole="button"
-                accessibilityLabel={`${course.title}، ${fa(Math.round(ratio * 100))} درصد`}
+                accessibilityLabel={t('{title}، {n} درصد', { title: course.title, n: fa(Math.round(ratio * 100)) })}
                 style={styles.courseRow}
               >
                 <CourseBadge course={course} size={40} />
@@ -236,7 +237,7 @@ export default function ProfileScreen() {
                       {course.title}
                     </Txt>
                     <Txt w={800} size={13} color={ratio >= 1 ? colors.bull : ratio > 0 ? colors.gold : colors.text3}>
-                      {`${fa(Math.round(ratio * 100))}٪`}
+                      {t('{n}٪', { n: fa(Math.round(ratio * 100)) })}
                     </Txt>
                   </View>
                   <ProgressBar value={ratio} height={10} color={ratio >= 1 ? colors.bull : colors.gold} label={course.title} />
@@ -248,11 +249,11 @@ export default function ProfileScreen() {
 
         <View style={{ gap: 12 }}>
           <Txt w={900} size={16}>
-            دستاوردها
+            {t('دستاوردها')}
           </Txt>
           <View style={styles.badges}>
             {achievements.map((a) => (
-              <View key={a.title} style={styles.badge} accessible accessibilityLabel={`${a.title}${a.earned ? '، گرفته‌شده' : '، هنوز نه'}`}>
+              <View key={a.title} style={styles.badge} accessible accessibilityLabel={a.earned ? t('{title}، گرفته‌شده', { title: a.title }) : t('{title}، هنوز نه', { title: a.title })}>
                 <Hexagon size={58} color={a.earned ? a.color : colors.raised}>
                   {a.icon === 'flame' ? (
                     <FlameIcon size={26} color={a.earned ? a.ink : colors.muted} inner={a.earned ? a.color : colors.raised} />
@@ -270,7 +271,7 @@ export default function ProfileScreen() {
 
         <View style={{ gap: 10 }}>
           <Txt w={900} size={16}>
-            هدف روزانه
+            {t('هدف روزانه')}
           </Txt>
           <View style={styles.goals} accessibilityRole="radiogroup">
             {GOALS.map((g) => {
@@ -287,7 +288,7 @@ export default function ProfileScreen() {
                     {fa(g)}
                   </Txt>
                   <Txt w={700} size={11} color={colors.text3}>
-                    امتیاز
+                    {t('امتیاز')}
                   </Txt>
                 </Pressable>
               );
@@ -300,10 +301,10 @@ export default function ProfileScreen() {
             <Icon name="shield" size={22} color={colors.sky} />
             <View style={{ flex: 1, gap: 2 }}>
               <Txt w={800} size={14}>
-                پنل مدیریت
+                {t('پنل مدیریت')}
               </Txt>
               <Txt w={500} size={12} color={colors.text3}>
-                گزارش‌ها، کاربران، پیام‌ها و کلید هوش مصنوعی
+                {t('گزارش‌ها، کاربران، پیام‌ها و کلید هوش مصنوعی')}
               </Txt>
             </View>
             <Icon name="chevronBack" size={18} color={colors.text3} />
@@ -319,16 +320,16 @@ export default function ProfileScreen() {
           onPress={() => game.setSound(!game.sound)}
           accessibilityRole="switch"
           accessibilityState={{ checked: game.sound }}
-          accessibilityLabel="صدا و لرزش"
+          accessibilityLabel={t('صدا و لرزش')}
           style={styles.accountRow}
         >
           <Icon name={game.sound ? 'volume' : 'mute'} size={22} color={game.sound ? colors.bull : colors.text3} />
           <View style={{ flex: 1, gap: 2 }}>
             <Txt w={800} size={14}>
-              صدا و لرزش
+              {t('صدا و لرزش')}
             </Txt>
             <Txt w={500} size={12} color={colors.text3}>
-              {game.sound ? 'صدای جواب‌ها، صندوق و پایان درس روشنه' : 'خاموشه'}
+              {game.sound ? t('صدای جواب‌ها، صندوق و پایان درس روشنه') : t('خاموشه')}
             </Txt>
           </View>
           <View style={[styles.toggle, game.sound && styles.toggleOn]}>
@@ -339,12 +340,12 @@ export default function ProfileScreen() {
         <Pressable onPress={() => router.push('/about')} accessibilityRole="button" style={styles.disclaimer}>
           <Icon name="info" size={20} color={colors.text3} />
           <Txt size={13} lh={1.8} color={colors.text3} style={{ flex: 1 }}>
-            چارتون فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.
+            {t('چارتون فقط برای آموزشه. ترید واقعی ریسک از دست دادن سرمایه داره و هیچ‌کدوم از مطالب اینجا توصیه‌ی سرمایه‌گذاری نیست.')}
           </Txt>
           <Icon name="chevronBack" size={18} color={colors.text3} />
         </Pressable>
 
-        <Button3D label="پاک کردن همه‌ی پیشرفت" variant="secondary" size={15} onPress={() => setConfirmReset(true)} />
+        <Button3D label={t('پاک کردن همه‌ی پیشرفت')} variant="secondary" size={15} onPress={() => setConfirmReset(true)} />
       </ScrollView>
 
       <MarketPicker visible={pickerOpen} value={game.market} onChange={game.setMarket} onClose={() => setPickerOpen(false)} />
@@ -355,14 +356,14 @@ export default function ProfileScreen() {
         <View style={styles.backdrop}>
           <View style={styles.dialog}>
             <Txt w={900} size={19} center>
-              همه‌چی پاک بشه؟
+              {t('همه‌چی پاک بشه؟')}
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2} center>
-              امتیاز، درس‌ها، سکه‌ها و حساب شبیه‌ساز از اول شروع می‌شن. این کار برگشت‌پذیر نیست.
+              {t('امتیاز، درس‌ها، سکه‌ها و حساب شبیه‌ساز از اول شروع می‌شن. این کار برگشت‌پذیر نیست.')}
             </Txt>
-            <Button3D label="بی‌خیال" onPress={() => setConfirmReset(false)} style={{ alignSelf: 'stretch' }} />
+            <Button3D label={t('بی‌خیال')} onPress={() => setConfirmReset(false)} style={{ alignSelf: 'stretch' }} />
             <Button3D
-              label="پاک کن"
+              label={t('پاک کن')}
               variant="danger"
               size={17}
               onPress={() => {
@@ -477,7 +478,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.extra,
     fontSize: 16,
-    textAlign: 'right',
   },
   smallBtn: {
     width: 44,

@@ -61,7 +61,7 @@ export default function CoursesScreen() {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {[{ id: 'all' as const, title: 'همه' }, ...CATEGORIES].map((c) => { // i18n-ignore: translated where shown
+          {[{ id: 'all' as const, title: t('همه') }, ...CATEGORIES.map((c) => ({ ...c, title: t(c.title) }))].map((c) => {
             const on = category === c.id;
             return (
               <Pressable
@@ -72,7 +72,7 @@ export default function CoursesScreen() {
                 style={[styles.chip, on && styles.chipOn]}
               >
                 <Txt w={800} size={13} color={on ? colors.skyText : colors.text2}>
-                  {t(c.title)}
+                  {c.title}
                 </Txt>
               </Pressable>
             );

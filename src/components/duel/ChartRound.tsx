@@ -6,6 +6,7 @@ import { Icon } from '@/components/Icon';
 import { ChartCard } from '@/components/lesson/ChartQuestion';
 import { Txt } from '@/components/Txt';
 import type { ChartSpec } from '@/content/types';
+import { t } from '@/i18n';
 import { atr, CHART_AHEAD, chartActual, chartPoints, chartShown, type DuelChart, type DuelResult } from '@/lib/duel';
 import { playSfx } from '@/lib/sfx';
 import { colors } from '@/theme';
@@ -34,7 +35,7 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
   const move = (p: number) => setGuess(Math.round(Math.min(hi, Math.max(lo, p)) * k) / k);
 
   const spec: ChartSpec = revealed
-    ? { candles: chart.candles, ma: 9, lines: [{ price: actual, label: 'قیمت واقعی', value: fmt(actual), color: colors.gold, ink: colors.goldInk }] }
+    ? { candles: chart.candles, ma: 9, lines: [{ price: actual, label: t('قیمت واقعی'), value: fmt(actual), color: colors.gold, ink: colors.goldInk }] }
     : { candles: shown, ma: 9 };
 
   const submit = () => {
@@ -45,7 +46,7 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
   return (
     <View style={{ gap: 14 }}>
       <Txt w={900} size={16} lh={1.7}>
-        {revealed ? 'این شد ادامه‌ی نمودار:' : `قیمت ${fa(CHART_AHEAD)} کندل بعد (${fa(CHART_AHEAD)} ساعت بعد) کجا بسته می‌شه؟ خط آبی رو ببر همون‌جا.`}
+        {revealed ? t('این شد ادامه‌ی نمودار:') : t('قیمت {n} کندل بعد ({n} ساعت بعد) کجا بسته می‌شه؟ خط آبی رو ببر همون‌جا.', { n: fa(CHART_AHEAD) })}
       </Txt>
       <ChartCard
         chart={spec}
@@ -54,7 +55,7 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
         bleed
         dragLine={{
           price: guess,
-          label: 'حدس تو',
+          label: t('حدس تو'),
           color: colors.sky,
           ink: colors.skyInk,
           onChange: move,
@@ -67,10 +68,10 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
       {revealed ? (
         <View style={[styles.result, { borderColor: points >= 60 ? colors.bull : points > 0 ? colors.gold : colors.bear }]}>
           <Txt w={900} size={22} color={points >= 60 ? colors.bullText : points > 0 ? colors.gold : colors.bearText}>
-            {`+${fa(points)} امتیاز`}
+            {t('+{n} امتیاز', { n: fa(points) })}
           </Txt>
           <Txt w={700} size={13} lh={1.7} color={colors.text2} center>
-            {`حدست ${fmt(guess)} بود و قیمت روی ${fmt(actual)} بسته شد؛ ${fa((Math.abs(guess - actual) / unit).toFixed(1))} برابر اندازه‌ی یه کندل فاصله.`}
+            {t('حدست {guess} بود و قیمت روی {actual} بسته شد؛ {n} برابر اندازه‌ی یه کندل فاصله.', { guess: fmt(guess), actual: fmt(actual), n: fa((Math.abs(guess - actual) / unit).toFixed(1)) })}
           </Txt>
         </View>
       ) : (
@@ -78,7 +79,7 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
           <Nudge dir={1} onPress={() => move(guess + nudge)} />
           <View style={styles.readout}>
             <Txt w={700} size={12} color={colors.text3}>
-              حدس تو
+              {t('حدس تو')}
             </Txt>
             <Txt mono w={800} size={16}>
               {fmt(guess)}
@@ -87,14 +88,14 @@ export function ChartRound({ chart, onDone }: { chart: DuelChart; onDone: (r: Du
           <Nudge dir={-1} onPress={() => move(guess - nudge)} />
         </View>
       )}
-      {revealed ? <Button3D label="ادامه" onPress={() => onDone({ guess, points })} /> : <Button3D label="ثبت پیش‌بینی" onPress={submit} />}
+      {revealed ? <Button3D label={t('ادامه')} onPress={() => onDone({ guess, points })} /> : <Button3D label={t('ثبت پیش‌بینی')} onPress={submit} />}
     </View>
   );
 }
 
 function Nudge({ dir, onPress }: { dir: 1 | -1; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={dir > 0 ? 'بالاتر' : 'پایین‌تر'} style={({ pressed }) => [styles.nudge, pressed && { opacity: 0.7 }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={dir > 0 ? t('بالاتر') : t('پایین‌تر')} style={({ pressed }) => [styles.nudge, pressed && { opacity: 0.7 }]}>
       <View style={dir < 0 ? { transform: [{ rotate: '180deg' }] } : null}>
         <Icon name="arrowUp" size={20} color={colors.text} strokeWidth={2.8} />
       </View>

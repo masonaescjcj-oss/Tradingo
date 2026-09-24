@@ -144,7 +144,7 @@ export default function PracticeScreen() {
             </Txt>
             <Txt w={500} size={12.5} lh={1.6} color={colors.text2}>
               {duels?.played
-                ? t('{wins} برد از {played} دوئل · با شمعک یا دوستت', { wins: fa(duels.wins), played: fa(duels.played), count: duels.played })
+                ? t('{wins} برد از {played} دوئل · با شمعک یا دوستت', { wins: fa(duels.wins), played: fa(duels.played) })
                 : t('سه راند با شمعک یا دوستت: سؤال، نمودار و معامله')}
             </Txt>
           </View>

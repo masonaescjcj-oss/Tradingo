@@ -129,7 +129,7 @@
   "lessons/supply-demand-u1-l3/steps/3/options/3": "1.0825 to 1.0832",
   "lessons/supply-demand-u1-l3/steps/3/explanation": "The candle is bullish, so the top of its body is the close (1.0836), which is the proximal line. The distal line goes on the wick's low (1.0825).",
   "lessons/supply-demand-u1-l3/steps/4/prompt": "This is a DBR pattern (drop, base, rally). Drag the proximal line of the demand zone.",
-  "lessons/supply-demand-u1-l3/steps/4/label": "Proximal line",
+  "lessons/supply-demand-u1-l3/steps/4/label": "Proximal",
   "lessons/supply-demand-u1-l3/steps/4/explanation": "The base is the small candle between the drop and the rally (body 1.0830 to 1.0833). In a demand zone, the proximal line goes on the top of the base's body, around 1.0833, and the distal line on its lowest wick (1.0822).",
   "lessons/supply-demand-u1-l3/steps/5/prompt": "To draw a supply zone, find the base first. Tap the base candle of this RBD pattern.",
   "lessons/supply-demand-u1-l3/steps/5/explanation": "After three bullish candles, this one has a tiny body, and the sharp drop starts right after it. The supply zone is drawn on this candle.",
