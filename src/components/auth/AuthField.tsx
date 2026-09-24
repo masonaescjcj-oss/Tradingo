@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'rea
 
 import { Icon, type IconName } from '@/components/Icon';
 import { Txt } from '@/components/Txt';
+import { textStart } from '@/i18n';
 import { colors, fonts } from '@/theme';
 
 type Props = Omit<TextInputProps, 'style'> & {
@@ -43,7 +44,7 @@ export function AuthField({ label, icon, ltr, secret, hint, error, prefix, ...in
             setFocused(false);
             input.onBlur?.(e);
           }}
-          style={[styles.input, ltr ? styles.ltr : styles.rtl]}
+          style={[styles.input, ltr ? styles.ltr : { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
         />
         {prefix ? (
           <>
@@ -105,9 +106,5 @@ const styles = StyleSheet.create({
   ltr: {
     textAlign: 'left',
     writingDirection: 'ltr',
-  },
-  rtl: {
-    textAlign: 'right',
-    writingDirection: 'rtl',
   },
 });

@@ -142,6 +142,7 @@ const STATE: GameData = {
   reviews: {},
   practiceSessions: 0,
   sound: true,
+  language: 'fa',
   reminders: { enabled: false, hour: 20, offered: false },
   placement: null,
   mastered: [],

@@ -7,7 +7,7 @@ import { CourseBadge, LEVEL_COLOR } from '@/components/CourseBadge';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { ALL_COURSES, CATEGORIES, LEVEL_LABEL, courseProgress, type Course, type CourseCategory } from '@/content';
+import { allCourses, CATEGORIES, LEVEL_LABEL, courseProgress, type Course, type CourseCategory } from '@/content';
 import { useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
 import { fa } from '@/utils/format';
@@ -24,7 +24,7 @@ export default function CoursesScreen() {
     return CATEGORIES.filter((c) => category === 'all' || c.id === category)
       .map((c) => ({
         ...c,
-        courses: ALL_COURSES.filter(
+        courses: allCourses().filter(
           (course) =>
             course.category === c.id &&
             (!q || course.title.includes(q) || course.subtitle.includes(q) || course.description.includes(q)),
@@ -33,11 +33,11 @@ export default function CoursesScreen() {
       .filter((g) => g.courses.length > 0);
   }, [query, category]);
 
-  const lessonCount = ALL_COURSES.reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.length, 0), 0);
+  const lessonCount = allCourses().reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.length, 0), 0);
 
   return (
     <Screen>
-      <BackHeader caption={`${fa(ALL_COURSES.length)} دوره، ${fa(lessonCount)} درس`} title="همه‌ی دوره‌ها" />
+      <BackHeader caption={`${fa(allCourses().length)} دوره، ${fa(lessonCount)} درس`} title="همه‌ی دوره‌ها" />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.search}>
           <Icon name="search" size={20} color={colors.text3} />

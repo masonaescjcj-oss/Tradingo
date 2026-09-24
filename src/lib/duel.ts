@@ -9,7 +9,7 @@
  * Everything here is pure: the rounds are built from a seed (plus candles fetched once by
  * whoever starts the duel), so a friend who plays later gets the same duel.
  */
-import { ALL_COURSES } from '@/content';
+import { allCourses } from '@/content';
 import type { Candle } from '@/content/types';
 import { fa } from '@/utils/format';
 import { createRng, hashString, shuffle } from '@/utils/random';
@@ -68,7 +68,7 @@ let pool: DuelQuestion[] | null = null;
 export function questionPool(): DuelQuestion[] {
   if (pool) return pool;
   const out: DuelQuestion[] = [];
-  for (const course of ALL_COURSES) {
+  for (const course of allCourses()) {
     for (const unit of course.units) {
       for (const lesson of unit.lessons) {
         for (const step of lesson.steps) {

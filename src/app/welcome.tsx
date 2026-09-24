@@ -9,7 +9,8 @@ import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { SpeechBubble } from '@/components/SpeechBubble';
 import { Txt } from '@/components/Txt';
-import { ALL_COURSES } from '@/content';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { allCourses } from '@/content';
 import { UPTREND } from '@/content/charts';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -29,6 +30,10 @@ export default function Welcome() {
   return (
     <Screen style={styles.screen}>
       <GridBackdrop />
+      {/* فارسی | English, for learners who'd rather start in English. */}
+      <View style={styles.lang}>
+        <LanguageToggle compact />
+      </View>
       <View style={styles.hero}>
         <View style={[styles.stage, { width: 320 * scale, height: 290 * scale }]}>
           <View style={[styles.chart, { left: 10 * scale, bottom: 24 * scale }]} pointerEvents="none">
@@ -49,7 +54,7 @@ export default function Welcome() {
         </Txt>
         {!compact && (
           <View style={styles.features}>
-            <Feature text={`${fa(ALL_COURSES.length)} دوره`} />
+            <Feature text={`${fa(allCourses().length)} دوره`} />
             <Feature text="درس‌های ۵ دقیقه‌ای" />
             <Feature text="شبیه‌ساز معامله" />
           </View>
@@ -149,6 +154,12 @@ function GridBackdrop() {
 }
 
 const styles = StyleSheet.create({
+  lang: {
+    position: 'absolute',
+    top: 12,
+    right: 16,
+    zIndex: 2,
+  },
   screen: {
     paddingHorizontal: 24,
     paddingBottom: 24,

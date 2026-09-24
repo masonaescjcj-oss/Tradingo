@@ -15,7 +15,7 @@ import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
 import { Txt } from '@/components/Txt';
 import { Chest } from '@/components/Chest';
-import { ALL_COURSES, CHEST_AFTER, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
+import { allCourses, CHEST_AFTER, chestId, courseLessonIds, courseProgress, findCourse, type Unit } from '@/content';
 import { chestPlan } from '@/lib/chest';
 import { useGame, type LessonRecord } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
@@ -51,7 +51,7 @@ export default function LearnScreen() {
   const placementOffered = usePlacementOpen();
   const didScroll = useRef(false);
 
-  const course = findCourse(activeCourse) ?? ALL_COURSES[0];
+  const course = findCourse(activeCourse) ?? allCourses()[0];
   const progress = courseProgress(course, completed);
   const currentId = courseLessonIds(course).find((id) => !completed[id]);
 

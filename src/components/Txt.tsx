@@ -1,5 +1,6 @@
 import { Platform, Text, type TextProps } from 'react-native';
 
+import { isEn } from '@/i18n/lang';
 import { colors, fonts } from '@/theme';
 
 type Weight = 400 | 500 | 700 | 800 | 900;
@@ -28,8 +29,9 @@ export type TxtProps = TextProps & {
 export function Txt({ w = 500, size = 15, color = colors.text, display, mono, center, lh, style, ...rest }: TxtProps) {
   const fontFamily = display ? fonts.display : mono ? (w >= 800 ? fonts.monoHeavy : fonts.mono) : FAMILY[w];
   // react-native-web sets dir="auto" on text, which left-aligns lines that start with Latin
-  // characters. Persian copy is always right-to-left; prices are always left-to-right.
-  const dirProps = Platform.OS === 'web' ? ({ dir: mono ? 'ltr' : 'rtl' } as object) : null;
+  // characters. Copy follows the app's language; prices are always left-to-right.
+  const ltr = mono || isEn();
+  const dirProps = Platform.OS === 'web' ? ({ dir: ltr ? 'ltr' : 'rtl' } as object) : null;
   return (
     <Text
       {...dirProps}
@@ -41,7 +43,7 @@ export function Txt({ w = 500, size = 15, color = colors.text, display, mono, ce
           color,
           lineHeight: lh ? Math.round(size * lh) : undefined,
           textAlign: center ? 'center' : undefined,
-          writingDirection: mono ? 'ltr' : 'rtl',
+          writingDirection: ltr ? 'ltr' : 'rtl',
         },
         style,
       ]}

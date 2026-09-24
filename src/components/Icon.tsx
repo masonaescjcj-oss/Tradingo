@@ -1,5 +1,6 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
+import { isEn } from '@/i18n/lang';
 import { colors } from '@/theme';
 
 export type IconName =
@@ -56,6 +57,9 @@ export type IconName =
 
 type Props = { name: IconName; size?: number; color?: string; strokeWidth?: number };
 
+/** Icons that point along the reading direction; they're mirrored in English (left to right). */
+const MIRRORED: IconName[] = ['chevronBack', 'send', 'logout', 'skipEnd'];
+
 /** Stroke icons drawn on a 24×24 grid. */
 export function Icon({ name, size = 24, color = colors.text, strokeWidth = 2.2 }: Props) {
   const common = {
@@ -66,7 +70,7 @@ export function Icon({ name, size = 24, color = colors.text, strokeWidth = 2.2 }
     strokeLinejoin: 'round' as const,
   };
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Svg width={size} height={size} viewBox="0 0 24 24" style={isEn() && MIRRORED.includes(name) ? { transform: [{ scaleX: -1 }] } : undefined}>
       {renderIcon(name, common, color)}
     </Svg>
   );

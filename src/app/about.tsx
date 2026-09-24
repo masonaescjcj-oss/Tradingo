@@ -7,7 +7,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { ALL_COURSES } from '@/content';
+import { allCourses } from '@/content';
 import { LEGAL } from '@/content/legal';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
@@ -42,7 +42,7 @@ const SECTIONS: { icon: IconName; title: string; body: string }[] = [
 
 /** What Chartoon is, the full risk disclaimer and a note on data. */
 export default function AboutScreen() {
-  const lessons = ALL_COURSES.reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.length, 0), 0);
+  const lessons = allCourses().reduce((n, c) => n + c.units.reduce((m, u) => m + u.lessons.length, 0), 0);
   const version = Constants.expoConfig?.version ?? '1.0.0';
   return (
     <Screen>
@@ -55,7 +55,7 @@ export default function AboutScreen() {
               چارتون
             </Txt>
             <Txt size={14} lh={1.8} color={colors.text2}>
-              {`ترید رو مثل یه بازی یاد بگیر: ${fa(ALL_COURSES.length)} دوره و ${fa(lessons)} درس کوتاه، از صفر تا استراتژی‌های پیشرفته.`}
+              {`ترید رو مثل یه بازی یاد بگیر: ${fa(allCourses().length)} دوره و ${fa(lessons)} درس کوتاه، از صفر تا استراتژی‌های پیشرفته.`}
             </Txt>
           </View>
         </View>

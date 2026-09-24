@@ -7,6 +7,7 @@ import { Button3D } from '@/components/Button3D';
 import { BoltIcon, FlameIcon, Icon, type IconName } from '@/components/Icon';
 import { Hexagon } from '@/components/Hexagon';
 import { InstallRow } from '@/components/InstallApp';
+import { LanguageToggle } from '@/components/LanguageToggle';
 import { CourseBadge } from '@/components/CourseBadge';
 import { MarketPicker, marketLabel } from '@/components/MarketPicker';
 import { AvatarSheet, UsernameSheet } from '@/components/ProfileSheets';
@@ -312,6 +313,7 @@ export default function ProfileScreen() {
         <InstallRow />
 
         <ReminderRow />
+        <LanguageToggle />
 
         <Pressable
           onPress={() => game.setSound(!game.sound)}

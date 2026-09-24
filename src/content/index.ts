@@ -1,7 +1,11 @@
+import { getLang, type Lang } from '@/i18n/lang';
+
 import { ALL_COURSES, COURSE_ALIASES } from './courses';
+import { localizeCourse } from './i18n';
 import type { Course, CourseCategory, CourseLevel, Lesson, Market, Unit } from './types';
 
 export * from './types';
+/** The Persian source of every course (validators and tests); screens use allCourses(). */
 export { ALL_COURSES };
 
 export const CATEGORIES: { id: CourseCategory; title: string; subtitle: string }[] = [
@@ -19,29 +23,47 @@ export const LEVEL_LABEL: Record<CourseLevel, string> = {
 
 type LessonHit = { course: Course; unit: Unit; lesson: Lesson; index: number };
 
-const courseById = new Map<string, Course>();
-const unitById = new Map<string, { course: Course; unit: Unit }>();
-const lessonById = new Map<string, LessonHit>();
-for (const course of ALL_COURSES) {
-  courseById.set(course.id, course);
-  for (const unit of course.units) {
-    unitById.set(unit.id, { course, unit });
-    unit.lessons.forEach((lesson, index) => lessonById.set(lesson.id, { course, unit, lesson, index }));
+type Catalog = {
+  courses: Course[];
+  courseById: Map<string, Course>;
+  unitById: Map<string, { course: Course; unit: Unit }>;
+  lessonById: Map<string, LessonHit>;
+};
+
+/** Courses in one language with their lookups, built once per language when first needed. */
+const catalogs: Partial<Record<Lang, Catalog>> = {};
+function catalog(): Catalog {
+  const lang = getLang();
+  const cached = catalogs[lang];
+  if (cached) return cached;
+  const courses = lang === 'en' ? ALL_COURSES.map((c) => localizeCourse(c)) : ALL_COURSES;
+  const built: Catalog = { courses, courseById: new Map(), unitById: new Map(), lessonById: new Map() };
+  for (const course of courses) {
+    built.courseById.set(course.id, course);
+    for (const unit of course.units) {
+      built.unitById.set(unit.id, { course, unit });
+      unit.lessons.forEach((lesson, index) => built.lessonById.set(lesson.id, { course, unit, lesson, index }));
+    }
   }
+  catalogs[lang] = built;
+  return built;
 }
+
+/** Every course, in the app's language. */
+export const allCourses = (): Course[] => catalog().courses;
 
 /** The current id of a course, also for ids from before the topics were merged. */
 export const canonicalCourseId = (id: string): string => COURSE_ALIASES[id] ?? id;
 
 /** Course ids mapped to current ones, without duplicates or unknown ids, in order. */
 export function canonicalCourseIds(ids: string[]): string[] {
-  return [...new Set(ids.map(canonicalCourseId))].filter((id) => courseById.has(id));
+  return [...new Set(ids.map(canonicalCourseId))].filter((id) => catalog().courseById.has(id));
 }
 
-export const findCourse = (id: string): Course | undefined => courseById.get(canonicalCourseId(id));
-export const findUnit = (id: string): Unit | undefined => unitById.get(id)?.unit;
-export const findUnitWithCourse = (id: string): { course: Course; unit: Unit } | undefined => unitById.get(id);
-export const findLesson = (id: string): LessonHit | undefined => lessonById.get(id);
+export const findCourse = (id: string): Course | undefined => catalog().courseById.get(canonicalCourseId(id));
+export const findUnit = (id: string): Unit | undefined => catalog().unitById.get(id)?.unit;
+export const findUnitWithCourse = (id: string): { course: Course; unit: Unit } | undefined => catalog().unitById.get(id);
+export const findLesson = (id: string): LessonHit | undefined => catalog().lessonById.get(id);
 
 /** Every lesson id of a course, in path order. */
 export function courseLessonIds(course: Course): string[] {

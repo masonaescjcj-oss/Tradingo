@@ -32,6 +32,7 @@ import {
   type Position,
   type TradeEvent,
 } from '@/lib/trading';
+import type { Lang } from '@/i18n/lang';
 import { dayKey, weekKey } from '@/utils/date';
 
 export { HEART_REFILL_MS, MAX_HEARTS } from '@/lib/progress';
@@ -116,6 +117,8 @@ type Data = {
   practiceSessions: number;
   /** Sound effects and haptics on answers, chests and lesson ends. */
   sound: boolean;
+  /** The app's language: Persian (default) or English. */
+  language: Lang;
   /** The unit whose jump test is offered after onboarding to learners who said they know some trading. */
   placement: string | null;
   /** The daily practice reminder on phones: on or off, its hour, and whether we've offered it yet. */
@@ -177,6 +180,7 @@ type Actions = {
   openCourse: (courseId: string) => void;
   leaveCourse: (courseId: string) => void;
   setName: (name: string) => void;
+  setLanguage: (language: Lang) => void;
   /** Profile picture on this device; the account's copy is saved by profileApi.saveProfile. */
   setAvatar: (avatar: number) => void;
   setDailyGoal: (goal: number) => void;
@@ -264,6 +268,7 @@ function initialData(): Data {
     reviews: {},
     practiceSessions: 0,
     sound: true,
+    language: 'fa',
     reminders: { enabled: false, hour: DEFAULT_REMINDER_HOUR, offered: false },
     placement: null,
     mastered: [],
@@ -365,6 +370,7 @@ export const useGame = create<GameState>()(
       setAvatar: (avatar) => set({ avatar }),
       setDailyGoal: (dailyGoal) => set({ dailyGoal }),
       setSound: (sound) => set({ sound }),
+      setLanguage: (language) => set({ language }),
       setReminders: (patch) => set((s) => ({ reminders: { ...s.reminders, ...patch } })),
 
       setAnswers: (answers) => set((s) => ({ answers: { ...s.answers, ...answers } })),

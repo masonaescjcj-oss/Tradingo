@@ -18,6 +18,7 @@ import { UpdateBanner } from '@/components/InstallApp';
 import { Intro } from '@/components/Intro';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
+import { layoutDir, setLang, t } from '@/i18n';
 import { startCloudSync } from '@/lib/cloud';
 import { startPwa } from '@/lib/pwa';
 import { startReminders } from '@/lib/reminders';
@@ -26,7 +27,7 @@ import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 
 // react-native-web resolves start/end styles from the nearest `dir`, so the root declares it.
-const rtlProps = Platform.OS === 'web' ? ({ dir: 'rtl' } as object) : null;
+const dirProps = () => (Platform.OS === 'web' ? ({ dir: layoutDir() } as object) : null);
 
 const navTheme = {
   ...DarkTheme,
@@ -34,10 +35,16 @@ const navTheme = {
 };
 
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  // The whole app is Persian: lay out right-to-left on the web.
-  document.documentElement.dir = 'rtl';
-  document.documentElement.lang = 'fa';
   document.body.style.backgroundColor = colors.bg;
+}
+
+/** Persian lays out right to left, English left to right (the web page follows too). */
+function applyLanguage(language: 'fa' | 'en') {
+  setLang(language);
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    document.documentElement.dir = layoutDir();
+    document.documentElement.lang = language;
+  }
 }
 
 function useStoreHydrated() {
@@ -51,21 +58,21 @@ function useStoreHydrated() {
 /** Shown instead of a blank screen when something crashes while rendering. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
-    <View style={styles.page} {...rtlProps}>
+    <View style={[styles.page, { direction: layoutDir() }]} {...dirProps()}>
       <View style={[styles.column, styles.error]}>
         <Mascot mood="sad" size={120} />
         <Txt w={900} size={20} center>
-          یه چیزی خراب شد!
+          {t('یه چیزی خراب شد!')}
         </Txt>
         <Txt size={14} lh={1.8} color={colors.text2} center>
-          پیشرفتت سالمه. دوباره امتحان کن؛ اگه باز هم این صفحه اومد، برگرد به صفحه‌ی اصلی.
+          {t('پیشرفتت سالمه. دوباره امتحان کن؛ اگه باز هم این صفحه اومد، برگرد به صفحه‌ی اصلی.')}
         </Txt>
         <Txt mono size={11} color={colors.text3} center numberOfLines={3}>
           {error.message}
         </Txt>
-        <Button3D label="دوباره امتحان کن" onPress={retry} style={{ alignSelf: 'stretch' }} />
+        <Button3D label={t('دوباره امتحان کن')} onPress={retry} style={{ alignSelf: 'stretch' }} />
         <Button3D
-          label="صفحه‌ی اصلی"
+          label={t('صفحه‌ی اصلی')}
           variant="secondary"
           size={16}
           onPress={() => {
@@ -91,6 +98,10 @@ export default function RootLayout() {
     JetBrainsMono_800ExtraBold,
   });
   const hydrated = useStoreHydrated();
+  // The language is set before anything below renders; changing it rebuilds every screen
+  // (the key below), so all text and the layout direction switch at once.
+  const language = useGame((s) => s.language) ?? 'fa';
+  applyLanguage(language);
   // On a slow or unstable connection, don't wait forever for the fonts: show the app with
   // system fonts and let the brand fonts swap in when they arrive.
   const [fontsTimedOut, setFontsTimedOut] = useState(false);
@@ -122,7 +133,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style="light" />
-      <View style={styles.page} {...rtlProps}>
+      <View key={language} style={[styles.page, { direction: layoutDir() }]} {...dirProps()}>
         <View style={styles.column}>
           {fontsReady && hydrated ? (
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
