@@ -38,6 +38,7 @@ export type IconName =
   | 'volume'
   | 'mute'
   | 'phone'
+  | 'mail'
   | 'logout'
   | 'expand'
   | 'crosshair'
@@ -218,6 +219,13 @@ function renderIcon(name: IconName, p: Record<string, unknown>, color: string) {
         <>
           <Rect {...p} x={6.5} y={2.5} width={11} height={19} rx={2.5} />
           <Path {...p} d="M10.5 18.5h3" />
+        </>
+      );
+    case 'mail':
+      return (
+        <>
+          <Rect {...p} x={3} y={5} width={18} height={14} rx={2.5} />
+          <Path {...p} d="M3.5 6.5 12 13l8.5-6.5" />
         </>
       );
     case 'logout':

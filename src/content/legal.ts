@@ -33,7 +33,7 @@ const privacy: LegalDoc = {
     {
       title: 'با حساب کاربری',
       body: [
-        'وقتی حساب می‌سازی، شماره‌ی موبایل، اسمی که انتخاب می‌کنی و رمز عبورت رو نگه می‌داریم. رمز عبور فقط به‌صورت هش‌شده (bcrypt) ذخیره می‌شه و خود رمز هیچ‌وقت نگه داشته نمی‌شه.',
+        'وقتی حساب می‌سازی، ایمیل یا شماره‌ی موبایلی که باهاش ثبت‌نام می‌کنی، اسمی که انتخاب می‌کنی و رمز عبورت رو نگه می‌داریم. رمز عبور فقط به‌صورت هش‌شده (bcrypt) ذخیره می‌شه و خود رمز هیچ‌وقت نگه داشته نمی‌شه.',
         'برای این‌که پیشرفتت روی همه‌ی دستگاه‌هات یکی باشه، داده‌های اپ (امتیاز، درس‌های خونده‌شده، روزهای پیاپی، سکه، مأموریت‌ها، معامله‌های شبیه‌ساز و تنظیمات) روی سرور ذخیره می‌شه. امتیاز هفتگیت هم برای لیگ نگه داشته می‌شه.',
         'پیام‌ها و تحلیل‌هایی که توی گروه‌ها می‌فرستی و دوئل‌هایی که با دوستات بازی می‌کنی (راندها، امتیازها و اسم دو طرف) هم روی سرور ذخیره می‌شن.',
       ],
@@ -42,7 +42,7 @@ const privacy: LegalDoc = {
       title: 'چیزهایی که بقیه‌ی کاربرها می‌بینن',
       body: [
         'اسم و امتیاز هفتگیت توی جدول لیگ؛ اسم و پیام‌ها و تحلیل‌هایی که توی گروه‌های گفتگو می‌فرستی، برای اعضای همون گروه؛ و اسم و امتیازهای دوئل، برای دوستی که دوئلت رو بازی می‌کنه.',
-        'شماره‌ی موبایلت به هیچ کاربری نشون داده نمی‌شه. فقط مدیرهای چارتون، برای رسیدگی به گزارش‌ها و تخلف‌ها، اسم، شماره و پیام‌های گروه هر حساب رو می‌بینن و کارهاشون توی سابقه‌ی مدیریت ثبت می‌شه.',
+        'ایمیل و شماره‌ی موبایلت به هیچ کاربری نشون داده نمی‌شه. فقط مدیرهای چارتون، برای رسیدگی به گزارش‌ها و تخلف‌ها، اسم، ایمیل یا شماره و پیام‌های گروه هر حساب رو می‌بینن و کارهاشون توی سابقه‌ی مدیریت ثبت می‌شه.',
       ],
     },
     {
@@ -177,14 +177,14 @@ export const ACCOUNT_DELETION = {
     {
       title: 'بدون اپ، از مرورگر',
       body: [
-        'توی مرورگر app.chartoon.net رو باز کن و با شماره‌ی موبایل و رمز عبورت وارد شو.',
+        'توی مرورگر app.chartoon.net رو باز کن و با ایمیل یا شماره‌ی موبایل و رمز عبورت وارد شو.',
         'بعد همون مسیر: «پروفایل ← حساب کاربری ← حذف حساب».',
       ],
     },
     {
       title: 'چه چیزهایی پاک می‌شه',
       body: [
-        'حساب کاربری (شماره‌ی موبایل، اسم و هش رمز عبور) و همه‌ی ورودهای فعالش روی دستگاه‌های دیگه.',
+        'حساب کاربری (ایمیل یا شماره‌ی موبایل، اسم و هش رمز عبور) و همه‌ی ورودهای فعالش روی دستگاه‌های دیگه.',
         'پیشرفت ذخیره‌شده روی سرور: امتیاز، درس‌ها، روزهای پیاپی، سکه، مأموریت‌ها، معامله‌های شبیه‌ساز و تنظیمات.',
         'امتیاز لیگ، عضویت در گروه‌ها، همه‌ی پیام‌ها و تحلیل‌هایی که توی گروه‌ها فرستادی، دوئل‌هایی که ساختی و آمار استفاده از دستیار هوش مصنوعی.',
         'پیشرفت ذخیره‌شده روی همون دستگاهی که باهاش حساب رو حذف می‌کنی.',
@@ -207,15 +207,15 @@ export const ACCOUNT_DELETION = {
     {
       title: 'اگه به حسابت دسترسی نداری',
       body: [
-        'اگه رمزت رو یادت نیست، به ایمیل پشتیبانی که توی صفحه‌ی چارتون در فروشگاه اپ نوشته شده پیام بده و شماره‌ی موبایل حساب رو بنویس. بعد از این‌که مطمئن شدیم حساب مال خودته، حساب و اطلاعاتش پاک می‌شه.',
+        'اگه رمزت رو یادت نیست، به ایمیل پشتیبانی که توی صفحه‌ی چارتون در فروشگاه اپ نوشته شده پیام بده و ایمیل یا شماره‌ی موبایل حساب رو بنویس. بعد از این‌که مطمئن شدیم حساب مال خودته، حساب و اطلاعاتش پاک می‌شه.',
       ],
     },
   ],
   /** For store reviewers who don't read Persian. */
   english: [
     'Delete your Chartoon account: in the Android app or at app.chartoon.net, sign in and open Profile → Account → Delete account, then confirm with your password. Deletion is immediate and permanent.',
-    'Deleted: your account (mobile number, name, password hash) and sessions; progress saved on the server (XP, lessons, streaks, coins, quests, simulator trades, settings); league points, group memberships and all your chat messages; duels you created; AI assistant usage counts; and progress on the device you delete from.',
+    'Deleted: your account (email or mobile number, name, password hash) and sessions; progress saved on the server (XP, lessons, streaks, coins, quests, simulator trades, settings); league points, group memberships and all your chat messages; duels you created; AI assistant usage counts; and progress on the device you delete from.',
     'Kept: in duels you played against a friend, the friend keeps the result with your name replaced by "deleted account"; lesson problem reports are kept without any link to you; automatic database backups kept by our server provider (Supabase) expire on its schedule after a few days.',
-    'Guest users (no account) have no data on our servers. If you cannot sign in, write to the support email on our store page with your account\'s mobile number.',
+    'Guest users (no account) have no data on our servers. If you cannot sign in, write to the support email on our store page with your account\'s email or mobile number.',
   ],
 };

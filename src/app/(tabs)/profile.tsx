@@ -16,9 +16,9 @@ import { Txt } from '@/components/Txt';
 import { courseProgress, findCourse, findUnit, type Course } from '@/content';
 import { cloudSetName, useCloud } from '@/lib/cloud';
 import { LEAGUES } from '@/lib/league';
+import { loginText } from '@/lib/login';
 import { resetTo } from '@/lib/nav';
 import { profileCard, type ShareCard } from '@/lib/shareCard';
-import { formatMobile } from '@/lib/phone';
 import { currentStreak, useGame } from '@/store/game';
 import { colors, fonts } from '@/theme';
 import { fa, faNum } from '@/utils/format';
@@ -129,9 +129,9 @@ export default function ProfileScreen() {
               {game.user ? 'حساب کاربری' : 'ساخت حساب یا ورود'}
             </Txt>
             {game.user ? (
-              // Mono text reads left to right, so the number's groups don't flip in the RTL row.
+              // Mono text reads left to right, so an email or a number's groups don't flip in the RTL row.
               <Txt mono size={12} color={colors.text3} numberOfLines={1} style={{ alignSelf: 'flex-start' }}>
-                {formatMobile(game.user.mobile)}
+                {loginText(game.user.login)}
               </Txt>
             ) : (
               <Txt w={500} size={12} color={colors.text3} numberOfLines={1}>

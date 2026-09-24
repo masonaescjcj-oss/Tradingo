@@ -5,12 +5,13 @@ import { StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
 import { MIN_PASSWORD, register } from '@/lib/auth';
-import { normalizeMobile } from '@/lib/phone';
+import { normalizeLogin, type LoginMethod } from '@/lib/login';
 import { cloudEnabled } from '@/lib/supabase';
 import { colors } from '@/theme';
 import { fa } from '@/utils/format';
 
 import { AuthField } from './AuthField';
+import { LOGIN_INVALID, LoginField, MethodTabs } from './LoginField';
 
 type Props = {
   initialName?: string;
@@ -20,18 +21,19 @@ type Props = {
   onSkip?: (name: string) => void;
 };
 
-/** Name, mobile and password; no verification code for now. */
+/** Email (the default) or mobile number, name and password; no verification code for now. */
 export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
+  const [method, setMethod] = useState<LoginMethod>('email');
+  const [typed, setTyped] = useState<Record<LoginMethod, string>>({ email: '', mobile: '' });
   const [name, setName] = useState(initialName);
-  const [mobile, setMobile] = useState('');
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const normalized = normalizeMobile(mobile);
+  const normalized = normalizeLogin(method, typed[method]);
   const nameError = touched && !name.trim() ? 'اسمت رو بنویس.' : null;
-  const mobileError = touched && !normalized ? 'یه شماره موبایل درست بنویس؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹' : null;
+  const loginError = touched && !normalized ? LOGIN_INVALID[method] : null;
   const passwordError = touched && password.length < MIN_PASSWORD ? `رمز باید حداقل ${fa(MIN_PASSWORD)} کاراکتر باشه.` : null;
 
   const submit = async () => {
@@ -47,6 +49,13 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
 
   return (
     <View style={{ gap: 14 }}>
+      <MethodTabs
+        method={method}
+        onChange={(m) => {
+          setMethod(m);
+          setError(null);
+        }}
+      />
       <AuthField
         label="اسمت"
         icon="user"
@@ -58,18 +67,12 @@ export function SignupForm({ initialName = '', onDone, onSkip }: Props) {
         error={nameError}
         hint="توی لیگ و پروفایلت نشون داده می‌شه."
       />
-      <AuthField
-        label="شماره موبایل"
-        icon="phone"
-        ltr
-        value={mobile}
-        onChangeText={setMobile}
-        placeholder="09123456789"
-        keyboardType="phone-pad"
-        autoComplete="tel"
-        maxLength={16}
-        error={mobileError}
-        hint="کد تأیید لازم نیست؛ همین الان شروع کن."
+      <LoginField
+        method={method}
+        value={typed[method]}
+        onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))}
+        error={loginError}
+        hint={method === 'email' ? 'به هیچ کاربری نشون داده نمی‌شه؛ کد تأیید هم لازم نیست.' : 'فعلاً فقط شماره‌های ایران؛ کد تأیید لازم نیست.'}
       />
       <AuthField
         label="رمز عبور"

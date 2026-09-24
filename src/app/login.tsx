@@ -11,7 +11,7 @@ import { resetTo } from '@/lib/nav';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
 
-/** Sign in with mobile and password. */
+/** Sign in with an email or a mobile number and the password. */
 export default function LoginScreen() {
   const user = useGame((s) => s.user);
   return (
@@ -22,12 +22,12 @@ export default function LoginScreen() {
           <Mascot mood="happy" size={84} />
           <SpeechBubble style={{ flex: 1 }}>
             <Txt w={800} size={16} lh={1.7}>
-              {user ? `سلام ${user.name}! رمزت رو بزن و برگرد سر درس‌ها.` : 'خوش برگشتی! با شماره موبایلت وارد شو.'}
+              {user ? `سلام ${user.name}! رمزت رو بزن و برگرد سر درس‌ها.` : 'خوش برگشتی! با ایمیل یا شماره موبایلت وارد شو.'}
             </Txt>
           </SpeechBubble>
         </View>
         <LoginForm
-          initialMobile={user?.mobile}
+          initialLogin={user?.login}
           onDone={() => resetTo(useGame.getState().onboarded ? '/(tabs)' : '/onboarding')}
         />
         <Txt size={14} color={colors.text2} center>

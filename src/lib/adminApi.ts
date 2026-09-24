@@ -1,7 +1,8 @@
 /**
  * Server calls for the admin panel (supabase/migrations/20260930000000_tradingo_admin.sql).
  * Every call checks on the server that the session belongs to an admin; the app only decides
- * whether to show the panel.
+ * whether to show the panel. Nobody becomes an admin from the app itself: the owner's email or
+ * number is listed on the server, and other admins are made from the panel.
  */
 import { fa } from '@/utils/format';
 
@@ -27,7 +28,9 @@ export type AdminMessage = {
 export type AdminUser = {
   id: string;
   name: string;
-  mobile: string;
+  /** The account signs in with its email or its mobile number (older accounts: the number). */
+  email: string | null;
+  mobile: string | null;
   role: 'user' | 'admin';
   created_at: string;
   banned: boolean;
@@ -97,7 +100,7 @@ export type AdminRoom = {
   open_reports: number;
 };
 
-/** Whether the server has the groups tab and setup codes (version 7). */
+/** Whether the server has the groups tab (version 7). */
 export async function roomsAvailable(): Promise<boolean> {
   return (await serverVersion()) >= 7;
 }
@@ -109,15 +112,6 @@ export async function fetchRooms(): Promise<RpcResult<AdminRoom[]>> {
 
 /** Deletes a group learners made, with its messages; official groups can't be deleted. */
 export const deleteRoom = (id: string) => call<{ ok: boolean }>('tradingo_admin_room_delete', { p_room: id });
-
-/** A setup code as typed: any case, with or without dashes and spaces → XXXX-XXXX-XXXX-XXXX. */
-export function normalizeSetupCode(code: string): string {
-  const raw = latinDigits(code).toUpperCase().replace(/[^A-Z0-9]/g, '');
-  return raw.length === 16 ? (raw.match(/.{4}/g) ?? []).join('-') : code.trim().toUpperCase();
-}
-
-/** Makes the signed-in account an admin with the one-time setup code from the server. */
-export const claimAdmin = (code: string) => call<{ ok: boolean }>('tradingo_admin_claim', { p_code: normalizeSetupCode(code) });
 
 export async function fetchAdminMessages(opts: { reported?: boolean; room?: string; account?: string; before?: number } = {}): Promise<RpcResult<AdminMessage[]>> {
   const res = await call<AdminMessage[]>('tradingo_admin_messages', {
@@ -132,8 +126,8 @@ export async function fetchAdminMessages(opts: { reported?: boolean; room?: stri
 export const moderateMessage = (id: number, action: 'delete' | 'keep') => call<{ ok: boolean }>('tradingo_admin_message', { p_message: id, p_action: action });
 
 export async function fetchUsers(query: string, filter: UserFilter): Promise<RpcResult<AdminUser[]>> {
-  // Persian digits typed in the search box become the Latin ones mobile numbers are stored with.
-  const res = await call<AdminUser[]>('tradingo_admin_users', { p_query: latinDigits(query.trim()), p_filter: filter });
+  // Persian digits typed in the search box become the Latin ones logins are stored with.
+  const res = await call<AdminUser[]>('tradingo_admin_users', { p_query: latinDigits(query.trim()).toLowerCase(), p_filter: filter });
   return res.ok ? { ok: true, value: Array.isArray(res.value) ? res.value : [] } : res;
 }
 
@@ -171,7 +165,6 @@ const ERRORS: Record<string, string> = {
   openai_needs_model_and_url: 'برای سرویس سازگار با OpenAI، اسم مدل و آدرس API لازمه.',
   invalid_limit: 'سقف روزانه باید بین ۱ تا ۱۰۰۰ باشه.',
   invalid_provider: 'سرویس انتخاب‌شده درست نیست.',
-  invalid_code: 'این کد درست نیست، قبلاً استفاده شده یا منقضی شده.',
   official_room: 'گروه‌های رسمی حذف نمی‌شن؛ پیام‌هاشون رو مدیریت کن.',
   session: 'نشستت روی سرور تموم شده؛ دوباره وارد حسابت شو.',
   network: 'به سرور وصل نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.',
@@ -195,7 +188,7 @@ export function logText(action: string, target: string | null): string {
     delete_message: `یه پیام از ${t} رو حذف کرد`,
     keep_message: `گزارش پیام ${t} رو رد کرد`,
     ai_settings: 'تنظیمات هوش مصنوعی رو عوض کرد',
-    claim_admin: 'با کد راه‌اندازی مدیر شد',
+    owner_admin: 'با حساب مالک وارد شد و مدیر شد',
     delete_room: `یه گروه از ${t} رو حذف کرد`,
   };
   return lines[action] ?? action;

@@ -2,6 +2,12 @@
 -- Nothing belonging to other apps is touched. The tradingo-coach Edge Function is removed
 -- separately (Supabase → Edge Functions → tradingo-coach → Delete).
 drop function if exists
+  public.tradingo_register(text, text, text),
+  public.tradingo_login(text, text),
+  public.tradingo_owner_check(uuid),
+  public.tradingo_login_norm(text);
+drop table if exists public.tradingo_admin_logins;
+drop function if exists
   public.tradingo_admin_claim(text, text),
   public.tradingo_admin_rooms(text),
   public.tradingo_admin_room_delete(text, uuid),

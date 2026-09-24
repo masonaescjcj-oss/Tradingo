@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import { pickData, useGame, type GameData } from '@/store/game';
 
+import { loginMethod, type LoginMethod } from './login';
 import { mergeProgress } from './merge';
 import { safeStorage } from './storage';
 
@@ -12,9 +13,9 @@ type Status = 'off' | 'signedOut' | 'syncing' | 'synced' | 'error';
 
 type CloudState = {
   status: Status;
-  /** Mobile number of the signed-in cloud account. */
-  mobile: string | null;
-  /** Set while signed in to the server (the mobile number). */
+  /** The email or mobile number the server account signs in with. */
+  login: string | null;
+  /** Set while signed in to the server (the login). */
   userId: string | null;
   lastSyncedAt: number | null;
   error: string | null;
@@ -27,7 +28,7 @@ type CloudState = {
 /** Server account and sync status, for the account and league screens. */
 export const useCloud = create<CloudState>()(() => ({
   status: cloudEnabled ? 'signedOut' : 'off',
-  mobile: null,
+  login: null,
   userId: null,
   lastSyncedAt: null,
   error: null,
@@ -35,7 +36,7 @@ export const useCloud = create<CloudState>()(() => ({
   muted: null,
 }));
 
-type Session = { token: string; mobile: string };
+type Session = { token: string; login: string };
 const SESSION_KEY = 'tradingo-session';
 let session: Session | null = null;
 
@@ -165,8 +166,8 @@ async function setSession(next: Session | null) {
   session = next;
   useCloud.setState(
     next
-      ? { mobile: next.mobile, userId: next.mobile, error: null }
-      : { status: cloudEnabled ? 'signedOut' : 'off', mobile: null, userId: null, admin: false, muted: null },
+      ? { login: next.login, userId: next.login, error: null }
+      : { status: cloudEnabled ? 'signedOut' : 'off', login: null, userId: null, admin: false, muted: null },
   );
   if (next) await safeStorage.setItem(SESSION_KEY, JSON.stringify(next));
   else await safeStorage.removeItem(SESSION_KEY);
@@ -247,8 +248,10 @@ export function startCloudSync() {
   safeStorage.getItem(SESSION_KEY).then((raw) => {
     if (!raw || session) return;
     try {
-      const saved = JSON.parse(raw) as Session;
-      if (saved.token && saved.mobile) setSession(saved).then(syncNow);
+      // Sessions saved before email sign-in kept the mobile number as `mobile`.
+      const saved = JSON.parse(raw) as Partial<Session> & { mobile?: string };
+      const login = saved.login ?? saved.mobile;
+      if (saved.token && login) setSession({ token: saved.token, login }).then(syncNow);
     } catch {
       // A broken saved session is simply ignored.
     }
@@ -270,7 +273,7 @@ export function startCloudSync() {
 
 const AUTH_ERRORS: Record<string, string> = {
   mobile_taken: 'با این شماره قبلاً حساب ساخته شده؛ وارد شو.',
-  invalid_credentials: 'شماره موبایل یا رمز عبور درست نیست.',
+  email_taken: 'با این ایمیل قبلاً حساب ساخته شده؛ وارد شو.',
   locked: 'چند بار رمز اشتباه زده شده؛ ۱۵ دقیقه‌ی دیگه دوباره امتحان کن.',
   weak_password: 'رمز باید بین ۶ تا ۷۲ کاراکتر باشه.',
   invalid_mobile: 'شماره موبایل درست نیست.',
@@ -279,15 +282,32 @@ const AUTH_ERRORS: Record<string, string> = {
   banned: 'این حساب به خاطر نقض قوانین چارتون مسدود شده.',
 };
 
-type AuthResult = { error: string | null; offline?: boolean; name?: string };
+/** A server error as the learner reads it; wrong-login errors name the email or the number. */
+export function authErrorText(code: string, method: LoginMethod, fallback = 'انجام نشد؛ دوباره امتحان کن.'): string {
+  const what = method === 'email' ? 'ایمیل' : 'شماره موبایل';
+  if (code === 'invalid_credentials') return `${what} یا رمز عبور درست نیست.`;
+  if (code === 'invalid_login') return `${what} درست نیست.`;
+  return AUTH_ERRORS[code] ?? fallback;
+}
 
-async function authenticate(fn: 'tradingo_sign_up' | 'tradingo_sign_in', args: Record<string, unknown>, mobile: string): Promise<AuthResult> {
+/** `code` is the server's error, for callers that act on it (an account that already exists). */
+type AuthResult = { error: string | null; code?: string; offline?: boolean; name?: string };
+
+/** Servers from version 8 sign in with an email or a number; older ones only with a number. */
+async function emailSignIn(): Promise<boolean | null> {
+  const v = await serverVersion();
+  return v === 0 ? null : v >= 8;
+}
+
+const EMAIL_NOT_READY = 'ورود با ایمیل هنوز روی سرور فعال نشده؛ فعلاً با شماره موبایل ادامه بده.';
+
+async function authenticate(fn: string, args: Record<string, unknown>, login: string, fallback: string): Promise<AuthResult> {
   // Without the server functions (not installed yet, or unreachable) the account stays on this device.
   if (!(await serverReady())) return { error: null, offline: true };
   try {
     const res = await rpc<{ token?: string; name?: string; error?: string }>(fn, args);
-    if (res.error || !res.token) return { error: AUTH_ERRORS[res.error ?? ''] ?? 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.' };
-    await setSession({ token: res.token, mobile });
+    if (res.error || !res.token) return { error: authErrorText(res.error ?? '', loginMethod(login), fallback), code: res.error };
+    await setSession({ token: res.token, login });
     await syncNow();
     return { error: null, name: res.name };
   } catch (e) {
@@ -297,13 +317,21 @@ async function authenticate(fn: 'tradingo_sign_up' | 'tradingo_sign_in', args: R
 }
 
 /** Creates the server account. `offline` means the server isn't available and the caller keeps a device-only account. */
-export function cloudSignUp(mobile: string, password: string, name: string): Promise<AuthResult> {
-  return authenticate('tradingo_sign_up', { p_mobile: mobile, p_password: password, p_name: name }, mobile);
+export async function cloudSignUp(login: string, password: string, name: string): Promise<AuthResult> {
+  const modern = await emailSignIn();
+  if (modern === false && loginMethod(login) === 'email') return { error: EMAIL_NOT_READY };
+  return modern === false
+    ? authenticate('tradingo_sign_up', { p_mobile: login, p_password: password, p_name: name }, login, 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.')
+    : authenticate('tradingo_register', { p_login: login, p_password: password, p_name: name }, login, 'ثبت‌نام انجام نشد؛ دوباره امتحان کن.');
 }
 
 /** Signs in on the server and merges the saved progress. */
-export function cloudSignIn(mobile: string, password: string): Promise<AuthResult> {
-  return authenticate('tradingo_sign_in', { p_mobile: mobile, p_password: password }, mobile);
+export async function cloudSignIn(login: string, password: string): Promise<AuthResult> {
+  const modern = await emailSignIn();
+  if (modern === false && loginMethod(login) === 'email') return { error: EMAIL_NOT_READY };
+  return modern === false
+    ? authenticate('tradingo_sign_in', { p_mobile: login, p_password: password }, login, 'ورود انجام نشد؛ دوباره امتحان کن.')
+    : authenticate('tradingo_login', { p_login: login, p_password: password }, login, 'ورود انجام نشد؛ دوباره امتحان کن.');
 }
 
 export async function cloudSignOut() {
@@ -316,17 +344,21 @@ export async function cloudSignOut() {
  * Deletes the server account after checking the password; signs in first if this device's
  * session has ended. Returns an error message, or null once the account is gone.
  */
-export async function cloudDeleteAccount(mobile: string, password: string): Promise<string | null> {
+export async function cloudDeleteAccount(login: string, password: string): Promise<string | null> {
   try {
     let token = session?.token ?? null;
     if (!token) {
-      const res = await rpc<{ token?: string; error?: string }>('tradingo_sign_in', { p_mobile: mobile, p_password: password });
-      if (!res.token) return AUTH_ERRORS[res.error ?? ''] ?? 'ورود انجام نشد؛ دوباره امتحان کن.';
+      const modern = (await emailSignIn()) !== false;
+      const res = await rpc<{ token?: string; error?: string }>(
+        modern ? 'tradingo_login' : 'tradingo_sign_in',
+        modern ? { p_login: login, p_password: password } : { p_mobile: login, p_password: password },
+      );
+      if (!res.token) return authErrorText(res.error ?? '', loginMethod(login), 'ورود انجام نشد؛ دوباره امتحان کن.');
       token = res.token;
     }
     const res = await rpc<{ ok?: boolean; error?: string }>('tradingo_delete_account', { p_token: token, p_password: password });
     if (res.error === 'invalid_credentials') return 'رمز عبور درست نیست.';
-    if (res.error) return AUTH_ERRORS[res.error] ?? 'حذف حساب انجام نشد؛ دوباره امتحان کن.';
+    if (res.error) return authErrorText(res.error, loginMethod(login), 'حذف حساب انجام نشد؛ دوباره امتحان کن.');
     await setSession(null);
     return null;
   } catch {

@@ -119,8 +119,8 @@ export function UserCard({ user: u, actions }: { user: AdminUser; actions: React
         {u.banned ? <Badge label="مسدود" color={colors.bearSoft} ink={colors.bearText} /> : null}
         {u.muted ? <Badge label="چت بسته" color={colors.goldSoft} ink={colors.gold} /> : null}
       </View>
-      <Txt mono size={12} color={colors.text2}>
-        {u.mobile}
+      <Txt mono size={12} color={colors.text2} numberOfLines={1}>
+        {u.email ?? u.mobile}
       </Txt>
       <Txt size={12} lh={1.7} color={colors.text3}>
         {[

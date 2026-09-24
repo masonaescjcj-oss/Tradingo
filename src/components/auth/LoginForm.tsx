@@ -4,22 +4,25 @@ import { StyleSheet, View } from 'react-native';
 import { Button3D } from '@/components/Button3D';
 import { Txt } from '@/components/Txt';
 import { login } from '@/lib/auth';
-import { normalizeMobile } from '@/lib/phone';
+import { loginMethod, normalizeLogin, type LoginMethod } from '@/lib/login';
 import { colors } from '@/theme';
 
 import { AuthField } from './AuthField';
+import { LOGIN_INVALID, LoginField, MethodTabs } from './LoginField';
 
-/** Mobile + password sign-in. */
-export function LoginForm({ initialMobile = '', onDone }: { initialMobile?: string; onDone: () => void }) {
-  const [mobile, setMobile] = useState(initialMobile);
+/** Email (the default) or mobile number, and the password. `initialLogin` picks its tab. */
+export function LoginForm({ initialLogin = '', onDone }: { initialLogin?: string; onDone: () => void }) {
+  const first: LoginMethod = initialLogin ? loginMethod(initialLogin) : 'email';
+  const [method, setMethod] = useState<LoginMethod>(first);
+  const [typed, setTyped] = useState<Record<LoginMethod, string>>({ email: '', mobile: '', [first]: initialLogin });
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const normalized = normalizeMobile(mobile);
+  const normalized = normalizeLogin(method, typed[method]);
 
   const submit = async () => {
     if (!normalized) {
-      setError('یه شماره موبایل درست بنویس؛ مثلاً ۰۹۱۲۳۴۵۶۷۸۹');
+      setError(LOGIN_INVALID[method]);
       return;
     }
     if (!password) {
@@ -36,17 +39,14 @@ export function LoginForm({ initialMobile = '', onDone }: { initialMobile?: stri
 
   return (
     <View style={{ gap: 14 }}>
-      <AuthField
-        label="شماره موبایل"
-        icon="phone"
-        ltr
-        value={mobile}
-        onChangeText={setMobile}
-        placeholder="09123456789"
-        keyboardType="phone-pad"
-        autoComplete="tel"
-        maxLength={16}
+      <MethodTabs
+        method={method}
+        onChange={(m) => {
+          setMethod(m);
+          setError(null);
+        }}
       />
+      <LoginField method={method} value={typed[method]} onChangeText={(text) => setTyped((t) => ({ ...t, [method]: text }))} />
       <AuthField
         label="رمز عبور"
         icon="lock"

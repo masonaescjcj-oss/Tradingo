@@ -180,7 +180,7 @@ const FILTERS: [UserFilter, string][] = [
   ['admins', 'مدیرها'],
 ];
 
-/** Accounts: search by name or mobile, filter by standing, and act on them. */
+/** Accounts: search by name, email or mobile, filter by standing, and act on them. */
 export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify; onChanged: () => void; onShowMessages: (u: AdminUser) => void }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<UserFilter>('all');
@@ -200,7 +200,7 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
       clearTimeout(t);
     };
   }, [query, filter, notify]);
-  const myMobile = useCloud((s) => s.mobile);
+  const myLogin = useCloud((s) => s.login);
   const { ask, element } = useUserActions(notify, (u) => {
     setItems((prev) => prev?.map((x) => (x.id === u.id ? u : x)) ?? null);
     onChanged();
@@ -208,7 +208,7 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
 
   return (
     <View style={styles.list}>
-      <TextInput value={query} onChangeText={setQuery} placeholder="جستجوی اسم یا شماره موبایل" placeholderTextColor={colors.faint} style={adminStyles.input} />
+      <TextInput value={query} onChangeText={setQuery} placeholder="جستجوی اسم، ایمیل یا شماره" placeholderTextColor={colors.faint} style={adminStyles.input} />
       <View style={styles.chips}>
         {FILTERS.map(([key, label]) => (
           <Pressable key={key} onPress={() => setFilter(key)} accessibilityRole="radio" accessibilityState={{ checked: filter === key }} style={[styles.chip, filter === key && styles.chipOn]}>
@@ -228,7 +228,7 @@ export function UsersTab({ notify, onChanged, onShowMessages }: { notify: Notify
             <>
               <SmallButton label="پیام‌ها" onPress={() => onShowMessages(u)} />
               {/* Nothing to do to your own account here; the server refuses it anyway. */}
-              {u.mobile === myMobile ? null : (
+              {(u.email ?? u.mobile) === myLogin ? null : (
                 <>
                   {u.muted ? <SmallButton label="باز کردن چت" tone="good" onPress={() => ask.unmute(u.id)} /> : u.role !== 'admin' && !u.banned ? <SmallButton label="بستن چت" onPress={() => ask.mute(u.id, u.name)} /> : null}
                   {u.banned ? <SmallButton label="رفع مسدودی" tone="good" onPress={() => ask.unban(u.id)} /> : u.role !== 'admin' ? <SmallButton label="مسدود کردن" tone="danger" onPress={() => ask.ban(u.id, u.name)} /> : null}

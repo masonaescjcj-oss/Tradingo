@@ -52,19 +52,31 @@ describe('admin panel', () => {
     assert.doesNotMatch(status, /'api_key'/);
   });
 
-  it('lets the owner become the first admin with a one-time code, and lists every group', async () => {
+  it('lists every group, and deletes only the ones learners made', async () => {
     const sql = readFileSync(join(__dirname, '..', 'supabase/migrations/20261001000000_tradingo_admin_rooms.sql'), 'utf8');
     assert.match(sql, /as \$\$ select 7 \$\$/);
-    // Only a hash of the code is kept, it expires, and it's used up.
-    assert.match(sql, /extensions\.digest\(btrim\(coalesce\(p_code, ''\)\), 'sha256'\)/);
-    assert.match(sql, /interval '7 days'/);
-    assert.match(sql, /delete from public\.tradingo_settings where key = 'admin_claim_hash'/);
     assert.match(sql, /if v_room\.official then/);
     const { logText } = await import('../src/lib/adminApi');
     assert.equal(logText('delete_room', 'رضا'), 'یه گروه از رضا رو حذف کرد');
-    assert.equal(logText('claim_admin', 'اسحاق'), 'با کد راه‌اندازی مدیر شد');
-    const { normalizeSetupCode } = await import('../src/lib/adminApi');
-    assert.equal(normalizeSetupCode(' udld wz6x-6lwz em2w '), 'UDLD-WZ6X-6LWZ-EM2W');
-    assert.equal(normalizeSetupCode('UDLDWZ6X6LWZEM2W'), 'UDLD-WZ6X-6LWZ-EM2W');
+  });
+
+  it('makes the owner an admin from the server list only, with nothing in the app that shows it', async () => {
+    const sql = readFileSync(join(__dirname, '..', 'supabase/migrations/20261002000000_tradingo_email_login.sql'), 'utf8');
+    assert.match(sql, /as \$\$ select 8 \$\$/);
+    // The list can't be read or changed through the API, and the setup code is gone.
+    assert.match(sql, /revoke all on public\.tradingo_admin_logins from anon, authenticated;/);
+    assert.match(sql, /revoke all on function public\.tradingo_owner_check\(uuid\) from public, anon, authenticated;/);
+    assert.doesNotMatch(sql, /grant [^;]*tradingo_owner_check/);
+    assert.match(sql, /drop function if exists public\.tradingo_admin_claim\(text, text\);/);
+    assert.match(sql, /delete from public\.tradingo_settings where key = 'admin_claim_hash';/);
+    // Checked on every sign-in and status call, and never for a banned account.
+    assert.equal(sql.match(/perform public\.tradingo_owner_check\(/g)?.length, 3);
+    assert.match(sql, /and a\.banned_at is null/);
+    const app = ['src/app/account.tsx', 'src/lib/adminApi.ts', 'src/components/auth/SignupForm.tsx', 'src/components/auth/LoginForm.tsx']
+      .map((f) => readFileSync(join(__dirname, '..', f), 'utf8'))
+      .join('\n');
+    assert.doesNotMatch(app, /tradingo_admin_claim|کد راه‌اندازی|admin_logins/);
+    const { logText } = await import('../src/lib/adminApi');
+    assert.equal(logText('owner_admin', 'اسحاق'), 'با حساب مالک وارد شد و مدیر شد');
   });
 });

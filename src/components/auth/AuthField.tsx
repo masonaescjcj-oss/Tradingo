@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { Icon, type IconName } from '@/components/Icon';
@@ -14,10 +14,12 @@ type Props = Omit<TextInputProps, 'style'> & {
   secret?: boolean;
   hint?: string;
   error?: string | null;
+  /** Shown at the start of a left-to-right value (the country code of a number), after a divider. */
+  prefix?: ReactNode;
 };
 
 /** A labelled text field with an icon, used by sign-up and login. */
-export function AuthField({ label, icon, ltr, secret, hint, error, ...input }: Props) {
+export function AuthField({ label, icon, ltr, secret, hint, error, prefix, ...input }: Props) {
   const [focused, setFocused] = useState(false);
   const [shown, setShown] = useState(false);
   const border = error ? colors.bear : focused ? colors.sky : colors.line;
@@ -43,6 +45,12 @@ export function AuthField({ label, icon, ltr, secret, hint, error, ...input }: P
           }}
           style={[styles.input, ltr ? styles.ltr : styles.rtl]}
         />
+        {prefix ? (
+          <>
+            <View style={styles.divider} />
+            {prefix}
+          </>
+        ) : null}
         {secret && (
           <Pressable
             onPress={() => setShown((v) => !v)}
@@ -87,6 +95,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     fontSize: 16,
     outlineWidth: 0,
+  },
+  divider: {
+    width: 1.5,
+    height: 26,
+    borderRadius: 1,
+    backgroundColor: colors.line,
   },
   ltr: {
     textAlign: 'left',

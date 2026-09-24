@@ -6,6 +6,7 @@ import type { ChestReward } from '@/lib/chest';
 import type { Drawing } from '@/lib/drawings';
 import type { Timeframe } from '@/lib/marketData';
 import { buildBoard, DEMOTE_COUNT, LEAGUES, PROMOTE_COUNT, userRank } from '@/lib/league';
+import { withLogin } from '@/lib/login';
 import { advanceStreak, heartsNow, MAX_FREEZES, MAX_HEARTS, REPAIR_MIN, streakRepair, todaysXp, type LostStreak } from '@/lib/progress';
 import { addToLog, logFor, questsDone, questsFor, type QuestLog, type QuestMetric } from '@/lib/quests';
 import { extendBoost, PRICES, type BuyResult, type ShopItemId } from '@/lib/shop';
@@ -42,8 +43,8 @@ export type Level = 'new' | 'some' | 'pro';
 
 export type UserAccount = {
   name: string;
-  /** 09XXXXXXXXX */
-  mobile: string;
+  /** What the learner signs in with: an email in lower case, or a mobile number as 09XXXXXXXXX. */
+  login: string;
   /** Salted SHA-256, only for signing back in on this device. */
   passwordHash: string;
   createdAt: number;
@@ -117,7 +118,7 @@ type Data = {
   reminders: { enabled: boolean; hour: number; offered: boolean };
   /** Units whose mastery test was passed; they show a crown on the path. */
   mastered: string[];
-  /** The learner's account on this device (mobile + password, no verification code yet). */
+  /** The learner's account on this device (email or mobile + password, no verification code yet). */
   user: UserAccount | null;
   /** True after "sign out": the progress stays on the device until they sign in again. */
   signedOut: boolean;
@@ -661,7 +662,7 @@ export const useGame = create<GameState>()(
     }),
     {
       name: 'tradingo-game',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => safeStorage),
       migrate: (persisted, version) => {
         let state = persisted as Partial<Data>;
@@ -674,6 +675,8 @@ export const useGame = create<GameState>()(
           const active = canonicalCourseId(state.activeCourse ?? enrolled[0]);
           state = { ...state, enrolled, activeCourse: enrolled.includes(active) ? active : enrolled[0] };
         }
+        // v4 added email sign-in: an account's mobile number became its login.
+        if (version < 4 && state.user) state = { ...state, user: withLogin(state.user as UserAccount & { mobile?: string }) };
         return state as GameState;
       },
     },

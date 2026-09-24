@@ -51,5 +51,5 @@ export function sha256(message: string): string {
   return H.map((x) => (x >>> 0).toString(16).padStart(8, '0')).join('');
 }
 
-/** The stored form of a device-only password, salted with the mobile number. */
-export const passwordHash = (mobile: string, password: string) => sha256(`tradingo:${mobile}:${password}`);
+/** The stored form of a device-only password, salted with the login (email or mobile number). */
+export const passwordHash = (login: string, password: string) => sha256(`tradingo:${login}:${password}`);
