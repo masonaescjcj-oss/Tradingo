@@ -51,7 +51,7 @@ export default function PracticeScreen() {
     .sort((a, b) => Number(b.started) - Number(a.started) || a.ratio - b.ratio)[0];
 
   return (
-    <Screen>
+    <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
           تمرین

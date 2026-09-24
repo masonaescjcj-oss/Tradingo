@@ -1,6 +1,7 @@
 import { router, useIsFocused } from 'expo-router';
 import { useEffect, useEffectEvent, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button3D } from '@/components/Button3D';
 import { CoachRow, RoomRow } from '@/components/chat/ChatBits';
@@ -70,7 +71,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <Screen>
+    <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
           گفتگو
@@ -198,6 +199,7 @@ export default function ChatScreen() {
 }
 
 function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; onClose: () => void; onCreated: (id: string) => void }) {
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState('');
   const [about, setAbout] = useState('');
   const [topic, setTopic] = useState<ChatTopic>('general');
@@ -230,7 +232,8 @@ function CreateRoomSheet({ visible, onClose, onCreated }: { visible: boolean; on
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.sheetBackdrop}>
-        <View style={styles.sheet}>
+        {/* Modals draw under the navigation bar too; the sheet's buttons stay above it. */}
+        <View style={[styles.sheet, { paddingBottom: 28 + insets.bottom }]}>
           <Txt w={900} size={19}>
             گروه جدید
           </Txt>

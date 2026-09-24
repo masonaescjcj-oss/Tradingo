@@ -107,7 +107,7 @@ export default function LearnScreen() {
   };
 
   return (
-    <Screen>
+    <Screen bottom={false}>
       <View style={styles.header}>
         <Pressable
           onPress={() => setPickerOpen(true)}

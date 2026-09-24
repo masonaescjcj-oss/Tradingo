@@ -69,7 +69,7 @@ export default function SimulatorScreen() {
   const resetsReplay = mode === 'replay';
 
   return (
-    <Screen>
+    <Screen bottom={false}>
       <View style={styles.tabs}>
         <Segment label="بخش شبیه‌ساز" value={mode} onChange={setMode} options={MODES} />
       </View>

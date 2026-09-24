@@ -1,6 +1,7 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
@@ -37,11 +38,13 @@ const PLAY_MS = 1700;
  */
 export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; ready: boolean; onDone: () => void }) {
   const { width: W, height: H } = useWindowDimensions();
+  // Shamak peeks over the phone's navigation bar, not from under it.
+  const floor = H - useSafeAreaInsets().bottom;
   const size = Math.min(W * 0.42, 200);
   const tall = (size * 170) / 140;
-  // Resting place: 70% of Shamak shows above the bottom edge. The start pose, the splash's
+  // Resting place: 70% of Shamak shows above the navigation bar (or the bottom edge). The start pose, the splash's
   // centred mascot, is expressed as a move and a scale from there.
-  const startY = H / 2 - (H - 0.7 * tall + tall / 2);
+  const startY = H / 2 - (floor - 0.7 * tall + tall / 2);
   const startScale = SPLASH_MASCOT / size;
   const wordSize = Math.round(Math.min(W * 0.2, 84));
 
@@ -114,7 +117,7 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
     t.fall.interpolate({ inputRange: [0, 1], outputRange: [startY, 0] }),
     Animated.add(
       t.bob.interpolate({ inputRange: [0, 1], outputRange: [0, -16] }),
-      t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, tall] }),
+      t.exit.interpolate({ inputRange: [0, 1], outputRange: [0, tall + H - floor] }),
     ),
   );
   const mascotStyle = {
@@ -148,21 +151,25 @@ export function Intro({ fontsReady, ready, onDone }: { fontsReady: boolean; read
       }}
       accessibilityLabel="چارتون"
     >
-      <Animated.View style={[styles.brand, { top: H * 0.45 - 70 }, wordStyle]}>
-        <View style={styles.candles}>
-          {CANDLES.map(([color, body, rise], i) => (
-            <Animated.View key={i} style={[styles.candle, { marginBottom: rise, opacity: t.candles[i], transform: [{ scaleY: t.candles[i] }] }]}>
-              <View style={[styles.wick, { backgroundColor: color }]} />
-              <View style={[styles.body, { height: body, backgroundColor: color }]} />
-              <View style={[styles.wick, { backgroundColor: color }]} />
-            </Animated.View>
-          ))}
-        </View>
-        <Txt display size={wordSize} color={colors.text} style={{ lineHeight: Math.round(wordSize * 1.25) }}>
-          چارتون
-        </Txt>
-      </Animated.View>
-      <Animated.View style={[styles.mascot, { width: size, height: tall, left: (W - size) / 2, top: H - 0.7 * tall }, mascotStyle]}>
+      {/* Mounted only once the brand font is in: Android keeps the stand-in face a text was first
+          drawn with, even after the real font arrives. */}
+      {fontsReady ? (
+        <Animated.View style={[styles.brand, { top: H * 0.45 - 70 }, wordStyle]}>
+          <View style={styles.candles}>
+            {CANDLES.map(([color, body, rise], i) => (
+              <Animated.View key={i} style={[styles.candle, { marginBottom: rise, opacity: t.candles[i], transform: [{ scaleY: t.candles[i] }] }]}>
+                <View style={[styles.wick, { backgroundColor: color }]} />
+                <View style={[styles.body, { height: body, backgroundColor: color }]} />
+                <View style={[styles.wick, { backgroundColor: color }]} />
+              </Animated.View>
+            ))}
+          </View>
+          <Txt display size={wordSize} color={colors.text} style={{ lineHeight: Math.round(wordSize * 1.25) }}>
+            چارتون
+          </Txt>
+        </Animated.View>
+      ) : null}
+      <Animated.View style={[styles.mascot, { width: size, height: tall, left: (W - size) / 2, top: floor - 0.7 * tall }, mascotStyle]}>
         <Mascot size={size} />
       </Animated.View>
     </Animated.View>

@@ -62,7 +62,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <Screen>
+    <Screen bottom={false}>
       <View style={styles.header}>
         <Txt display size={32} style={{ lineHeight: 44 }}>
           پروفایل
