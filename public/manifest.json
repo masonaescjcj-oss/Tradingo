@@ -1,13 +1,15 @@
 {
+  "id": "/",
   "short_name": "چارتون",
   "name": "چارتون · آموزش ترید به سبک بازی",
-  "description": "ترید فارکس و کریپتو رو مثل یه بازی یاد بگیر.",
+  "description": "ترید فارکس، طلا و کریپتو رو مثل یه بازی یاد بگیر: درس‌های کوتاه، شبیه‌ساز معامله با پول مجازی و دوئل با دوستات.",
   "lang": "fa",
   "dir": "rtl",
   "icons": [
-    { "src": "/logo192.png", "type": "image/png", "sizes": "192x192" },
-    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512" },
-    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+    { "src": "/logo192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "/maskable-192.png", "type": "image/png", "sizes": "192x192", "purpose": "maskable" },
+    { "src": "/maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
   ],
   "start_url": "/",
   "scope": "/",
@@ -15,5 +17,17 @@
   "orientation": "portrait",
   "theme_color": "#0E1320",
   "background_color": "#0E1320",
-  "categories": ["education", "finance"]
+  "categories": ["education", "finance", "games"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    { "name": "درس امروز", "short_name": "درس", "url": "/", "icons": [{ "src": "/logo192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "شبیه‌ساز معامله", "short_name": "شبیه‌ساز", "url": "/simulator", "icons": [{ "src": "/logo192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "دوئل", "short_name": "دوئل", "url": "/duel", "icons": [{ "src": "/logo192.png", "sizes": "192x192", "type": "image/png" }] }
+  ],
+  "screenshots": [
+    { "src": "/screenshots/lesson.webp", "sizes": "780x1688", "type": "image/webp", "form_factor": "narrow", "label": "درس‌های کوتاه با سؤال روی نمودار واقعی" },
+    { "src": "/screenshots/chart.webp", "sizes": "780x1688", "type": "image/webp", "form_factor": "narrow", "label": "شبیه‌ساز معامله با ابزارهای رسم مثل تریدینگ‌ویو" },
+    { "src": "/screenshots/duel.webp", "sizes": "780x1688", "type": "image/webp", "form_factor": "narrow", "label": "دوئل با شمعک یا دوستات" },
+    { "src": "/screenshots/streak.webp", "sizes": "780x1688", "type": "image/webp", "form_factor": "narrow", "label": "روزهای پیاپی، مأموریت‌ها و لیگ هفتگی" }
+  ]
 }

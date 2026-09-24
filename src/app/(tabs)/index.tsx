@@ -7,6 +7,7 @@ import { Button3D } from '@/components/Button3D';
 import { CourseBadge } from '@/components/CourseBadge';
 import { CourseSwitcher } from '@/components/CourseSwitcher';
 import { Icon, StarIcon } from '@/components/Icon';
+import { InstallBanner } from '@/components/InstallApp';
 import { Mascot } from '@/components/Mascot';
 import { Screen } from '@/components/Screen';
 import { StatsRow } from '@/components/StatsRow';
@@ -118,6 +119,8 @@ export default function LearnScreen() {
         </Pressable>
         <StatsRow />
       </View>
+
+      <InstallBanner />
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 48 }}>
         <Pressable onPress={() => router.push(`/course/${course.id}`)} accessibilityRole="button" style={styles.courseHead}>

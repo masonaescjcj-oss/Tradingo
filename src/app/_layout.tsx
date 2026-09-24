@@ -14,9 +14,11 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { Button3D } from '@/components/Button3D';
+import { UpdateBanner } from '@/components/InstallApp';
 import { Mascot } from '@/components/Mascot';
 import { Txt } from '@/components/Txt';
 import { startCloudSync } from '@/lib/cloud';
+import { startPwa } from '@/lib/pwa';
 import { useGame } from '@/store/game';
 import { MAX_WIDTH, colors } from '@/theme';
 
@@ -94,6 +96,9 @@ export default function RootLayout() {
     return () => clearTimeout(t);
   }, []);
 
+  // Web only: offline support, the install prompt and update checks (a no-op on native).
+  useEffect(() => startPwa(), []);
+
   useEffect(() => {
     if (!hydrated) return;
     const { rolloverWeek, syncHearts } = useGame.getState();
@@ -114,6 +119,7 @@ export default function RootLayout() {
               <Stack.Screen name="chest/[id]" options={{ animation: 'fade' }} />
             </Stack>
           ) : null}
+          <UpdateBanner />
         </View>
       </View>
     </ThemeProvider>

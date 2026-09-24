@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react
 import { Button3D } from '@/components/Button3D';
 import { BoltIcon, FlameIcon, Icon, type IconName } from '@/components/Icon';
 import { Hexagon } from '@/components/Hexagon';
+import { InstallRow } from '@/components/InstallApp';
 import { CourseBadge } from '@/components/CourseBadge';
 import { MarketPicker, marketLabel } from '@/components/MarketPicker';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -264,6 +265,8 @@ export default function ProfileScreen() {
             })}
           </View>
         </View>
+
+        <InstallRow />
 
         <Pressable
           onPress={() => game.setSound(!game.sound)}

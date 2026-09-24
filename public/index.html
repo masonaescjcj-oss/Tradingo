@@ -14,7 +14,15 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="چارتون" />
+    <meta name="application-name" content="چارتون" />
     <link rel="manifest" href="/manifest.json" />
+    <script>
+      // Keeps the browser's install prompt if it fires before the app has loaded (src/lib/pwa.web.ts).
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__chartoonInstall = e;
+      });
+    </script>
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
