@@ -78,9 +78,26 @@ describe('legal pages', () => {
     assert.ok(read(join(SITE, 'sitemap.xml')).includes('https://chartoon.net/delete-account/'));
   });
 
+  it('are on the site in English too, linked to their Persian pages', async () => {
+    const { deletionPage, legalPage } = await import('../scripts/build-legal');
+    const { ACCOUNT_DELETION_EN, LEGAL_EN } = await import('../src/content/legal.en');
+    const pages: [string, string][] = [...Object.values(LEGAL_EN).map((doc): [string, string] => [doc.id, legalPage(doc, 'en')]), [ACCOUNT_DELETION_EN.id, deletionPage('en')]];
+    for (const [id, html] of pages) {
+      const file = join(SITE, 'en', id, 'index.html');
+      assert.equal(read(file), html, `en/${id}: run npx tsx scripts/build-legal.ts`);
+      assert.ok(html.includes('<html lang="en" dir="ltr">') && !/[\u0600-\u06ff]/.test(html.replace('>فارسی<', '')), `en/${id} has Persian`);
+      assert.ok(html.includes(`href="../../${id}/"`), `en/${id} links its Persian page`);
+      assert.ok(read(join(SITE, id, 'index.html')).includes(`href="../en/${id}/"`), `${id} links its English page`);
+      for (const ref of [...html.matchAll(/(?:src|href)="([^"#][^"]*)"/g), ...html.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]).filter((r) => !/^https?:/.test(r))) {
+        assert.ok(existsSync(join(SITE, 'en', id, ref.endsWith('/') ? `${ref}index.html` : ref)), `en/${id}: ${ref}`);
+      }
+      assert.ok(read(join(SITE, 'sitemap.xml')).includes(`https://chartoon.net/en/${id}/`), `sitemap: en/${id}`);
+    }
+  });
+
   it('are linked from both landing pages and listed in the sitemap', () => {
     assert.ok(read(PAGES.fa).includes('href="privacy/"') && read(PAGES.fa).includes('href="terms/"'));
-    assert.ok(read(PAGES.en).includes('href="../privacy/"') && read(PAGES.en).includes('href="../terms/"'));
+    assert.ok(read(PAGES.en).includes('href="privacy/"') && read(PAGES.en).includes('href="terms/"') && read(PAGES.en).includes('href="delete-account/"'));
     const sitemap = read(join(SITE, 'sitemap.xml'));
     assert.ok(sitemap.includes('https://chartoon.net/privacy/') && sitemap.includes('https://chartoon.net/terms/'));
   });

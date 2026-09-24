@@ -17,13 +17,43 @@
   <url>
     <loc>https://chartoon.net/privacy/</loc>
     <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/privacy/"/>
+  </url>
+  <url>
+    <loc>https://chartoon.net/en/privacy/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/privacy/"/>
   </url>
   <url>
     <loc>https://chartoon.net/terms/</loc>
     <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/terms/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/terms/"/>
+  </url>
+  <url>
+    <loc>https://chartoon.net/en/terms/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/terms/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/terms/"/>
   </url>
   <url>
     <loc>https://chartoon.net/delete-account/</loc>
     <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/delete-account/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/delete-account/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/delete-account/"/>
+  </url>
+  <url>
+    <loc>https://chartoon.net/en/delete-account/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="fa" href="https://chartoon.net/delete-account/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://chartoon.net/en/delete-account/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://chartoon.net/delete-account/"/>
   </url>
 </urlset>

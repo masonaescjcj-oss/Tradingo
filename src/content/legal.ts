@@ -4,6 +4,10 @@
  * Keep them true to what the app does; update `LEGAL_UPDATED` whenever they change.
  */
 
+import { isEn } from '@/i18n/lang';
+
+import { LEGAL_EN, LEGAL_UPDATED_EN } from './legal.en';
+
 export type LegalId = 'privacy' | 'terms';
 
 export type LegalDoc = {
@@ -161,6 +165,12 @@ const terms: LegalDoc = {
 };
 
 export const LEGAL: Record<LegalId, LegalDoc> = { privacy, terms };
+
+/** The privacy policy and terms in the app's language (English from ./legal.en). */
+export const legalDocs = (): Record<LegalId, LegalDoc> => (isEn() ? LEGAL_EN : LEGAL);
+
+/** When the documents in the app's language last changed. */
+export const legalUpdated = (): string => (isEn() ? LEGAL_UPDATED_EN : LEGAL_UPDATED);
 
 /**
  * How to delete an account, for chartoon.net/delete-account: Google Play asks for a web page
