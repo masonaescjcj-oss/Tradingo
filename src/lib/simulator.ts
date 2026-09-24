@@ -23,10 +23,31 @@ export const SYMBOLS: SymbolSpec[] = [
   { id: 'XAUUSD', label: 'XAU/USD', market: 'forex', base: 4200, decimals: 2, vol: 1, spread: 0.5, contract: 100, sizes: [0.01, 0.1, 1], sizeUnit: 'لات', step: 1, defaultStop: 8 },
   { id: 'BTCUSDT', label: 'BTC/USDT', market: 'crypto', base: 84_000, decimals: 1, vol: 40, spread: 12, contract: 1, sizes: [0.001, 0.01, 0.1], sizeUnit: 'BTC', step: 100, defaultStop: 550 },
   { id: 'ETHUSDT', label: 'ETH/USDT', market: 'crypto', base: 2700, decimals: 2, vol: 1.8, spread: 0.7, contract: 1, sizes: [0.01, 0.1, 1], sizeUnit: 'ETH', step: 5, defaultStop: 22 },
+  // Tether Gold: one token is one troy ounce, traded against USDT around the clock.
+  { id: 'XAUTUSDT', label: 'XAUT/USDT', market: 'crypto', base: 4270, decimals: 2, vol: 1, spread: 0.6, contract: 1, sizes: [0.01, 0.1, 1], sizeUnit: 'XAUT', step: 1, defaultStop: 8 },
+  { id: 'BNBUSDT', label: 'BNB/USDT', market: 'crypto', base: 780, decimals: 2, vol: 0.35, spread: 0.12, contract: 1, sizes: [0.01, 0.1, 1], sizeUnit: 'BNB', step: 1, defaultStop: 5 },
+  { id: 'SOLUSDT', label: 'SOL/USDT', market: 'crypto', base: 117, decimals: 2, vol: 0.06, spread: 0.02, contract: 1, sizes: [0.1, 1, 10], sizeUnit: 'SOL', step: 0.2, defaultStop: 0.9 },
+  { id: 'XRPUSDT', label: 'XRP/USDT', market: 'crypto', base: 1.54, decimals: 4, vol: 0.0008, spread: 0.0003, contract: 1, sizes: [10, 100, 1000], sizeUnit: 'XRP', step: 0.002, defaultStop: 0.012 },
+  { id: 'DOGEUSDT', label: 'DOGE/USDT', market: 'crypto', base: 0.097, decimals: 5, vol: 0.00006, spread: 0.00002, contract: 1, sizes: [100, 1000, 10000], sizeUnit: 'DOGE', step: 0.0002, defaultStop: 0.0009 },
+  { id: 'TONUSDT', label: 'TON/USDT', market: 'crypto', base: 1.6, decimals: 4, vol: 0.0008, spread: 0.0004, contract: 1, sizes: [10, 100, 1000], sizeUnit: 'TON', step: 0.002, defaultStop: 0.012 },
+  { id: 'ADAUSDT', label: 'ADA/USDT', market: 'crypto', base: 0.248, decimals: 4, vol: 0.00014, spread: 0.00005, contract: 1, sizes: [100, 1000, 10000], sizeUnit: 'ADA', step: 0.0005, defaultStop: 0.002 },
+  { id: 'TRXUSDT', label: 'TRX/USDT', market: 'crypto', base: 0.34, decimals: 4, vol: 0.00012, spread: 0.00004, contract: 1, sizes: [100, 1000, 10000], sizeUnit: 'TRX', step: 0.0005, defaultStop: 0.0025 },
+  { id: 'LTCUSDT', label: 'LTC/USDT', market: 'crypto', base: 71, decimals: 2, vol: 0.04, spread: 0.02, contract: 1, sizes: [0.1, 1, 10], sizeUnit: 'LTC', step: 0.1, defaultStop: 0.6 },
+  { id: 'LINKUSDT', label: 'LINK/USDT', market: 'crypto', base: 13.5, decimals: 3, vol: 0.008, spread: 0.003, contract: 1, sizes: [1, 10, 100], sizeUnit: 'LINK', step: 0.02, defaultStop: 0.12 },
+  { id: 'AVAXUSDT', label: 'AVAX/USDT', market: 'crypto', base: 10.4, decimals: 3, vol: 0.006, spread: 0.002, contract: 1, sizes: [1, 10, 100], sizeUnit: 'AVAX', step: 0.02, defaultStop: 0.09 },
+  { id: 'SUIUSDT', label: 'SUI/USDT', market: 'crypto', base: 1.0, decimals: 4, vol: 0.0006, spread: 0.0002, contract: 1, sizes: [10, 100, 1000], sizeUnit: 'SUI', step: 0.002, defaultStop: 0.009 },
+  { id: 'DOTUSDT', label: 'DOT/USDT', market: 'crypto', base: 1.17, decimals: 4, vol: 0.0006, spread: 0.0003, contract: 1, sizes: [10, 100, 1000], sizeUnit: 'DOT', step: 0.002, defaultStop: 0.01 },
 ];
 
+/** Every symbol, the learner's own market first (crypto learners still get gold and forex after the coins). */
 export function symbolsFor(market: Market): SymbolSpec[] {
-  return SYMBOLS.filter((s) => market === 'both' || s.market === market);
+  if (market === 'both') return SYMBOLS;
+  return [...SYMBOLS.filter((s) => s.market === market), ...SYMBOLS.filter((s) => s.market !== market)];
+}
+
+/** Heading of a symbol's group in the symbol list. */
+export function symbolGroup(spec: SymbolSpec): string {
+  return spec.market === 'crypto' ? 'کریپتو' : 'فارکس و طلا';
 }
 
 export function findSymbol(id: string): SymbolSpec | undefined {

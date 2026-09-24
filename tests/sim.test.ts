@@ -349,6 +349,36 @@ describe('live sources', () => {
     assert.ok(!supportsLive('GBPUSD'));
   });
 
+  it('has live prices for every symbol, Tether Gold among them, with sizes and decimals that fit the price', async () => {
+    const { LIVE_SOURCES } = await import('../src/lib/marketData');
+    const { SYMBOLS } = await import('../src/lib/simulator');
+    assert.equal(LIVE_SOURCES.XAUTUSDT, 'XAUTUSDT');
+    assert.ok(SYMBOLS.length >= 15);
+    for (const s of SYMBOLS) {
+      assert.ok(LIVE_SOURCES[s.id], `${s.id} has a Binance pair`);
+      assert.deepEqual([...s.sizes].sort((a, b) => a - b), s.sizes, `${s.id} sizes go up`);
+      // A price step is visible at the symbol's decimals, and the default stop is a few steps away.
+      assert.ok(s.vol >= 10 ** -s.decimals, `${s.id} moves at its decimals`);
+      assert.ok(s.defaultStop > s.spread && s.step > 0, `${s.id} stop beyond the spread`);
+      // The middle size is a sensible practice trade on a 10,000 account.
+      const notional = s.sizes[1] * s.contract * s.base;
+      assert.ok(notional >= 20 && notional <= 120_000, `${s.id} middle size is ${notional}`);
+    }
+  });
+
+  it('lists every symbol with the learner\'s market first, and polls the pairs that matter often', async () => {
+    const { symbolsFor, SYMBOLS } = await import('../src/lib/simulator');
+    const crypto = symbolsFor('crypto');
+    assert.equal(crypto.length, SYMBOLS.length);
+    assert.equal(crypto[0].market, 'crypto');
+    assert.equal(crypto[crypto.length - 1].market, 'forex');
+    assert.ok(crypto.some((s) => s.id === 'XAUUSD'));
+    assert.equal(symbolsFor('forex')[0].id, 'EURUSD');
+    const { fastSymbols } = await import('../src/components/sim/useMarketFeed');
+    assert.deepEqual(fastSymbols('SOLUSDT', ['BTCUSDT', 'SOLUSDT']), ['BTCUSDT', 'SOLUSDT']);
+    assert.deepEqual(fastSymbols(null, []), []);
+  });
+
   it('knows when the real forex market is shut for the weekend', async () => {
     const { forexWeekend } = await import('../src/lib/marketData');
     assert.ok(!forexWeekend(new Date(Date.UTC(2026, 8, 25, 20, 0)))); // Friday 20:00

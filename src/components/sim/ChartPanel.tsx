@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AnalysisComposer } from '@/components/chat/AnalysisComposer';
@@ -414,7 +414,8 @@ export function ChartPanel({
   );
 }
 
-export type SymbolOption = { id: string; label: string; price: string; change: number };
+/** `group` heads the symbol's section of the list (کریپتو, فارکس و طلا). */
+export type SymbolOption = { id: string; label: string; price: string; change: number; group?: string };
 
 export type TimeframeControl = { value: Timeframe; onChange: (tf: Timeframe) => void; enabled: boolean; note?: string };
 
@@ -453,7 +454,7 @@ function TimeframeMenu({ control, width, onPick, onClose }: { control: Timeframe
   );
 }
 
-/** MetaTrader-style symbol list that drops down from the chart title. */
+/** MetaTrader-style symbol list that drops down from the chart title, in groups, scrolling when it's long. */
 function SymbolMenu({
   symbols,
   current,
@@ -471,29 +472,38 @@ function SymbolMenu({
     <View style={StyleSheet.absoluteFill}>
       <Pressable style={[StyleSheet.absoluteFill, styles.menuBackdrop]} onPress={onClose} accessibilityLabel="بستن فهرست نمادها" />
       <View style={[styles.menu, { width }]} accessibilityRole="radiogroup" accessibilityLabel="انتخاب نماد">
-        {symbols.map((s) => {
-          const on = s.id === current;
-          return (
-            <Pressable
-              key={s.id}
-              onPress={() => onPick(s.id)}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: on }}
-              accessibilityLabel={s.label}
-              style={({ pressed }) => [styles.menuRow, on && styles.menuRowOn, pressed && { opacity: 0.7 }]}
-            >
-              <Txt mono w={800} size={14} style={{ flex: 1 }}>
-                {s.label}
-              </Txt>
-              <Txt mono w={700} size={13} color={colors.text2}>
-                {s.price}
-              </Txt>
-              <Txt mono w={800} size={12} color={s.change >= 0 ? colors.bull : colors.bearText} style={styles.menuChange}>
-                {`${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%`}
-              </Txt>
-            </Pressable>
-          );
-        })}
+        <ScrollView style={styles.menuScroll} contentContainerStyle={styles.menuList} showsVerticalScrollIndicator={false}>
+          {symbols.map((s, i) => {
+            const on = s.id === current;
+            const heading = s.group && s.group !== symbols[i - 1]?.group ? s.group : null;
+            return (
+              <View key={s.id}>
+                {heading ? (
+                  <Txt w={800} size={12} color={colors.text3} style={styles.menuGroup}>
+                    {heading}
+                  </Txt>
+                ) : null}
+                <Pressable
+                  onPress={() => onPick(s.id)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: on }}
+                  accessibilityLabel={s.label}
+                  style={({ pressed }) => [styles.menuRow, on && styles.menuRowOn, pressed && { opacity: 0.7 }]}
+                >
+                  <Txt mono w={800} size={14} style={{ flex: 1 }}>
+                    {s.label}
+                  </Txt>
+                  <Txt mono w={700} size={13} color={colors.text2}>
+                    {s.price}
+                  </Txt>
+                  <Txt mono w={800} size={12} color={s.change >= 0 ? colors.bull : colors.bearText} style={styles.menuChange}>
+                    {`${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%`}
+                  </Txt>
+                </Pressable>
+              </View>
+            );
+          })}
+        </ScrollView>
       </View>
     </View>
   );
@@ -514,6 +524,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.line,
     backgroundColor: colors.surface,
+  },
+  menuScroll: {
+    maxHeight: 420,
+  },
+  menuList: {
+    gap: 2,
+  },
+  menuGroup: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 4,
+    textAlign: 'right',
   },
   menuRow: {
     flexDirection: 'row',

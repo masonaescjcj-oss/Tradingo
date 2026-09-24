@@ -1,9 +1,10 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { create } from 'zustand';
 
 import type { Candle } from '@/content/types';
-import { BINANCE_HOSTS, binanceSymbol, feedFromKlines, fetchKlines, LIVE_POLL_MS, LIVE_SYMBOLS, mergeFeed, type Kline } from '@/lib/marketData';
+import { BINANCE_HOSTS, binanceSymbol, feedFromKlines, fetchKlines, LIVE_POLL_MS, LIVE_SYMBOLS, mergeFeed, SLOW_POLL_EVERY, type Kline } from '@/lib/marketData';
 import { applyTick, backfillTimes, generateHistory, HISTORY_CANDLES, nextPrice, SIM_CANDLE_MS, SYMBOLS, tickTimes } from '@/lib/simulator';
+import { useGame } from '@/store/game';
 
 export type Series = {
   candles: Candle[];
@@ -63,14 +64,26 @@ function toSimulated(prev: Record<string, Series>): Record<string, Series> {
 }
 
 /**
+ * The live pairs to poll on every round: the one on the chart and any with an open trade or
+ * order (so stops and limits fill on time). The rest are refreshed every SLOW_POLL_EVERY rounds.
+ */
+export function fastSymbols(onScreen: string | null, busy: string[]): string[] {
+  const hot = new Set([...(onScreen ? [onScreen] : []), ...busy]);
+  return LIVE_SYMBOLS.filter((s) => hot.has(s));
+}
+
+/**
  * Prices for every simulator symbol: a simulated tick each second, and (when switched on)
- * real one-minute candles from Binance (crypto, EUR/USD and gold), polled every few seconds
- * while the screen is focused. `onMoves` gets each price change so orders and stops can be checked.
+ * real one-minute candles from Binance (crypto, EUR/USD and gold) while the screen is focused:
+ * every few seconds for the pair on screen and pairs with open trades, every ~20 seconds for
+ * the rest. `onMoves` gets each price change so orders and stops can be checked; `watch`
+ * tells the feed which pair is on screen.
  */
 export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, number>) => void, focused = true) {
   const [series, setSeries] = useState(initialSeries);
   const [live, setLive] = useState(false);
   const [status, setStatus] = useState<LiveStatus>('off');
+  const onScreen = useRef<string | null>(null);
 
   useEffect(() => {
     useFeedSnapshot.setState({ series });
@@ -139,11 +152,20 @@ export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, numbe
     let timer: ReturnType<typeof setTimeout> | undefined;
     let hosts = BINANCE_HOSTS;
     let failures = 0;
+    let round = 0;
     const load = async (initial: boolean) => {
+      round += 1;
+      const { sim, simOrders } = useGame.getState();
+      const busy = [...sim.positions.map((p) => p.symbol), ...(simOrders ?? []).map((o) => o.symbol)];
+      const pick = initial || round % SLOW_POLL_EVERY === 0 ? LIVE_SYMBOLS : fastSymbols(onScreen.current, busy);
+      if (!pick.length) {
+        timer = setTimeout(() => load(false), LIVE_POLL_MS);
+        return;
+      }
       // Each pair on its own, so one that's missing doesn't stop the others.
-      const results = await Promise.allSettled(LIVE_SYMBOLS.map((s) => fetchKlines(binanceSymbol(s), initial ? HISTORY_CANDLES : 2, { hosts })));
+      const results = await Promise.allSettled(pick.map((s) => fetchKlines(binanceSymbol(s), initial ? HISTORY_CANDLES : 2, { hosts })));
       if (cancelled) return;
-      const ok = results.flatMap((r, i) => (r.status === 'fulfilled' ? [{ symbol: LIVE_SYMBOLS[i], ...r.value }] : []));
+      const ok = results.flatMap((r, i) => (r.status === 'fulfilled' ? [{ symbol: pick[i], ...r.value }] : []));
       if (ok.length) {
         failures = 0;
         hosts = [ok[0].host, ...BINANCE_HOSTS.filter((h) => h !== ok[0].host)];
@@ -176,7 +198,11 @@ export function useMarketFeed(onMoves: (moves: Moves, mids: Record<string, numbe
     }
   };
 
-  return { series, live, status, setLive: setLiveOn };
+  const watch = useCallback((id: string) => {
+    onScreen.current = id;
+  }, []);
+
+  return { series, live, status, setLive: setLiveOn, watch };
 }
 
 /** The current time, refreshed every `ms` (for countdowns that don't follow a price tick). */

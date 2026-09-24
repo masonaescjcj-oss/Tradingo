@@ -6,7 +6,7 @@
  *
  * Binance has no forex, so EUR/USD follows its EUR/USDT pair and gold follows PAX Gold
  * (one token is one troy ounce of gold). Both trade around the clock and sit within a
- * fraction of a percent of the real quotes.
+ * fraction of a percent of the real quotes. The coins (and Tether Gold) are Binance's own pairs.
  */
 import type { Candle } from '@/content/types';
 
@@ -18,6 +18,19 @@ export const LIVE_SOURCES: Record<string, string> = {
   ETHUSDT: 'ETHUSDT',
   EURUSD: 'EURUSDT',
   XAUUSD: 'PAXGUSDT',
+  XAUTUSDT: 'XAUTUSDT',
+  BNBUSDT: 'BNBUSDT',
+  SOLUSDT: 'SOLUSDT',
+  XRPUSDT: 'XRPUSDT',
+  DOGEUSDT: 'DOGEUSDT',
+  TONUSDT: 'TONUSDT',
+  ADAUSDT: 'ADAUSDT',
+  TRXUSDT: 'TRXUSDT',
+  LTCUSDT: 'LTCUSDT',
+  LINKUSDT: 'LINKUSDT',
+  AVAXUSDT: 'AVAXUSDT',
+  SUIUSDT: 'SUIUSDT',
+  DOTUSDT: 'DOTUSDT',
 };
 
 export const LIVE_SYMBOLS = Object.keys(LIVE_SOURCES);
@@ -27,6 +40,8 @@ export const BINANCE_HOSTS = [BINANCE_PROXY, 'https://data-api.binance.vision', 
 export const BROWSER_HOSTS = BINANCE_HOSTS.filter((h) => h !== 'https://api.binance.com');
 export const LIVE_INTERVAL = '1m';
 export const LIVE_POLL_MS = 2500;
+/** Pairs off screen (no open trade either) are refreshed every this many polls (about 20 seconds). */
+export const SLOW_POLL_EVERY = 8;
 
 export type Kline = { openTime: number; candle: Candle; volume: number };
 

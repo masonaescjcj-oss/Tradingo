@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Txt } from '@/components/Txt';
 import { countdownLabel } from '@/lib/chartMath';
 import { followLive, forexWeekend, LIVE_SYMBOLS, supportsLive, type Timeframe } from '@/lib/marketData';
-import { findSymbol, formatPrice, simCountdown, type SymbolSpec } from '@/lib/simulator';
+import { findSymbol, formatPrice, simCountdown, symbolGroup, type SymbolSpec } from '@/lib/simulator';
 import { summarize, type Account, type PlaceError, type TradeEvent } from '@/lib/trading';
 import { useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -16,7 +16,7 @@ import { Toggle } from './ui';
 import { liveCountdown, midsOf, useClock, type LiveStatus, type Series } from './useMarketFeed';
 import { useTimeframe } from './useTimeframe';
 
-type Feed = { series: Record<string, Series>; live: boolean; status: LiveStatus; setLive: (on: boolean) => void };
+type Feed = { series: Record<string, Series>; live: boolean; status: LiveStatus; setLive: (on: boolean) => void; watch: (id: string) => void };
 
 /** The chart page of the live practice account: one-click trade bar, chart (with the symbol picker) and the order form. */
 export function LiveView({
@@ -48,6 +48,8 @@ export function LiveView({
   const shown = [...specs, ...extra];
   const spec = shown.find((s) => s.id === symbolId) ?? shown[0];
   const current = feed.series[spec.id];
+  const watchSymbol = feed.watch;
+  useEffect(() => watchSymbol(spec.id), [watchSymbol, spec.id]);
   const mids = midsOf(feed.series);
   const summary = summarize(account, mids);
 
@@ -123,6 +125,7 @@ export function LiveView({
       label: s.label,
       price: cur ? formatPrice(s, cur.price) : '',
       change: cur ? ((cur.price - cur.candles[0][0]) / cur.candles[0][0]) * 100 : 0,
+      group: symbolGroup(s),
     };
   });
 
