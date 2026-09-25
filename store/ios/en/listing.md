@@ -1,14 +1,22 @@
-# Google Play listing (English, en-US)
+# App Store listing (English, en-US)
 
-## App name (max 30)
+## Name (max 30)
 
 Chartoon: Learn Trading
 
-## Short description (max 80)
+## Subtitle (max 30)
 
-Learn trading like a game: 5-minute lessons, live charts and a demo simulator.
+Trading lessons like a game
 
-## Full description (max 4000)
+## Promotional text (max 170)
+
+Learn forex, crypto and gold trading in 5-minute lessons, then practise in a demo simulator with live charts. Education only, virtual money.
+
+## Keywords (max 100, comma-separated)
+
+trading,forex,crypto,candlestick,chart,technical analysis,paper trading,simulator,gold,learn,course
+
+## Description (max 4000)
 
 Chartoon makes learning to trade feel like a game: a few minutes a day, bite-sized lessons, XP and rewards, and Shamak, a friendly candlestick mascot who's with you all the way.
 
@@ -39,4 +47,18 @@ The whole app, every lesson included, is available in English and Persian (Farsi
 IMPORTANT
 Chartoon is for education only. It doesn't give investment advice or trading signals, it isn't a broker, and no real money is involved: the simulator uses virtual money and its results don't guarantee results in real markets. Trading forex, crypto, gold and leveraged products is high risk and you could lose all of your capital.
 
-Privacy policy: https://chartoon.net/en/privacy/
+## URLs
+
+- Support URL: https://chartoon.net
+- Marketing URL: https://chartoon.net/en/
+- Privacy Policy URL: https://chartoon.net/privacy/
+
+## Categories
+
+- Primary: Education
+- Secondary: Finance
+
+## App Review information
+
+- Sign-in required: No (every part of the app works as a guest; chat groups and friend duels need a free account, which the reviewer can create in the app with any email and password, no verification code).
+- Notes: Chartoon is an educational app. The trading simulator uses virtual money only; there are no real trades, payments, deposits or brokers. Chat groups have blocking and reporting, and the AI assistant's answers can be reported. Accounts can be deleted in Profile → Account → Delete account.
