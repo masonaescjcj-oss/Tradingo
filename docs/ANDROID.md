@@ -125,11 +125,7 @@ cd android && ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armea
 >
 > چارتون فقط آموزشیه: توصیه‌ی سرمایه‌گذاری یا سیگنال نمی‌ده، کارگزار نیست و هیچ پول واقعی‌ای در کار نیست. معامله در بازار واقعی ریسک بالایی داره.
 
-**English (en-US):**
-
-- Title: Chartoon: Learn Trading
-- Short description: Learn trading like a game: 5-minute lessons, live charts and paper trading.
-- Full description: Chartoon teaches trading the way Duolingo teaches languages: bite-sized lessons, streaks, XP and a friendly candlestick mascot. 8 courses and 279 lessons on forex, gold and crypto, from candlesticks and trends to indicators, patterns, Fibonacci, price action, risk management and trading psychology. Practise in a paper-trading simulator with live prices, 42 drawing tools and a trade journal, duel friends, and climb the weekly league. The app is in Persian (Farsi). Education only: no investment advice, not a broker, no real money.
+**English (en-US):** متن کامل (اسم، توضیح کوتاه و بلند) توی `store/android/en/listing.md` هست و تصویرهای انگلیسی توی `store/android/en/`. این زبان پیش‌فرض صفحه‌ی گوگل‌پلیه؛ متن و تصویرهای فارسی برای مایکت و کافه‌بازارن.
 
 **دسته:** Education · **ایمیل تماس:** (لازمه؛ هنوز مشخص نشده) · **وب‌سایت:** https://chartoon.net · **سیاست حریم خصوصی:** https://chartoon.net/privacy/
 
