@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { SvgXml } from 'react-native-svg';
 
 import { t } from '@/i18n';
 import { playSfx } from '@/lib/sfx';
-import { CARD_H, CARD_W, cardSvg, type ShareCard } from '@/lib/shareCard';
-import { canMakeImage, cardImageUrl, saveCard, shareCard, type ShareOutcome } from '@/lib/shareImage';
+import { CARD_H, CARD_W, type ShareCard } from '@/lib/shareCard';
+import { canMakeImage, cardImageUrl, saveCard, shareCard, shareCardPicture, type ShareOutcome } from '@/lib/shareImage';
 import { colors } from '@/theme';
 
 import { Button3D } from './Button3D';
+import { CardPicture } from './CardPicture';
 import { Icon } from './Icon';
 import { Txt } from './Txt';
 
@@ -19,7 +19,7 @@ const OUTCOME_TEXT: Partial<Record<ShareOutcome, string>> = {
   failed: 'نشد؛ یه بار دیگه امتحان کن.', // i18n-ignore: translated where shown
 };
 
-/** Shows an achievement card and shares it (as a picture on the web, as text on phones for now). */
+/** Shows an achievement card and shares it as a picture (built from the SVG on the web, captured from the screen on phones). */
 export function ShareSheet({ card, onClose }: { card: ShareCard | null; onClose: () => void }) {
   return (
     <Modal visible={!!card} transparent animationType="fade" onRequestClose={onClose}>
@@ -35,6 +35,7 @@ function ShareBody({ card, onClose }: { card: ShareCard; onClose: () => void }) 
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null);
+  const picture = useRef<View>(null);
 
   // The web preview is the very picture that gets shared.
   useEffect(() => {
@@ -82,10 +83,10 @@ function ShareBody({ card, onClose }: { card: ShareCard; onClose: () => void }) 
               <ActivityIndicator color={card.accent} />
             )
           ) : (
-            <SvgXml xml={cardSvg(card)} width={w} height={h} />
+            <CardPicture ref={picture} card={card} width={w} />
           )}
         </View>
-        <Button3D label={busy ? t('یه لحظه…') : t('اشتراک‌گذاری')} onPress={() => run(shareCard)} height={50} radius={14} size={16} style={{ alignSelf: 'stretch' }} />
+        <Button3D label={busy ? t('یه لحظه…') : t('اشتراک‌گذاری')} onPress={() => run(canMakeImage ? shareCard : (c) => shareCardPicture(picture, c))} height={50} radius={14} size={16} style={{ alignSelf: 'stretch' }} />
         {canMakeImage ? (
           <Button3D variant="secondary" label={t('ذخیره‌ی عکس')} onPress={() => run(saveCard)} height={44} radius={14} edge={3} size={14} style={{ alignSelf: 'stretch' }} />
         ) : null}

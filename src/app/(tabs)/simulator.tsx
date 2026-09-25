@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } f
 import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
+import { ShareSheet } from '@/components/ShareSheet';
 import { ChallengesView } from '@/components/sim/ChallengesView';
 import { InfoSheet } from '@/components/sim/InfoSheet';
 import { LiveView } from '@/components/sim/LiveView';
@@ -17,6 +18,7 @@ import { SectionTitle, Segment, simStyles } from '@/components/sim/ui';
 import { midsOf, useMarketFeed } from '@/components/sim/useMarketFeed';
 import { Txt } from '@/components/Txt';
 import { t } from '@/i18n';
+import { tradeCard, type ShareCard } from '@/lib/shareCard';
 import { symbolsFor } from '@/lib/simulator';
 import { START_BALANCE, useGame } from '@/store/game';
 import { colors } from '@/theme';
@@ -45,6 +47,8 @@ export default function SimulatorScreen() {
 
   const [mode, setMode] = useState<Mode>('chart');
   const [notice, setNotice] = useState<(Notice & { id: number }) | null>(null);
+  const [card, setCard] = useState<ShareCard | null>(null);
+  const name = useGame((s) => s.name);
   const [info, setInfo] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [viewport, setViewport] = useState(0);
@@ -59,7 +63,8 @@ export default function SimulatorScreen() {
 
   useEffect(() => {
     if (!notice) return;
-    const timer = setTimeout(() => setNotice(null), 3800);
+    // A closed trade's toast stays a little longer, for its card button.
+    const timer = setTimeout(() => setNotice(null), notice.trade ? 6000 : 3800);
     return () => clearTimeout(timer);
   }, [notice]);
 
@@ -109,7 +114,17 @@ export default function SimulatorScreen() {
         ) : null}
       </ScrollView>
 
-      {notice ? <Toast key={notice.id} notice={notice} /> : null}
+      {notice ? (
+        <Toast
+          key={notice.id}
+          notice={notice}
+          onCard={() => {
+            if (notice.trade) setCard(tradeCard({ name, trade: notice.trade }));
+            setNotice(null);
+          }}
+        />
+      ) : null}
+      <ShareSheet card={card} onClose={() => setCard(null)} />
 
       <InfoSheet visible={info} onClose={() => setInfo(false)} />
 

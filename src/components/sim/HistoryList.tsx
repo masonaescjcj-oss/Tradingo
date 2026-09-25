@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { Button3D } from '@/components/Button3D';
 import { Icon } from '@/components/Icon';
+import { ShareSheet } from '@/components/ShareSheet';
 import { Txt } from '@/components/Txt';
 import { t, textStart } from '@/i18n';
 import { findSymbol, formatPrice, formatSize } from '@/lib/simulator';
+import { tradeCard, type ShareCard } from '@/lib/shareCard';
 import { tradeR } from '@/lib/stats';
 import { LEGACY_LEVERAGE, type ClosedTrade } from '@/lib/trading';
 import { useGame, type SimBook } from '@/store/game';
@@ -14,9 +17,11 @@ import { fa, usd } from '@/utils/format';
 import { entryText, exitText, reasonText, rText, sideText } from './text';
 import { Figure, pnlColor, SectionTitle } from './ui';
 
-/** Closed trades; tapping one shows its details and a short note ("why did I take it?"). */
+/** Closed trades; tapping one shows its details, a short note ("why did I take it?") and its P&L card. */
 export function HistoryList({ book, history, limit, title = t('معامله‌های اخیر') }: { book: SimBook; history: ClosedTrade[]; limit?: number; title?: string }) {
   const [showAll, setShowAll] = useState(false);
+  const [card, setCard] = useState<ShareCard | null>(null);
+  const name = useGame((s) => s.name);
   if (history.length === 0) return null;
   const shown = limit != null && !showAll ? history.slice(0, limit) : history;
   return (
@@ -24,14 +29,14 @@ export function HistoryList({ book, history, limit, title = t('معامله‌ه
       <SectionTitle
         right={
           <Txt w={700} size={11.5} color={colors.text3}>
-            {t('برای یادداشت روی معامله بزن')}
+            {t('برای جزئیات و کارت سود روی معامله بزن')}
           </Txt>
         }
       >
         {title}
       </SectionTitle>
       {shown.map((trade) => (
-        <HistoryRow key={trade.id} book={book} trade={trade} />
+        <HistoryRow key={trade.id} book={book} trade={trade} onCard={() => setCard(tradeCard({ name, trade }))} />
       ))}
       {limit != null && history.length > limit ? (
         <Pressable onPress={() => setShowAll((v) => !v)} accessibilityRole="button" style={styles.more}>
@@ -40,11 +45,12 @@ export function HistoryList({ book, history, limit, title = t('معامله‌ه
           </Txt>
         </Pressable>
       ) : null}
+      <ShareSheet card={card} onClose={() => setCard(null)} />
     </View>
   );
 }
 
-function HistoryRow({ book, trade }: { book: SimBook; trade: ClosedTrade }) {
+function HistoryRow({ book, trade, onCard }: { book: SimBook; trade: ClosedTrade; onCard: () => void }) {
   const simNote = useGame((s) => s.simNote);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(trade.note ?? '');
@@ -107,6 +113,7 @@ function HistoryRow({ book, trade }: { book: SimBook; trade: ClosedTrade }) {
             style={[styles.input, { textAlign: textStart(), writingDirection: textStart() === 'left' ? 'ltr' : 'rtl' }]}
             accessibilityLabel={t('یادداشت معامله')}
           />
+          <Button3D label={t('کارت سود این معامله')} variant="secondary" height={42} radius={12} edge={3} size={14} onPress={onCard} />
         </View>
       ) : null}
     </View>

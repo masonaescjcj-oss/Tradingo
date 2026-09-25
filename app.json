@@ -120,7 +120,8 @@
           "enforceContrast": false,
           "style": "light"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "scheme": "chartoon",
     "experiments": {

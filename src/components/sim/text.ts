@@ -1,6 +1,6 @@
 import { byLang, t } from '@/i18n';
 import { findSymbol, type SymbolSpec } from '@/lib/simulator';
-import type { CloseReason, OrderType, PlaceError, Side, TradeEvent } from '@/lib/trading';
+import type { CloseReason, ClosedTrade, OrderType, PlaceError, Side, TradeEvent } from '@/lib/trading';
 import { fa } from '@/utils/format';
 
 /**
@@ -74,7 +74,8 @@ export function placeErrorText(error: PlaceError): string {
 }
 
 export type Tone = 'bull' | 'bear' | 'sky' | 'gold';
-export type Notice = { text: string; amount?: number; tone: Tone };
+/** `trade` is set when a trade closed, so the toast can offer its P&L card. */
+export type Notice = { text: string; amount?: number; tone: Tone; trade?: ClosedTrade };
 
 const label = (symbol: string) => findSymbol(symbol)?.label ?? symbol;
 
@@ -90,8 +91,8 @@ export function eventNotice(e: TradeEvent): Notice {
       return { text: t('سفارش {symbol} لغو شد: مارجین آزاد کافی نبود', { symbol: label(e.order.symbol) }), tone: 'bear' };
     case 'closed': {
       const trade = e.trade;
-      if (trade.reason === 'liquidation') return { text: t('{symbol} لیکوئید شد!', { symbol: label(trade.symbol) }), amount: trade.pnl, tone: 'bear' };
-      return { text: `${label(trade.symbol)}: ${reasonText(trade.reason)}`, amount: trade.pnl, tone: trade.pnl >= 0 ? 'bull' : 'bear' };
+      if (trade.reason === 'liquidation') return { text: t('{symbol} لیکوئید شد!', { symbol: label(trade.symbol) }), amount: trade.pnl, tone: 'bear', trade };
+      return { text: `${label(trade.symbol)}: ${reasonText(trade.reason)}`, amount: trade.pnl, tone: trade.pnl >= 0 ? 'bull' : 'bear', trade };
     }
   }
 }

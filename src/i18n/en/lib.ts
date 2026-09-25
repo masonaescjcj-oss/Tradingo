@@ -396,4 +396,8 @@ export const EN_LIB: Record<string, string> = {
   'چارتون': 'Chartoon',
   // simulator.ts
   'لات': 'lots',
+  // shareCard.ts: a single trade
+  'معامله‌ی من': 'My trade',
+  '{side} {symbol} · اهرم {leverage}': '{side} {symbol} · {leverage} leverage',
+  'یه معامله‌ی {side} روی {symbol} توی شبیه‌ساز چارتون: {pnl} 📈': 'My {side} trade on {symbol} in the Chartoon simulator: {pnl} 📈',
 };

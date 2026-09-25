@@ -1,15 +1,19 @@
 /**
  * Shareable achievement cards (a streak, a finished unit or course, a simulator
- * challenge, trading stats, overall progress), drawn as one SVG picture. The app shows
- * the SVG as a preview; on the web it is turned into a PNG to share or save.
+ * challenge, trading stats, a single trade, overall progress), drawn as one SVG picture.
+ * On the web the SVG becomes a PNG to share or save. Phones draw the SVG without its words
+ * and put the words on top as native text (cardLayers), because react-native-svg on Android
+ * can't join Persian letters.
  */
-import { isEn, t } from '@/i18n';
+import { byLang, isEn, t } from '@/i18n';
 import { colors } from '@/theme';
 import { FA_WEEKDAYS_SHORT } from '@/utils/date';
 import { fa, faNum, usd } from '@/utils/format';
 import { createRng, hashString } from '@/utils/random';
 
 import { mascotMarkup, type MascotMood } from './mascotArt';
+import { findSymbol, formatPrice } from './simulator';
+import { positionMargin, type ClosedTrade } from './trading';
 
 export const CARD_W = 1080;
 export const CARD_H = 1350;
@@ -17,7 +21,7 @@ export const APP_URL = 'chartoon.net';
 /** Fonts the card uses; the web export embeds them so the PNG looks like the preview. */
 export const CARD_FONTS = ['Lalezar_400Regular', 'Vazirmatn_900Black', 'Vazirmatn_700Bold'] as const;
 
-export type CardKind = 'streak' | 'unit' | 'course' | 'challenge' | 'trading' | 'profile' | 'duel';
+export type CardKind = 'streak' | 'unit' | 'course' | 'challenge' | 'trading' | 'trade' | 'profile' | 'duel';
 export type CardStat = { label: string; value: string; ltr?: boolean; color?: string };
 export type WeekDot = { label: string; state: 'on' | 'off' | 'frozen'; today?: boolean };
 
@@ -44,7 +48,7 @@ export type ShareCard = {
 };
 
 const playMoney = () => t('حساب تمرینی با پول مجازی؛ توصیه‌ی مالی نیست');
-const percent = (n: number) => t('{n}٪', { n: fa(n) });
+const percent = (n: number | string) => t('{n}٪', { n: fa(n) });
 
 // ---------- cards ----------
 
@@ -154,6 +158,38 @@ export function tradingCard(p: { name: string; count: number; winRate: number | 
   };
 }
 
+/** One closed simulator trade: its return on margin, side, symbol, entry, exit and P&L. */
+export function tradeCard(p: { name: string; trade: ClosedTrade }): ShareCard {
+  const { trade } = p;
+  const spec = findSymbol(trade.symbol);
+  const symbol = spec?.label ?? trade.symbol;
+  const margin = spec ? positionMargin(spec, trade) : 0;
+  const roi = margin > 0 ? (trade.pnl / margin) * 100 : null;
+  const won = trade.pnl >= 0;
+  const price = (v: number) => (spec ? formatPrice(spec, v) : String(v));
+  const side = trade.side === 'buy' ? t('خرید') : t('فروش');
+  const signed = roi == null ? '' : `${roi >= 0 ? '+' : '-'}${fa(Math.abs(roi).toFixed(Math.abs(roi) >= 100 ? 0 : 1)).replace('.', byLang('٫', '.'))}`; // i18n-ignore: Persian decimal mark
+  return {
+    kind: 'trade',
+    accent: won ? colors.bull : colors.bear,
+    ink: won ? colors.bullInk : colors.bearInk,
+    kicker: t('معامله‌ی من'),
+    hero: roi == null ? usd(trade.pnl, true) : percent(signed),
+    heroLtr: true,
+    heroLabel: t('{side} {symbol} · اهرم {leverage}', { side, symbol, leverage: `${fa(trade.leverage ?? 1)}x` }),
+    title: t('توی شبیه‌ساز معامله‌ی چارتون'),
+    stats: [
+      { label: byLang('ورود', 'Entry'), value: price(trade.entry), ltr: true }, // i18n-ignore: 'ورود' alone means "Sign in" in the dictionary
+      { label: byLang('خروج', 'Exit'), value: price(trade.exit), ltr: true }, // i18n-ignore: 'خروج' alone means "Quit" in the dictionary
+      { label: t('سود و زیان'), value: usd(trade.pnl, true), ltr: true, color: won ? colors.bullText : colors.bearText },
+    ],
+    mood: won ? 'party' : 'think',
+    name: p.name,
+    note: playMoney(),
+    text: `${t('یه معامله‌ی {side} روی {symbol} توی شبیه‌ساز چارتون: {pnl} 📈', { side, symbol, pnl: usd(trade.pnl, true) })}\n${APP_URL}`,
+  };
+}
+
 export function profileCard(p: { name: string; xp: number; streak: number; league: string; lessons: number }): ShareCard {
   // The league's name may arrive in Persian from the table.
   const league = t(p.league);
@@ -230,6 +266,12 @@ const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 /** Rough width of a line of text, to size pills and wrap titles. */
 const textWidth = (t: string, size: number) => t.length * size * 0.52;
 
+/** A line of the card's text, in card pixels; `y` is the baseline. */
+export type CardText = { text: string; x: number; y: number; size: number; family: string; fill: string; ltr: boolean; anchor: 'start' | 'middle' | 'end'; opacity?: number };
+
+/** While cardLayers runs, text goes here instead of into the SVG. */
+let sink: CardText[] | null = null;
+
 function text(
   t: string,
   x: number,
@@ -239,6 +281,10 @@ function text(
   fill: string,
   opts: { ltr?: boolean; anchor?: 'start' | 'middle' | 'end'; opacity?: number } = {},
 ): string {
+  if (sink) {
+    if (t) sink.push({ text: t, x, y, size, family, fill, ltr: !!opts.ltr || isEn(), anchor: opts.anchor ?? 'middle', opacity: opts.opacity });
+    return '';
+  }
   const dir = opts.ltr || isEn() ? 'ltr' : 'rtl';
   const op = opts.opacity != null ? ` opacity="${opts.opacity}"` : '';
   return `<text x="${x}" y="${y}" font-family="${family}, Tahoma, sans-serif" font-size="${size}" fill="${fill}" text-anchor="${opts.anchor ?? 'middle'}" direction="${dir}" unicode-bidi="embed"${op}>${esc(t)}</text>`;
@@ -297,8 +343,8 @@ function weekRow(week: WeekDot[]): string {
   const gap = 118;
   return week
     .map((d, i) => {
-      // Saturday sits on the right, as in a Persian calendar.
-      const x = 540 + (3 - i) * gap;
+      // Saturday sits on the right, as in a Persian calendar (on the left in English).
+      const x = 540 + (isEn() ? i - 3 : 3 - i) * gap;
       const fill = d.state === 'on' ? colors.flame : d.state === 'frozen' ? colors.sky : colors.raised;
       const ring = d.today ? `<circle cx="${x}" cy="1178" r="50" fill="none" stroke="${colors.gold}" stroke-width="6"/>` : '';
       const mark =
@@ -320,8 +366,8 @@ function statRow(stats: CardStat[]): string {
   const top = 1098;
   return stats
     .map((st, i) => {
-      // The first stat is on the right.
-      const x = 90 + (n - 1 - i) * (w + gap);
+      // The first stat is on the right (on the left in English).
+      const x = 90 + (isEn() ? i : n - 1 - i) * (w + gap);
       const cx = x + w / 2;
       const size = st.value.length > 9 ? 36 : 46;
       return `<rect x="${x}" y="${top}" width="${w}" height="140" rx="28" fill="${colors.surface}" stroke="${colors.line}" stroke-width="3"/>${text(st.value, cx, top + 70, size, 'Vazirmatn_900Black', st.color ?? colors.text, { ltr: st.ltr })}${text(st.label, cx, top + 114, 28, 'Vazirmatn_700Bold', colors.text3)}`;
@@ -329,9 +375,26 @@ function statRow(stats: CardStat[]): string {
     .join('');
 }
 
+/**
+ * The card for phones: the SVG without any words, and the words to draw over it as native
+ * text. react-native-svg lays Persian out letter by letter on Android, so the letters come
+ * out unjoined and in the wrong order.
+ */
+export function cardLayers(card: ShareCard): { svg: string; texts: CardText[] } {
+  const texts: CardText[] = [];
+  sink = texts;
+  try {
+    return { svg: cardSvg(card), texts };
+  } finally {
+    sink = null;
+  }
+}
+
 /** The card as an SVG document; `fontCss` embeds fonts for turning it into a picture. */
 export function cardSvg(card: ShareCard, fontCss = ''): string {
   const kickerW = textWidth(card.kicker, 34) + 72;
+  // The brand's candles sit either side of the name, which is wider in English.
+  const brandGap = isEn() ? 165 : 112;
   // The streak card's week row sits right under the title, so it gets a single line.
   const title = wrapText(card.title, 40, card.week ? 1 : 2);
   const style = fontCss ? `<style>${fontCss}</style>` : '';
@@ -345,8 +408,8 @@ export function cardSvg(card: ShareCard, fontCss = ''): string {
     `<rect x="24" y="24" width="${CARD_W - 48}" height="${CARD_H - 48}" rx="56" fill="none" stroke="${card.accent}" stroke-opacity="0.35" stroke-width="4"/>`,
     // Brand, with a small candle on each side.
     text(t('چارتون'), 540, 128, 64, 'Lalezar_400Regular', colors.text),
-    `<line x1="428" x2="428" y1="72" y2="140" stroke="${colors.bull}" stroke-width="5"/><rect x="416" y="86" width="24" height="40" rx="5" fill="${colors.bull}"/>`,
-    `<line x1="652" x2="652" y1="78" y2="136" stroke="${colors.bear}" stroke-width="5"/><rect x="640" y="92" width="24" height="30" rx="5" fill="${colors.bear}"/>`,
+    `<line x1="${540 - brandGap}" x2="${540 - brandGap}" y1="72" y2="140" stroke="${colors.bull}" stroke-width="5"/><rect x="${528 - brandGap}" y="86" width="24" height="40" rx="5" fill="${colors.bull}"/>`,
+    `<line x1="${540 + brandGap}" x2="${540 + brandGap}" y1="78" y2="136" stroke="${colors.bear}" stroke-width="5"/><rect x="${528 + brandGap}" y="92" width="24" height="30" rx="5" fill="${colors.bear}"/>`,
     `<rect x="${540 - kickerW / 2}" y="170" width="${kickerW}" height="66" rx="33" fill="${card.accent}"/>`,
     text(card.kicker, 540, 216, 34, 'Vazirmatn_900Black', card.ink),
     `<g transform="translate(365 262) scale(2.5)">${mascotMarkup(card.mood)}</g>`,

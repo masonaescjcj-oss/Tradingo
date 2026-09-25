@@ -502,7 +502,9 @@ export const EN_COMPONENTS: Record<string, string> = {
   'این یکی نشد': 'Not this one',
   // sim/HistoryList
   'معامله‌های اخیر': 'Recent trades',
-  'برای یادداشت روی معامله بزن': 'Tap a trade to add a note',
+  'برای جزئیات و کارت سود روی معامله بزن': 'Tap a trade for details and its P&L card',
+  'کارت سود این معامله': "This trade's P&L card",
+  'کارت': 'Card',
   'نمایش کمتر': 'Show less',
   'نمایش همه ({n})': 'Show all ({n})',
   '{side} {symbol}، {reason}': '{side} {symbol}, {reason}',

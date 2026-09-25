@@ -4,7 +4,9 @@ import { describe, it } from 'node:test';
 
 import { advanceStreak, currentStreak, daysBetween, streakRepair } from '../src/lib/progress';
 import { addToLog, mergeQuestLogs, questChestDay, questChestId, questDone, questsDone, questsFor, xpQuestTarget } from '../src/lib/quests';
-import { challengeCard, cardSvg, streakCard, tradingCard, wrapText } from '../src/lib/shareCard';
+import { cardLayers, challengeCard, cardSvg, streakCard, tradeCard, tradingCard, wrapText } from '../src/lib/shareCard';
+import { findSymbol, formatPrice } from '../src/lib/simulator';
+import { positionMargin, type ClosedTrade } from '../src/lib/trading';
 import { boostedXp, BOOST_MS, extendBoost } from '../src/lib/shop';
 
 describe('daily quests', () => {
@@ -114,6 +116,34 @@ describe('share cards', () => {
     assert.ok(card.note?.includes('پول مجازی'));
     assert.ok(cardSvg(card).includes('+$120.50'));
     assert.ok(challengeCard({ name: 'x', title: 'سه برد', coins: 50, xp: 20 }).note);
+  });
+
+  it('makes a card for one trade: return on margin, side, entry, exit and P&L', () => {
+    const spec = findSymbol('EURUSD')!;
+    const trade: ClosedTrade = { id: 't1', symbol: 'EURUSD', side: 'buy', size: 0.01, entry: 1.14, exit: 1.142, pnl: 2, leverage: 10, openedAt: 0, closedAt: 1, reason: 'manual' };
+    const card = tradeCard({ name: 'سارا', trade });
+    const roi = (2 / positionMargin(spec, trade)) * 100;
+    assert.equal(card.kind, 'trade');
+    assert.equal(card.hero, `+${roi.toFixed(1).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)]).replace('.', '٫')}٪`);
+    assert.deepEqual(card.stats.map((s) => s.value), [formatPrice(spec, 1.14), formatPrice(spec, 1.142), '+$2.00']);
+    assert.ok(card.heroLabel.includes('خرید') && card.heroLabel.includes(spec.label));
+    assert.ok(card.note?.includes('پول مجازی'));
+    const loss = tradeCard({ name: 'x', trade: { ...trade, side: 'sell', pnl: -2 } });
+    assert.ok(loss.hero.startsWith('-') && loss.mood === 'think');
+  });
+
+  it('splits a card into word-free graphics and the words to draw on top, for phones', () => {
+    const card = tradingCard({ name: 'مینا', count: 3, winRate: 1, net: 0.03, profitFactor: null });
+    const { svg, texts } = cardLayers(card);
+    assert.ok(cardSvg(card).includes('<text'));
+    assert.ok(svg.startsWith('<svg') && !svg.includes('<text'));
+    const words = texts.map((x) => x.text);
+    assert.ok(words.includes(card.kicker) && words.includes(card.hero) && words.includes(card.heroLabel));
+    assert.ok(words.includes('مینا · chartoon.net'));
+    assert.ok(texts.every((x) => x.size > 0 && x.x > 0 && x.y > 0));
+    // Numbers stay left to right; Persian words don't.
+    assert.equal(texts.find((x) => x.text === '+$0.03')?.ltr, true);
+    assert.equal(texts.find((x) => x.text === card.kicker)?.ltr, false);
   });
 
   it('wraps long titles into two lines at most', () => {

@@ -153,6 +153,11 @@ export async function shareCard(card: ShareCard): Promise<ShareOutcome> {
   return (await copyText(card.text)) ? 'copied' : 'failed';
 }
 
+/** Phones capture the card on screen; browsers share the picture built from the SVG instead. */
+export async function shareCardPicture(_view: unknown, card: ShareCard): Promise<ShareOutcome> {
+  return shareCard(card);
+}
+
 export async function saveCard(card: ShareCard): Promise<ShareOutcome> {
   try {
     download(await pngFor(card), fileName(card));
