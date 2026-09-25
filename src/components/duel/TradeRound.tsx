@@ -6,6 +6,7 @@ import { ProChart, type ProLine } from '@/components/sim/ProChart';
 import { Txt } from '@/components/Txt';
 import { t } from '@/i18n';
 import {
+  positionPnl,
   STOP_ATR,
   TRADE_BALANCE,
   TRADE_CANDLE_MS,
@@ -52,12 +53,14 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
   const candles = trade.candles.slice(0, s.shown + 1);
   const price = candles[candles.length - 1][3];
   const equity = tradeEquity(trade, s);
+  // The whole round so far (closed trades plus the open one), and the open trade alone.
   const pnl = equity - TRADE_BALANCE;
+  const openPnl = s.pos ? positionPnl(s.pos, price) : 0;
   const secondsLeft = Math.ceil(((trade.candles.length - 1 - s.shown) * TRADE_CANDLE_MS) / 1000);
   const secondsAll = Math.round(((trade.candles.length - 1 - s.shown) * TRADE_CANDLE_MS) / 1000);
   const lines: ProLine[] = s.pos
     ? [
-        { price: s.pos.entry, label: s.pos.side === 1 ? t('خرید') : t('فروش'), detail: usd(pnl, true), detailColor: pnl >= 0 ? colors.bullText : colors.bearText, color: colors.text2, ink: colors.bg, solid: true },
+        { price: s.pos.entry, label: s.pos.side === 1 ? t('خرید') : t('فروش'), detail: usd(openPnl, true), detailColor: openPnl >= 0 ? colors.bullText : colors.bearText, color: colors.text2, ink: colors.bg, solid: true },
         { price: s.pos.stop, label: t('حد ضرر'), color: colors.bear, ink: colors.bearInk },
       ]
     : [];
@@ -72,7 +75,7 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
     <View style={{ gap: 12 }}>
       <View style={styles.bar}>
         <Stat label={t('سرمایه')} value={usd(equity)} />
-        <Stat label={t('سود و زیان')} value={usd(pnl, true)} color={pnl > 0 ? colors.bullText : pnl < 0 ? colors.bearText : colors.text} />
+        <Stat label={t('سود و زیان کل')} value={usd(pnl, true)} color={pnl > 0 ? colors.bullText : pnl < 0 ? colors.bearText : colors.text} />
         <Stat
           label={t('زمان')}
           mono={false}
@@ -111,7 +114,7 @@ export function TradeRound({ trade, width, onDone }: { trade: DuelChart; width: 
           <Button3D label={t('دیدن نتیجه')} onPress={() => onDone(result)} />
         </View>
       ) : s.pos ? (
-        <Button3D variant="secondary" label={t('بستن معامله ({pnl})', { pnl: usd(pnl, true) })} onPress={() => setS((prev) => tradeClose(trade, prev))} />
+        <Button3D variant="secondary" label={t('بستن معامله ({pnl})', { pnl: usd(openPnl, true) })} onPress={() => setS((prev) => tradeClose(trade, prev))} />
       ) : (
         <View style={{ gap: 8 }}>
           <View style={styles.actions}>

@@ -30,7 +30,7 @@ const MODES: { value: Mode; label: string }[] = [
   { value: 'chart', label: 'نمودار' }, // i18n-ignore: translated where shown
   { value: 'trades', label: 'معامله‌ها' }, // i18n-ignore: translated where shown
   { value: 'replay', label: 'بازپخش' }, // i18n-ignore: translated where shown
-  { value: 'challenges', label: 'چالش و آمار' }, // i18n-ignore: translated where shown
+  { value: 'challenges', label: 'چالش‌ها' }, // i18n-ignore: translated where shown
 ];
 
 export default function SimulatorScreen() {

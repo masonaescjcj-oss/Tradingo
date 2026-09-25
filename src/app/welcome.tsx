@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, Modal, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Line } from 'react-native-svg';
 
 import { Button3D } from '@/components/Button3D';
@@ -20,6 +21,8 @@ import { fa } from '@/utils/format';
 /** The first screen: brand, a friendly hello and the two ways in. */
 export default function Welcome() {
   const { height } = useWindowDimensions();
+  // The toggle sits over the screen's corner, so it keeps clear of the status bar itself.
+  const insets = useSafeAreaInsets();
   const user = useGame((s) => s.user);
   const signedOut = useGame((s) => s.signedOut);
   const returning = !!user && signedOut;
@@ -32,7 +35,7 @@ export default function Welcome() {
     <Screen style={styles.screen}>
       <GridBackdrop />
       {/* فارسی | English, for learners who'd rather start in English. i18n-ignore */}
-      <View style={styles.lang}>
+      <View style={[styles.lang, { top: Math.max(insets.top, 16) + 4 }]}>
         <LanguageToggle compact />
       </View>
       <View style={styles.hero}>
@@ -159,7 +162,6 @@ function GridBackdrop() {
 const styles = StyleSheet.create({
   lang: {
     position: 'absolute',
-    top: 12,
     right: 16,
     zIndex: 2,
   },

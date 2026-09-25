@@ -80,7 +80,7 @@ export const EN_APP: Record<string, string> = {
   'نمودار': 'Chart',
   'معامله‌ها': 'Trades',
   'بازپخش': 'Replay',
-  'چالش و آمار': 'Challenges & stats',
+  'چالش‌ها': 'Challenges',
   'بخش شبیه‌ساز': 'Simulator section',
   'آمار عملکرد': 'Performance stats',
   'شروع دوباره‌ی حساب بازپخش': 'Reset replay account',
