@@ -179,12 +179,18 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
 .section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px; }
 .section-head p { margin: 0 0 12px; max-width: 30em; color: var(--text2); }
 .watch { margin: 28px 0 0; padding: 0; list-style: none; border: 1.5px solid var(--line); border-radius: 24px; background: var(--surface); overflow: hidden; }
-.watch li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 84px 84px 104px; gap: 18px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line-soft); }
+.watch li { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) 84px 84px 104px; gap: 18px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line-soft); }
+.watch li:not(.head):hover { background: var(--raised); }
 .watch li.head { border-top: 0; padding-block: 11px; background: var(--deep); color: var(--text3); font-size: 0.85rem; font-weight: 700; }
 .watch .meta { display: contents; }
 .tick { display: grid; place-items: center; width: 58px; height: 46px; border-radius: 13px; background: var(--c); color: var(--ink); box-shadow: 0 4px 0 var(--edge); font: 700 0.95rem/1 var(--mono); direction: ltr; }
 .tick svg { width: 22px; height: 30px; }
 .watch h3 { margin: 0; font: 900 1.12rem/1.55 var(--body); }
+.watch h3 a { text-decoration: none; }
+.watch h3 a::after { content: ""; position: absolute; inset: 0; }
+.watch h3 a:focus-visible { outline: 0; }
+.watch h3 a:focus-visible::after { outline: 3px solid var(--sky); outline-offset: -3px; }
+.more { display: flex; justify-content: center; margin: 26px 0 0; }
 .watch p { margin: 2px 0 0; color: var(--text2); font-size: 0.95rem; line-height: 1.7; }
 .stat { display: flex; align-items: baseline; gap: 6px; color: var(--text3); font-size: 0.9rem; font-weight: 700; }
 .stat b { font: 400 1.55rem/1 var(--display); color: var(--text); }
@@ -284,8 +290,8 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
       "url": "https://app.chartoon.net/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
-      "inLanguage": "fa",
-      "description": "اپ آموزش ترید به سبک بازی: ۸ دوره و ۲۷۹ درس کوتاه فارکس، طلا، کریپتو و تحلیل تکنیکال، شبیه‌ساز معامله با پول مجازی و دوئل با دوستان.",
+      "inLanguage": ["fa", "en"],
+      "description": "اپ آموزش ترید به سبک بازی: ۸ دوره و ۲۷۹ درس کوتاه فارکس، طلا، کریپتو و تحلیل تکنیکال، شبیه‌ساز معامله با ۱۰٬۰۰۰ دلار پول مجازی و قیمت زنده، و دوئل با دوستان. کل اپ، با همه‌ی درس‌ها، به فارسی و انگلیسی.",
       "image": "https://chartoon.net/assets/og-fa.png",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "publisher": { "@id": "https://chartoon.net/#org" }
@@ -295,11 +301,12 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
       "inLanguage": "fa-IR",
       "mainEntity": [
         { "@type": "Question", "name": "چارتون رایگانه؟", "acceptedAnswer": { "@type": "Answer", "text": "شروعش رایگانه و برای یادگیری و تمرین هیچ پول واقعی لازم نیست. سکه‌های داخل اپ مجازی‌ان و با درس خوندن جمع می‌شن." } },
+        { "@type": "Question", "name": "اپ به چه زبانیه؟", "acceptedAnswer": { "@type": "Answer", "text": "فارسی و انگلیسی. همه‌ی صفحه‌ها و همه‌ی درس‌ها به هر دو زبان هست و هر وقت خواستی از پروفایل زبان رو عوض می‌کنی." } },
         { "@type": "Question", "name": "هیچی از ترید بلد نیستم؛ به دردم می‌خوره؟", "acceptedAnswer": { "@type": "Answer", "text": "دقیقاً برای همینه. دوره‌ی «مبانی ترید» از این شروع می‌کنه که بازار مالی چیه و نمودار چطور خونده می‌شه. اگه چیزایی بلدی، با آزمون پرش واحدهای آسون رو رد کن." } },
         { "@type": "Question", "name": "برای تمرین پول واقعی لازمه؟", "acceptedAnswer": { "@type": "Answer", "text": "نه. شبیه‌ساز با ۱۰٬۰۰۰ دلار مجازی کار می‌کنه و قیمت‌هاش از بازار زنده میاد. تا وقتی آماده نشدی، سراغ پول واقعی نرو." } },
         { "@type": "Question", "name": "چارتون سیگنال خرید و فروش می‌ده؟", "acceptedAnswer": { "@type": "Answer", "text": "نه. چارتون فقط آموزشیه، کارگزار یا مشاور مالی نیست و هیچ‌کدوم از مطالبش توصیه‌ی سرمایه‌گذاری نیست." } },
-        { "@type": "Question", "name": "روی گوشی کار می‌کنه؟", "acceptedAnswer": { "@type": "Answer", "text": "آره. نسخه‌ی وب روی مرورگر گوشی کار می‌کنه و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. نسخه‌ی اندروید و iOS هم در راهه." } },
-        { "@type": "Question", "name": "حساب کاربری لازمه؟", "acceptedAnswer": { "@type": "Answer", "text": "برای شروع نه؛ پیشرفتت روی همون دستگاه ذخیره می‌شه. با ساختن حساب، پیشرفتت روی همه‌ی دستگاه‌هات همگام می‌شه و می‌تونی توی لیگ هفتگی باشی و با دوستات دوئل کنی." } }
+        { "@type": "Question", "name": "روی گوشی کار می‌کنه؟", "acceptedAnswer": { "@type": "Answer", "text": "آره. نسخه‌ی وب (app.chartoon.net) روی مرورگر هر گوشی‌ای کار می‌کنه، آیفون هم، و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. اپ اندروید هم به‌زودی میاد: الان توی گوگل‌پلی در حال تسته و به مایکت و کافه‌بازار هم می‌رسه." } },
+        { "@type": "Question", "name": "حساب کاربری لازمه؟", "acceptedAnswer": { "@type": "Answer", "text": "نه؛ می‌تونی مهمون باشی و پیشرفتت روی همون دستگاه ذخیره می‌شه. هر وقت خواستی با ایمیل یا شماره‌ی موبایل (ایران و بیش از ۱۰۰ کشور دیگه) وارد شو تا پیشرفتت روی همه‌ی دستگاه‌هات همگام بشه، توی لیگ هفتگی باشی، با دوستات دوئل کنی و توی گروه‌ها گپ بزنی." } }
       ]
     }
   ]
@@ -418,7 +425,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
         <ul class="ticks">
           <li>بیت‌کوین، اتریوم، طلا و یورو/دلار با قیمت زنده</li>
           <li>سفارش لیمیت و استاپ، حد ضرر و حد سود، و اهرم</li>
-          <li>۴۲ ابزار رسم به سبک تریدینگ‌ویو: خط روند، فیبوناچی، کانال و الگوها</li>
+          <li>۴۲ ابزار رسم: خط روند، فیبوناچی، کانال و الگوها</li>
           <li>بازپخش بازار، چالش‌ها و ژورنال معامله‌ها</li>
         </ul>
       </div>
@@ -453,7 +460,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
           <li>روزهای پیاپی، و یخ شعله برای روزی که نمی‌رسی</li>
           <li>سه مأموریت تازه هر روز، با صندوقچه‌ی جایزه</li>
           <li>لیگ هفتگی، از میگو تا نهنگ</li>
-          <li>کارت اشتراک برای رکوردها و دوره‌هایی که تموم می‌کنی</li>
+          <li>کارت اشتراک برای دوره‌ای که تموم کردی، رکورد روزهای پیاپی یا سود و ضرر یه معامله</li>
         </ul>
       </div>
       <div class="media pair">
@@ -473,15 +480,16 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     </div>
     <ul class="watch">
       <li class="head" aria-hidden="true"><span>نماد</span><span>دوره</span><span>واحد</span><span>درس</span><span>سطح</span></li>
-      <li style="--c:#2BD47D; --edge:#179457; --ink:#04301A"><span class="tick" aria-hidden="true"><svg><use href="#g-bull"/></svg></span><div><h3>مبانی ترید</h3><p>بازار مالی چیه، نمودار و تایم‌فریم، انواع سفارش، کار با پلتفرم و انتخاب بروکر.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
-      <li style="--c:#5AB0FF; --edge:#2F7FD0; --ink:#07233F"><span class="tick" aria-hidden="true">FX</span><div><h3>فارکس و طلا</h3><p>جفت‌ارزها، پیپ و لات، طلا، نفت و شاخص‌ها، تقویم اقتصادی و فاندامنتال.</p></div><div class="meta"><span class="stat"><b>۹</b> واحد</span><span class="stat"><b>۲۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
-      <li style="--c:#FFC53D; --edge:#C98F0A; --ink:#3B2A00"><span class="tick" aria-hidden="true">BTC</span><div><h3>کریپتو</h3><p>از بیت‌کوین و بلاک‌چین تا صرافی، امنیت کیف پول، دیفای، فیوچرز و داده‌های آنچین.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
-      <li style="--c:#FF8A7A; --edge:#D65A4A; --ink:#3A0E08"><span class="tick" aria-hidden="true"><svg><use href="#g-hammer"/></svg></span><div><h3>تحلیل تکنیکال</h3><p>کندل‌شناسی، روند، حمایت و مقاومت، الگوهای نموداری، فیبوناچی و تحلیل چندزمانی.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
-      <li style="--c:#4FD1C5; --edge:#2A9D93; --ink:#062B28"><span class="tick" aria-hidden="true">2%</span><div><h3>ریسک و روانشناسی</h3><p>اندازه‌ی ریسک، ریاضی ضرر، کنترل احساسات، سوگیری‌های ذهنی و انضباط.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۷</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
-      <li style="--c:#FF9433; --edge:#C86A12; --ink:#3A1C00"><span class="tick" aria-hidden="true">RSI</span><div><h3>اندیکاتورها</h3><p>میانگین متحرک، بولینگر، RSI، MACD، واگرایی، حجم و ولوم پروفایل، و ایچیموکو.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl i">متوسط</span></div></li>
-      <li style="--c:#F472B6; --edge:#C2417F; --ink:#3D0A24"><span class="tick" aria-hidden="true">SYS</span><div><h3>استراتژی‌های معاملاتی</h3><p>شکست، رنج، سوئینگ، دی‌ترید و اسکالپ، و ساختن سیستم خودت با بک‌تست.</p></div><div class="meta"><span class="stat"><b>۱۸</b> واحد</span><span class="stat"><b>۵۴</b> درس</span><span class="lvl i">متوسط</span></div></li>
-      <li style="--c:#A78BFA; --edge:#7556D9; --ink:#1E1240"><span class="tick" aria-hidden="true">SMC</span><div><h3>تحلیل پیشرفته</h3><p>پرایس اکشن، عرضه و تقاضا، اسمارت مانی، امواج الیوت و الگوهای هارمونیک.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl a">پیشرفته</span></div></li>
+      <li style="--c:#2BD47D; --edge:#179457; --ink:#04301A"><span class="tick" aria-hidden="true"><svg><use href="#g-bull"/></svg></span><div><h3><a href="courses/basics/">مبانی ترید</a></h3><p>بازار مالی چیه، نمودار و تایم‌فریم، انواع سفارش، کار با پلتفرم و انتخاب بروکر.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#5AB0FF; --edge:#2F7FD0; --ink:#07233F"><span class="tick" aria-hidden="true">FX</span><div><h3><a href="courses/forex/">فارکس و طلا</a></h3><p>جفت‌ارزها، پیپ و لات، طلا، نفت و شاخص‌ها، تقویم اقتصادی و فاندامنتال.</p></div><div class="meta"><span class="stat"><b>۹</b> واحد</span><span class="stat"><b>۲۸</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FFC53D; --edge:#C98F0A; --ink:#3B2A00"><span class="tick" aria-hidden="true">BTC</span><div><h3><a href="courses/crypto/">کریپتو</a></h3><p>از بیت‌کوین و بلاک‌چین تا صرافی، امنیت کیف پول، دیفای، فیوچرز و داده‌های آنچین.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FF8A7A; --edge:#D65A4A; --ink:#3A0E08"><span class="tick" aria-hidden="true"><svg><use href="#g-hammer"/></svg></span><div><h3><a href="courses/technical/">تحلیل تکنیکال</a></h3><p>کندل‌شناسی، روند، حمایت و مقاومت، الگوهای نموداری، فیبوناچی و تحلیل چندزمانی.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#4FD1C5; --edge:#2A9D93; --ink:#062B28"><span class="tick" aria-hidden="true">2%</span><div><h3><a href="courses/risk/">ریسک و روانشناسی</a></h3><p>اندازه‌ی ریسک، ریاضی ضرر، کنترل احساسات، سوگیری‌های ذهنی و انضباط.</p></div><div class="meta"><span class="stat"><b>۶</b> واحد</span><span class="stat"><b>۱۷</b> درس</span><span class="lvl b">مقدماتی</span></div></li>
+      <li style="--c:#FF9433; --edge:#C86A12; --ink:#3A1C00"><span class="tick" aria-hidden="true">RSI</span><div><h3><a href="courses/indicators/">اندیکاتورها</a></h3><p>میانگین متحرک، بولینگر، RSI، MACD، واگرایی، حجم و ولوم پروفایل، و ایچیموکو.</p></div><div class="meta"><span class="stat"><b>۱۲</b> واحد</span><span class="stat"><b>۳۶</b> درس</span><span class="lvl i">متوسط</span></div></li>
+      <li style="--c:#F472B6; --edge:#C2417F; --ink:#3D0A24"><span class="tick" aria-hidden="true">SYS</span><div><h3><a href="courses/strategies/">استراتژی‌های معاملاتی</a></h3><p>شکست، رنج، سوئینگ، دی‌ترید و اسکالپ، و ساختن سیستم خودت با بک‌تست.</p></div><div class="meta"><span class="stat"><b>۱۸</b> واحد</span><span class="stat"><b>۵۴</b> درس</span><span class="lvl i">متوسط</span></div></li>
+      <li style="--c:#A78BFA; --edge:#7556D9; --ink:#1E1240"><span class="tick" aria-hidden="true">SMC</span><div><h3><a href="courses/advanced/">تحلیل پیشرفته</a></h3><p>پرایس اکشن، عرضه و تقاضا، اسمارت مانی، امواج الیوت و الگوهای هارمونیک.</p></div><div class="meta"><span class="stat"><b>۱۵</b> واحد</span><span class="stat"><b>۴۵</b> درس</span><span class="lvl a">پیشرفته</span></div></li>
     </ul>
+    <p class="more"><a class="btn alt" href="courses/">همه‌ی دوره‌ها با سرفصل و درس‌هاشون</a></p>
   </section>
 
   <section class="wrap" aria-labelledby="t-title">
@@ -498,11 +506,12 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <h2 id="q-title">سؤال‌هایی که زیاد می‌پرسن</h2>
     <div class="faq">
       <details><summary>چارتون رایگانه؟</summary><p>شروعش رایگانه و برای یادگیری و تمرین هیچ پول واقعی لازم نیست. سکه‌های داخل اپ مجازی‌ان و با درس خوندن جمع می‌شن.</p></details>
+      <details><summary>اپ به چه زبانیه؟</summary><p>فارسی و انگلیسی. همه‌ی صفحه‌ها و همه‌ی درس‌ها به هر دو زبان هست و هر وقت خواستی از پروفایل زبان رو عوض می‌کنی.</p></details>
       <details><summary>هیچی از ترید بلد نیستم؛ به دردم می‌خوره؟</summary><p>دقیقاً برای همینه. دوره‌ی «مبانی ترید» از این شروع می‌کنه که بازار مالی چیه و نمودار چطور خونده می‌شه. اگه چیزایی بلدی، با آزمون پرش واحدهای آسون رو رد کن.</p></details>
       <details><summary>برای تمرین پول واقعی لازمه؟</summary><p>نه. شبیه‌ساز با ۱۰٬۰۰۰ دلار مجازی کار می‌کنه و قیمت‌هاش از بازار زنده میاد. تا وقتی آماده نشدی، سراغ پول واقعی نرو.</p></details>
       <details><summary>چارتون سیگنال خرید و فروش می‌ده؟</summary><p>نه. چارتون فقط آموزشیه، کارگزار یا مشاور مالی نیست و هیچ‌کدوم از مطالبش توصیه‌ی سرمایه‌گذاری نیست.</p></details>
-      <details><summary>روی گوشی کار می‌کنه؟</summary><p>آره. نسخه‌ی وب روی مرورگر گوشی کار می‌کنه و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. نسخه‌ی اندروید و iOS هم در راهه.</p></details>
-      <details><summary>حساب کاربری لازمه؟</summary><p>برای شروع نه؛ پیشرفتت روی همون دستگاه ذخیره می‌شه. با ساختن حساب، پیشرفتت روی همه‌ی دستگاه‌هات همگام می‌شه و می‌تونی توی لیگ هفتگی باشی و با دوستات دوئل کنی.</p></details>
+      <details><summary>روی گوشی کار می‌کنه؟</summary><p>آره. نسخه‌ی وب (app.chartoon.net) روی مرورگر هر گوشی‌ای کار می‌کنه، آیفون هم، و می‌تونی به صفحه‌ی اصلی گوشی اضافه‌ش کنی تا مثل یه اپ باز بشه. اپ اندروید هم به‌زودی میاد: الان توی گوگل‌پلی در حال تسته و به مایکت و کافه‌بازار هم می‌رسه.</p></details>
+      <details><summary>حساب کاربری لازمه؟</summary><p>نه؛ می‌تونی مهمون باشی و پیشرفتت روی همون دستگاه ذخیره می‌شه. هر وقت خواستی با ایمیل یا شماره‌ی موبایل (ایران و بیش از ۱۰۰ کشور دیگه) وارد شو تا پیشرفتت روی همه‌ی دستگاه‌هات همگام بشه، توی لیگ هفتگی باشی، با دوستات دوئل کنی و توی گروه‌ها گپ بزنی.</p></details>
     </div>
   </section>
 
@@ -510,7 +519,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <div class="final">
       <div>
         <h2 id="cta-title">اولین درست رو همین امروز بزن</h2>
-        <p>پنج دقیقه وقت داری؟ همین کافیه. بدون نصب، روی مرورگر گوشی یا کامپیوتر.</p>
+        <p>پنج دقیقه وقت داری؟ همین کافیه. بدون نصب، روی مرورگر گوشی یا کامپیوتر؛ اپ اندروید هم به‌زودی میاد.</p>
         <a class="btn" href="https://app.chartoon.net/">شروع رایگان</a>
       </div>
       <svg viewBox="0 0 140 172" aria-hidden="true"><use href="#sh-party"/></svg>
@@ -524,6 +533,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <p>چارتون یه اپ آموزشیه و توصیه‌ی سرمایه‌گذاری نمی‌ده. معامله‌ی فارکس، ارز دیجیتال، طلا و قراردادهای اهرمی ریسک بالایی داره و ممکنه کل سرمایه‌ت رو از دست بدی. نتیجه‌ی خوب توی شبیه‌ساز تضمینی برای بازار واقعی نیست.</p>
     <nav aria-label="پیوندها">
       <a href="https://app.chartoon.net/">ورود به اپ</a>
+      <a href="courses/">دوره‌ها</a>
       <a href="en/" hreflang="en" lang="en">English</a>
       <a href="privacy/">حریم خصوصی</a>
       <a href="terms/">شرایط استفاده</a>

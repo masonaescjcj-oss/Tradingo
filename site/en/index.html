@@ -179,12 +179,18 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
 .section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 32px; }
 .section-head p { margin: 0 0 12px; max-width: 30em; color: var(--text2); }
 .watch { margin: 28px 0 0; padding: 0; list-style: none; border: 1.5px solid var(--line); border-radius: 24px; background: var(--surface); overflow: hidden; }
-.watch li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 84px 84px 104px; gap: 18px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line-soft); }
+.watch li { position: relative; display: grid; grid-template-columns: 64px minmax(0, 1fr) 84px 84px 104px; gap: 18px; align-items: center; padding: 16px 22px; border-top: 1px solid var(--line-soft); }
+.watch li:not(.head):hover { background: var(--raised); }
 .watch li.head { border-top: 0; padding-block: 11px; background: var(--deep); color: var(--text3); font-size: 0.85rem; font-weight: 700; }
 .watch .meta { display: contents; }
 .tick { display: grid; place-items: center; width: 58px; height: 46px; border-radius: 13px; background: var(--c); color: var(--ink); box-shadow: 0 4px 0 var(--edge); font: 700 0.95rem/1 var(--mono); direction: ltr; }
 .tick svg { width: 22px; height: 30px; }
 .watch h3 { margin: 0; font: 900 1.12rem/1.55 var(--body); }
+.watch h3 a { text-decoration: none; }
+.watch h3 a::after { content: ""; position: absolute; inset: 0; }
+.watch h3 a:focus-visible { outline: 0; }
+.watch h3 a:focus-visible::after { outline: 3px solid var(--sky); outline-offset: -3px; }
+.more { display: flex; justify-content: center; margin: 26px 0 0; }
 .watch p { margin: 2px 0 0; color: var(--text2); font-size: 0.95rem; line-height: 1.7; }
 .stat { display: flex; align-items: baseline; gap: 6px; color: var(--text3); font-size: 0.9rem; font-weight: 700; }
 .stat b { font: 400 1.55rem/1 var(--display); color: var(--text); }
@@ -264,19 +270,17 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
       "@type": "Organization",
       "@id": "https://chartoon.net/#org",
       "name": "Chartoon",
-      "alternateName": "چارتون",
       "url": "https://chartoon.net/",
       "logo": "https://chartoon.net/assets/icon-512.png"
     },
     {
       "@type": "WebApplication",
       "name": "Chartoon",
-      "alternateName": "چارتون",
       "url": "https://app.chartoon.net/",
       "applicationCategory": "EducationalApplication",
       "operatingSystem": "Web",
-      "inLanguage": "fa",
-      "description": "A game-like app for learning to trade: 8 courses and 279 short lessons on forex, gold, crypto and technical analysis, a paper-trading simulator and duels with friends. The lessons are in Persian.",
+      "inLanguage": ["en", "fa"],
+      "description": "A game-like app for learning to trade: 8 courses and 279 short lessons on forex, gold, crypto and technical analysis, a paper-trading simulator with $10,000 of virtual money at live prices, and duels with friends. The whole app, every lesson included, is in English and Persian.",
       "image": "https://chartoon.net/assets/og-en.png",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "publisher": { "@id": "https://chartoon.net/#org" }
@@ -286,12 +290,12 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
       "inLanguage": "en",
       "mainEntity": [
         { "@type": "Question", "name": "Is Chartoon free?", "acceptedAnswer": { "@type": "Answer", "text": "It's free to start, and you don't need any real money to learn or practice. In-app coins are virtual and you earn them by studying." } },
-        { "@type": "Question", "name": "What language is the app in?", "acceptedAnswer": { "@type": "Answer", "text": "Persian, for now. This page is in English, but the lessons and the app are written in Persian." } },
+        { "@type": "Question", "name": "What language is the app in?", "acceptedAnswer": { "@type": "Answer", "text": "English and Persian. Every screen and every lesson is in both languages, and you can switch between them anytime from your profile." } },
         { "@type": "Question", "name": "I know nothing about trading. Is it for me?", "acceptedAnswer": { "@type": "Answer", "text": "That's exactly who it's for. The Trading basics course starts with what a financial market is and how to read a chart. If you already know some of it, test out of the easy units." } },
         { "@type": "Question", "name": "Do I need real money to practice?", "acceptedAnswer": { "@type": "Answer", "text": "No. The simulator runs on $10,000 of virtual money with prices from the live market. Stay away from real money until you're ready." } },
         { "@type": "Question", "name": "Does Chartoon give buy or sell signals?", "acceptedAnswer": { "@type": "Answer", "text": "No. Chartoon is for education only. It isn't a broker or a financial adviser, and nothing in it is investment advice." } },
-        { "@type": "Question", "name": "Does it work on my phone?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The web app runs in your phone's browser, and you can add it to your home screen so it opens like an app. Android and iOS apps are on the way." } },
-        { "@type": "Question", "name": "Do I need an account?", "acceptedAnswer": { "@type": "Answer", "text": "Not to start; your progress is saved on that device. With an account, your progress syncs across your devices and you can join the weekly league and duel your friends." } }
+        { "@type": "Question", "name": "Does it work on my phone?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The web app at app.chartoon.net runs in any phone's browser, iPhone included, and you can add it to your home screen so it opens like an app. An Android app is coming soon: it's in testing on Google Play and coming to Myket and Cafe Bazaar." } },
+        { "@type": "Question", "name": "Do I need an account?", "acceptedAnswer": { "@type": "Answer", "text": "No. You can learn as a guest, and your progress is saved on that device. Whenever you like, sign in with your email or a mobile number from over 100 countries to sync your progress across devices, join the weekly league, duel your friends and chat in groups." } }
       ]
     }
   ]
@@ -338,7 +342,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
           <li><b>279</b> short lessons</li>
           <li><b>42</b> drawing tools</li>
         </ul>
-        <p class="note">The app is in Persian today.</p>
+        <p class="note">The whole app, every lesson included, is in English and Persian.</p>
       </div>
       <div class="stage">
         <div class="chartcard" aria-hidden="true">
@@ -399,7 +403,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
         </ul>
       </div>
       <div class="media">
-        <div class="phone"><img src="../assets/shots/lesson.webp" width="780" height="1688" loading="lazy" decoding="async" alt="A Chartoon lesson question, in Persian: which pattern is the last candle? The right answer, hammer, is marked green and Shamak says well done."></div>
+        <div class="phone"><img src="../assets/shots/en/lesson.webp" width="780" height="1688" loading="lazy" decoding="async" alt="A Chartoon lesson question: what pattern is the last candle on this EUR/USD chart? The right answer, Hammer, is marked green and Shamak says Awesome!"></div>
       </div>
     </section>
 
@@ -411,13 +415,13 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
         <ul class="ticks">
           <li>Bitcoin, Ethereum, gold and EUR/USD at live prices</li>
           <li>Limit and stop orders, stop loss and take profit, and leverage</li>
-          <li>42 TradingView-style drawing tools: trendlines, Fibonacci, channels and patterns</li>
+          <li>42 drawing tools: trendlines, Fibonacci, channels and patterns</li>
           <li>Market replay, challenges and a trade journal</li>
         </ul>
       </div>
       <div class="media pair">
-        <div class="phone back"><img src="../assets/shots/tools.webp" width="780" height="1688" loading="lazy" decoding="async" alt="Chartoon's drawing tools: trend line, ray, horizontal line, parallel channel and more."></div>
-        <div class="phone front"><img src="../assets/shots/chart.webp" width="780" height="1688" loading="lazy" decoding="async" alt="EUR/USD in the simulator with a Fibonacci retracement; price bounced off the 0.618 level."></div>
+        <div class="phone back"><img src="../assets/shots/en/tools.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The Drawing tools panel: trend line, ray, info line, horizontal line, parallel channel, pitchfork and more, with tabs for Fibonacci and patterns."></div>
+        <div class="phone front"><img src="../assets/shots/en/chart.webp" width="780" height="1688" loading="lazy" decoding="async" alt="EUR/USD in the simulator with a Fibonacci retracement drawn over the rally, moving averages, volume and Buy and Sell buttons."></div>
       </div>
     </section>
 
@@ -433,7 +437,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
         </ol>
       </div>
       <div class="media">
-        <div class="phone"><img src="../assets/shots/duel.webp" width="780" height="1688" loading="lazy" decoding="async" alt="Chartoon's duel screen with the three rounds, Shamak's difficulty levels and a button to create a duel and invite a friend."></div>
+        <div class="phone"><img src="../assets/shots/en/duel.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The Chartoon duel screen: the three rounds (speed quiz, what comes next and a 60-second trade), Shamak's Easy, Regular and Hard levels, and a section for duelling a friend."></div>
       </div>
     </section>
 
@@ -446,12 +450,12 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
           <li>Day streaks, with streak freezes for days you miss</li>
           <li>Three fresh quests every day, with a reward chest</li>
           <li>A weekly league, from Shrimp to Whale</li>
-          <li>Share cards for your records and finished courses</li>
+          <li>Share cards for a finished course, a streak record or a trade’s P&amp;L</li>
         </ul>
       </div>
       <div class="media pair">
-        <div class="phone back"><img src="../assets/shots/league.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The weekly Dolphin league table with players' XP and the promotion zone."></div>
-        <div class="phone front"><img src="../assets/shots/streak.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The streak screen: 12 days in a row, the month calendar and a streak freeze."></div>
+        <div class="phone back"><img src="../assets/shots/en/league.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The weekly Dolphin League table with players' XP; the top 5 move up to the Shark League."></div>
+        <div class="phone front"><img src="../assets/shots/en/streak.webp" width="780" height="1688" loading="lazy" decoding="async" alt="The streak screen: a 12-day streak, the month calendar, streak freezes and a Share my streak button."></div>
       </div>
     </section>
   </div>
@@ -466,15 +470,16 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     </div>
     <ul class="watch">
       <li class="head" aria-hidden="true"><span>Ticker</span><span>Course</span><span>Units</span><span>Lessons</span><span>Level</span></li>
-      <li style="--c:#2BD47D; --edge:#179457; --ink:#04301A"><span class="tick" aria-hidden="true"><svg><use href="#g-bull"/></svg></span><div><h3>Trading basics</h3><p>What a financial market is, charts and timeframes, order types, using a platform and choosing a broker.</p></div><div class="meta"><span class="stat"><b>6</b> units</span><span class="stat"><b>18</b> lessons</span><span class="lvl b">Beginner</span></div></li>
-      <li style="--c:#5AB0FF; --edge:#2F7FD0; --ink:#07233F"><span class="tick" aria-hidden="true">FX</span><div><h3>Forex &amp; gold</h3><p>Currency pairs, pips and lots, gold, oil and indices, the economic calendar and fundamentals.</p></div><div class="meta"><span class="stat"><b>9</b> units</span><span class="stat"><b>28</b> lessons</span><span class="lvl b">Beginner</span></div></li>
-      <li style="--c:#FFC53D; --edge:#C98F0A; --ink:#3B2A00"><span class="tick" aria-hidden="true">BTC</span><div><h3>Crypto</h3><p>From Bitcoin and blockchains to exchanges, wallet security, DeFi, futures and on-chain data.</p></div><div class="meta"><span class="stat"><b>12</b> units</span><span class="stat"><b>36</b> lessons</span><span class="lvl b">Beginner</span></div></li>
-      <li style="--c:#FF8A7A; --edge:#D65A4A; --ink:#3A0E08"><span class="tick" aria-hidden="true"><svg><use href="#g-hammer"/></svg></span><div><h3>Technical analysis</h3><p>Candlesticks, trends, support and resistance, chart patterns, Fibonacci and multi-timeframe analysis.</p></div><div class="meta"><span class="stat"><b>15</b> units</span><span class="stat"><b>45</b> lessons</span><span class="lvl b">Beginner</span></div></li>
-      <li style="--c:#4FD1C5; --edge:#2A9D93; --ink:#062B28"><span class="tick" aria-hidden="true">2%</span><div><h3>Risk &amp; psychology</h3><p>Position sizing, the math of losses, managing emotions, mental biases and discipline.</p></div><div class="meta"><span class="stat"><b>6</b> units</span><span class="stat"><b>17</b> lessons</span><span class="lvl b">Beginner</span></div></li>
-      <li style="--c:#FF9433; --edge:#C86A12; --ink:#3A1C00"><span class="tick" aria-hidden="true">RSI</span><div><h3>Indicators</h3><p>Moving averages, Bollinger Bands, RSI, MACD, divergence, volume and volume profile, and Ichimoku.</p></div><div class="meta"><span class="stat"><b>12</b> units</span><span class="stat"><b>36</b> lessons</span><span class="lvl i">Intermediate</span></div></li>
-      <li style="--c:#F472B6; --edge:#C2417F; --ink:#3D0A24"><span class="tick" aria-hidden="true">SYS</span><div><h3>Trading strategies</h3><p>Breakouts, ranges, swing trading, day trading and scalping, and building your own system with backtests.</p></div><div class="meta"><span class="stat"><b>18</b> units</span><span class="stat"><b>54</b> lessons</span><span class="lvl i">Intermediate</span></div></li>
-      <li style="--c:#A78BFA; --edge:#7556D9; --ink:#1E1240"><span class="tick" aria-hidden="true">SMC</span><div><h3>Advanced analysis</h3><p>Price action, supply and demand, smart money concepts, Elliott waves and harmonic patterns.</p></div><div class="meta"><span class="stat"><b>15</b> units</span><span class="stat"><b>45</b> lessons</span><span class="lvl a">Advanced</span></div></li>
+      <li style="--c:#2BD47D; --edge:#179457; --ink:#04301A"><span class="tick" aria-hidden="true"><svg><use href="#g-bull"/></svg></span><div><h3><a href="courses/basics/">Trading basics</a></h3><p>What a financial market is, charts and timeframes, order types, using a platform and choosing a broker.</p></div><div class="meta"><span class="stat"><b>6</b> units</span><span class="stat"><b>18</b> lessons</span><span class="lvl b">Beginner</span></div></li>
+      <li style="--c:#5AB0FF; --edge:#2F7FD0; --ink:#07233F"><span class="tick" aria-hidden="true">FX</span><div><h3><a href="courses/forex/">Forex &amp; gold</a></h3><p>Currency pairs, pips and lots, gold, oil and indices, the economic calendar and fundamentals.</p></div><div class="meta"><span class="stat"><b>9</b> units</span><span class="stat"><b>28</b> lessons</span><span class="lvl b">Beginner</span></div></li>
+      <li style="--c:#FFC53D; --edge:#C98F0A; --ink:#3B2A00"><span class="tick" aria-hidden="true">BTC</span><div><h3><a href="courses/crypto/">Crypto</a></h3><p>From Bitcoin and blockchains to exchanges, wallet security, DeFi, futures and on-chain data.</p></div><div class="meta"><span class="stat"><b>12</b> units</span><span class="stat"><b>36</b> lessons</span><span class="lvl b">Beginner</span></div></li>
+      <li style="--c:#FF8A7A; --edge:#D65A4A; --ink:#3A0E08"><span class="tick" aria-hidden="true"><svg><use href="#g-hammer"/></svg></span><div><h3><a href="courses/technical/">Technical analysis</a></h3><p>Candlesticks, trends, support and resistance, chart patterns, Fibonacci and multi-timeframe analysis.</p></div><div class="meta"><span class="stat"><b>15</b> units</span><span class="stat"><b>45</b> lessons</span><span class="lvl b">Beginner</span></div></li>
+      <li style="--c:#4FD1C5; --edge:#2A9D93; --ink:#062B28"><span class="tick" aria-hidden="true">2%</span><div><h3><a href="courses/risk/">Risk &amp; psychology</a></h3><p>Position sizing, the math of losses, managing emotions, mental biases and discipline.</p></div><div class="meta"><span class="stat"><b>6</b> units</span><span class="stat"><b>17</b> lessons</span><span class="lvl b">Beginner</span></div></li>
+      <li style="--c:#FF9433; --edge:#C86A12; --ink:#3A1C00"><span class="tick" aria-hidden="true">RSI</span><div><h3><a href="courses/indicators/">Indicators</a></h3><p>Moving averages, Bollinger Bands, RSI, MACD, divergence, volume and volume profile, and Ichimoku.</p></div><div class="meta"><span class="stat"><b>12</b> units</span><span class="stat"><b>36</b> lessons</span><span class="lvl i">Intermediate</span></div></li>
+      <li style="--c:#F472B6; --edge:#C2417F; --ink:#3D0A24"><span class="tick" aria-hidden="true">SYS</span><div><h3><a href="courses/strategies/">Trading strategies</a></h3><p>Breakouts, ranges, swing trading, day trading and scalping, and building your own system with backtests.</p></div><div class="meta"><span class="stat"><b>18</b> units</span><span class="stat"><b>54</b> lessons</span><span class="lvl i">Intermediate</span></div></li>
+      <li style="--c:#A78BFA; --edge:#7556D9; --ink:#1E1240"><span class="tick" aria-hidden="true">SMC</span><div><h3><a href="courses/advanced/">Advanced analysis</a></h3><p>Price action, supply and demand, smart money concepts, Elliott waves and harmonic patterns.</p></div><div class="meta"><span class="stat"><b>15</b> units</span><span class="stat"><b>45</b> lessons</span><span class="lvl a">Advanced</span></div></li>
     </ul>
+    <p class="more"><a class="btn alt" href="courses/">See every course, unit and lesson</a></p>
   </section>
 
   <section class="wrap" aria-labelledby="t-title">
@@ -491,12 +496,12 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <h2 id="q-title">Questions people ask</h2>
     <div class="faq">
       <details><summary>Is Chartoon free?</summary><p>It's free to start, and you don't need any real money to learn or practice. In-app coins are virtual and you earn them by studying.</p></details>
-      <details><summary>What language is the app in?</summary><p>Persian, for now. This page is in English, but the lessons and the app are written in Persian.</p></details>
+      <details><summary>What language is the app in?</summary><p>English and Persian. Every screen and every lesson is in both languages, and you can switch between them anytime from your profile.</p></details>
       <details><summary>I know nothing about trading. Is it for me?</summary><p>That's exactly who it's for. The Trading basics course starts with what a financial market is and how to read a chart. If you already know some of it, test out of the easy units.</p></details>
       <details><summary>Do I need real money to practice?</summary><p>No. The simulator runs on $10,000 of virtual money with prices from the live market. Stay away from real money until you're ready.</p></details>
       <details><summary>Does Chartoon give buy or sell signals?</summary><p>No. Chartoon is for education only. It isn't a broker or a financial adviser, and nothing in it is investment advice.</p></details>
-      <details><summary>Does it work on my phone?</summary><p>Yes. The web app runs in your phone's browser, and you can add it to your home screen so it opens like an app. Android and iOS apps are on the way.</p></details>
-      <details><summary>Do I need an account?</summary><p>Not to start; your progress is saved on that device. With an account, your progress syncs across your devices and you can join the weekly league and duel your friends.</p></details>
+      <details><summary>Does it work on my phone?</summary><p>Yes. The web app at app.chartoon.net runs in any phone's browser, iPhone included, and you can add it to your home screen so it opens like an app. An Android app is coming soon: it's in testing on Google Play and coming to Myket and Cafe Bazaar.</p></details>
+      <details><summary>Do I need an account?</summary><p>No. You can learn as a guest, and your progress is saved on that device. Whenever you like, sign in with your email or a mobile number from over 100 countries to sync your progress across devices, join the weekly league, duel your friends and chat in groups.</p></details>
     </div>
   </section>
 
@@ -504,7 +509,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <div class="final">
       <div>
         <h2 id="cta-title">Take your first lesson today</h2>
-        <p>Got five minutes? That’s enough. Nothing to install: it runs in your phone or computer browser.</p>
+        <p>Got five minutes? That’s enough. Nothing to install: it runs in your phone or computer browser, and the Android app is coming soon.</p>
         <a class="btn" href="https://app.chartoon.net/">Start free</a>
       </div>
       <svg viewBox="0 0 140 172" aria-hidden="true"><use href="#sh-party"/></svg>
@@ -518,6 +523,7 @@ h2 { margin: 12px 0 14px; font: 400 clamp(2.05rem, 3.9vw, 3.05rem)/1.32 var(--di
     <p>Chartoon is an educational app and doesn’t give investment advice. Trading forex, crypto, gold and leveraged products is high risk and you could lose all of your capital. Good results in the simulator don’t guarantee results in the real market.</p>
     <nav aria-label="Links">
       <a href="https://app.chartoon.net/">Open the app</a>
+      <a href="courses/">Courses</a>
       <a href="../" hreflang="fa" lang="fa">فارسی</a>
       <a href="privacy/">Privacy policy</a>
       <a href="terms/">Terms of use</a>
