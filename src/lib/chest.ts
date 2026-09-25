@@ -1,5 +1,5 @@
 /**
- * Reward chests on the learning path, Duolingo style: a chest starts at a tier, three
+ * Reward chests on the learning path: a chest starts at a tier, three
  * taps each have a chance to upgrade it, and the final tier decides the reward.
  * The same chest always plays out the same way, so leaving and coming back can't
  * re-roll it.

@@ -1,5 +1,5 @@
 /**
- * Daily quests, Duolingo style: three small goals a day (one about XP, one about
+ * Daily quests: three small goals a day (one about XP, one about
  * learning, and often one in the simulator). Finishing all three opens the day's quest
  * chest. The same day always gives the same quests.
  */

@@ -36,7 +36,7 @@ const CANDLES: [string, number, number][] = [
 const PLAY_MS = 1700;
 
 /**
- * The opening, like Duolingo's: Shamak starts where the splash left him, hops down to peek over
+ * The opening: Shamak starts where the splash left him, hops down to peek over
  * the bottom edge, «چارتون» pops up in the middle with its candles, then the whole thing fades
  * into the app. It also covers loading: it leaves only once the app is `ready`.
  */

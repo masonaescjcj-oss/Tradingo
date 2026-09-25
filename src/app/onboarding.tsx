@@ -57,7 +57,7 @@ const PROMPTS: Record<StepId, { text: string; mood: MascotMood }> = {
   signup: { text: 'پروفایلت رو بساز تا پیشرفتت گم نشه.', mood: 'happy' }, // i18n-ignore: translated where shown
 };
 
-/** Duolingo-style onboarding: a few quick questions, a personal plan, then the profile. */
+/** Onboarding: a few quick questions, a personal plan, then the profile. */
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
   const [market, setMarket] = useState<Market | null>(null);

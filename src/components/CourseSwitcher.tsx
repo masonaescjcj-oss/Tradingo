@@ -12,7 +12,7 @@ import { CourseBadge } from './CourseBadge';
 import { Icon } from './Icon';
 import { Txt } from './Txt';
 
-/** Duolingo-style drop-down under the header: the learner's courses plus an "add course" tile. */
+/** Drop-down under the header: the learner's courses plus an "add course" tile. */
 export function CourseSwitcher({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const enrolled = useGame((s) => s.enrolled);

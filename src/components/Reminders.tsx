@@ -88,7 +88,7 @@ export function ReminderRow() {
   );
 }
 
-/** A one-time offer on the path after the first lesson, like Duolingo's "can we remind you?". */
+/** A one-time offer on the path after the first lesson, a friendly "can we remind you?". */
 export function ReminderOffer() {
   const reminders = useGame((s) => s.reminders);
   const setReminders = useGame((s) => s.setReminders);
